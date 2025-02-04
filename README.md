@@ -1,7 +1,5 @@
 # Cheminv2.0
 
-## Chemistry Inventory Requirements
-
 ## Current Implementation
 
 #### Language
