@@ -2,7 +2,7 @@
 
 ## Chemistry Inventory Requirements
 
-### Current Implementation
+## Current Implementation
 
 #### Language
 PHP (5.3) Web Application
@@ -22,7 +22,7 @@ Windows Server
 #### Host
 CCIT
 
-### New Implementation
+## New Implementation
 
 #### Language
 Python (3.13)
