@@ -1,0 +1,25 @@
+name: cheminv
+services:
+  mysql:
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=cheminv
+    ports:
+      - "3307:3306"
+    image: mysql:latest
+    volumes:
+      - ./db:/var/lib/mysql
+  cheminv:
+    ports:
+      - 5000:5000
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=cheminv
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+networks: {}
