@@ -6,10 +6,8 @@ services:
         condition: service_healthy
     ports:
       - 5000:5000
-    environment:
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=cheminv
+    env_file: ".env"
+
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,7 +16,7 @@ services:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=cheminv
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
       - "3307:3306"
     image: mysql:latest
