@@ -5,10 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
 
-# HACK: Wait for MySQL to be ready
-import time
-time.sleep(5)
-
 load_dotenv()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
