@@ -1,9 +1,6 @@
 name: cheminv
 services:
   cheminv:
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - 5000:5000
     env_file: ".env"
@@ -22,9 +19,5 @@ services:
     image: mysql:latest
     volumes:
       - ./db:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
 
 networks: {}

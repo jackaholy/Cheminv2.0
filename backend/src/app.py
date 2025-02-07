@@ -1,18 +1,22 @@
-from flask import Flask
+from flask import g, Flask
 from sqlalchemy import URL, Table
 from sqlalchemy.orm import DeclarativeBase
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
 import os
-print("Starting up")
+from dotenv import load_dotenv
+import time
+print("Initializing app")
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
     drivername="mysql+mysqlconnector",
     username=os.getenv("MYSQL_USER"),
     password=os.getenv("MYSQL_PASSWORD"),
-    host="mysql",
-    database=os.getenv("MYSQL_DATABASE")
+    host=os.getenv("MYSQL_HOST"),
+    database=os.getenv("MYSQL_DATABASE"),
+    port=os.getenv("MYSQL_PORT")
 )
 
 app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
@@ -37,6 +41,17 @@ app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
 
 db = SQLAlchemy(app)
+ready = False
+while not ready:
+    try:
+        with app.app_context():
+            db.engine.connect()
+        ready = True
+    except Exception as e:
+        print("Database not ready, retrying...")
+        time.sleep(1)
+        pass
+
 oidc = OpenIDConnect(app)
 
 # There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query
@@ -54,7 +69,7 @@ def hello_world():
 @app.route('/users')
 @oidc.require_login
 def get_users():
-    return "<br/>".join([user.User_Name for user in db.session.query(User).all()])
+    return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([user.User_Name for user in db.session.query(User).all()])
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=ps.getenv("CHEMINV_DEBUG", False)=="True")
