@@ -11,7 +11,4 @@ RUN pip3 install -r requirements.txt
 # Copy the rest of the Python application code
 COPY src .
 
-
-# This is NOT ready for production!
-# This is a flask dev server 
-CMD [ "flask", "run", "--host=0.0.0.0"]
+CMD [ "python", "app.py"]
