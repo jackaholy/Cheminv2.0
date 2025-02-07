@@ -58,18 +58,18 @@ oidc = OpenIDConnect(app)
 class Base(DeclarativeBase):
     pass
 with app.app_context():
-    class User(Base):
-        __table__ = Table('User', Base.metadata, autoload_with=db.engine)
+    class Chemical(Base):
+        __table__ = Table('Chemical', Base.metadata, autoload_with=db.engine)
 
 
 @app.route('/')
 def hello_world():
     return 'Hello World!'
 
-@app.route('/users')
+@app.route('/chemicals')
 @oidc.require_login
 def get_users():
-    return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([user.User_Name for user in db.session.query(User).all()])
+    return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
 if __name__ == '__main__':
     app.run(debug=ps.getenv("CHEMINV_DEBUG", False)=="True")
