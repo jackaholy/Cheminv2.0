@@ -1,5 +1,6 @@
 from flask import g, Flask
 from sqlalchemy import URL, Table
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import DeclarativeBase
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
@@ -12,7 +13,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
-    drivername="mysql+mysqlconnector",
+    drivername="mysql+pymysql",
     username=os.getenv("MYSQL_USER"),
     password=os.getenv("MYSQL_PASSWORD"),
     host=os.getenv("MYSQL_HOST"),
@@ -48,13 +49,16 @@ while not ready:
         with app.app_context():
             db.engine.connect()
         ready = True
-    except Exception as e:
+    except DatabaseError as e:
         try:
             print("Database not ready, retrying...")
+            print(e)
             time.sleep(1)
             pass
         except KeyboardInterrupt:
             exit()
+    except Exception:
+        raise
 oidc = OpenIDConnect(app)
 
 # There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query

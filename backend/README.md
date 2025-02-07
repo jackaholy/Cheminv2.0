@@ -4,8 +4,22 @@
 
 ### Containerless Setup
 
-You'll need a MySQL database to run this application,
-with the connection credentials specified in the `.env` file.
+#### Database Setup
+
+Install a MySQL or MariaDB database.
+You can create the database and user with the following commands.
+It doesn't matter what the username, password, or database name are,
+but they should match the values in your `.env` file.
+
+```sql
+CREATE DATABASE A_DATABASE;
+CREATE USER 'A_USERNAME'@'%' IDENTIFIED BY 'A_PASSWORD';
+GRANT ALL PRIVILEGES ON A_DATABASE.* TO 'A_USERNAME'@'%';
+FLUSH PRIVILEGES;
+SOURCE database-dump.sql;
+```
+
+#### Backend Setup
 
 ```bash
 # Create a virtual environment
