@@ -8,6 +8,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    develop:
+      watch:
+        - path: ./src
+          action: sync
+          target: /cheminv
   mysql:
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
