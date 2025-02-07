@@ -65,10 +65,9 @@ If using the containerless setup and have a MySQL server running on the same mac
 
 This will almost always be `3306`.
 
-#### FLASK_DEBUG
+#### CHEMINV_ENVIRONMENT
 
-If you're setting up a development environment, set this to `1`.
-If you're setting up a production server that will be used: `0`.
+Set to `development` or `production`.
 
 #### CHEMINV_SECRET_KEY
 
