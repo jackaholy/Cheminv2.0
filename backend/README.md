@@ -2,6 +2,11 @@
 
 ## Getting Started
 
+### Containerless Setup
+
+You'll need a MySQL database to run this application,
+with the connection credentials specified in the `.env` file.
+
 ```bash
 # Create a virtual environment
 python -m venv venv
@@ -9,6 +14,80 @@ python -m venv venv
 source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
+
+# Set up the environment variables
+cp .env.example .env
+# Make sure to complete the .env file
+
 # Run the application
 flask --app src.app run
 ```
+
+### Docker Setup
+
+```bash
+# Set up the environment variables
+cp .env.example .env
+# Make sure to complete the .env file
+
+# Start the database and backend server
+docker compose up --build
+
+# If running the for the first time, you'll need to create the database
+docker exec -i cheminv-mysql-1 sh -c 'exec mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"' < database-dump.sql
+```
+
+### Environment
+
+The application is configured to use a `.env` file for environment variables.
+The following variables are required:
+
+#### MYSQL_USER
+
+The username to use for the MySQL database. If using the Docker setup, this will be used
+when creating the database and when the backend connects to the database.
+
+#### MYSQL_PASSWORD
+
+The password to use for the MySQL database. If using the Docker setup, this will be used
+when creating the database and when the backend connects to the database.
+
+#### MYSQL_DATABASE
+
+The name of the database to use for the MySQL database. Something like `cheminv`.
+
+#### MYSQL_HOST
+
+If using the Docker setup, this is probably `mysql`.
+If using the containerless setup and have a MySQL server running on the same machine, this is probably `localhost`.
+
+#### MYSQL_PORT
+
+This will almost always be `3306`.
+
+#### FLASK_DEBUG
+
+If you're setting up a development environment, set this to `1`.
+If you're setting up a production server that will be used: `0`.
+
+#### CHEMINV_SECRET_KEY
+
+A long random string that will be used as the secret key for the Flask application.
+
+#### CHEMINV_OIDC_CLIENT_ID
+
+The client ID for the OpenID Connect client. This should be provided by the SSO provider.
+
+#### CHEMINV_OIDC_CLIENT_SECRET
+
+The client secret for the OpenID Connect client. This should be provided by the SSO provider.
+
+#### CHEMINV_OIDC_ISSUER
+
+The issuer for the OpenID Connect provider. This should be provided by the SSO provider.
+
+#### CHEMINV_OIDC_REDIRECT_URI
+
+The address to redirect the user to after they have authenticated with the SSO provider.
+If developing locally, this should be `http://localhost:5000/oidc/callback`.
+If running in production, this should be something like `http://cheminv.carroll.edu/oidc/callback`.
