@@ -49,10 +49,12 @@ while not ready:
             db.engine.connect()
         ready = True
     except Exception as e:
-        print("Database not ready, retrying...")
-        time.sleep(1)
-        pass
-
+        try:
+            print("Database not ready, retrying...")
+            time.sleep(1)
+            pass
+        except KeyboardInterrupt:
+            exit()
 oidc = OpenIDConnect(app)
 
 # There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query
