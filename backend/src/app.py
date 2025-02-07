@@ -6,6 +6,7 @@ from flask_oidc import OpenIDConnect
 import os
 from dotenv import load_dotenv
 import time
+import waitress
 print("Initializing app")
 load_dotenv()
 
@@ -72,4 +73,7 @@ def get_users():
     return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
 if __name__ == '__main__':
-    app.run(debug=ps.getenv("CHEMINV_DEBUG", False)=="True")
+    if os.getenv("CHEMINV_EVN") == "development":
+        app.run(debug=True)
+    else:
+        waitress.serve(app, host="0.0.0.0", port=5000)
