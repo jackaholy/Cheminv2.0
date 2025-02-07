@@ -2,6 +2,20 @@
 
 ## Getting Started
 
+### Docker Setup
+
+```bash
+# Set up the environment variables
+cp .env.example .env
+# Make sure to complete the .env file
+
+# Start the database and backend server
+docker compose up --build
+
+# If running the for the first time, you'll need to create the database
+docker exec -i cheminv-mysql-1 sh -c 'exec mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"' < database-dump.sql
+```
+
 ### Containerless Setup
 
 #### Database Setup
@@ -35,20 +49,6 @@ cp .env.example .env
 
 # Run the application
 flask --app src.app run
-```
-
-### Docker Setup
-
-```bash
-# Set up the environment variables
-cp .env.example .env
-# Make sure to complete the .env file
-
-# Start the database and backend server
-docker compose up --build
-
-# If running the for the first time, you'll need to create the database
-docker exec -i cheminv-mysql-1 sh -c 'exec mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"' < database-dump.sql
 ```
 
 ### Environment
