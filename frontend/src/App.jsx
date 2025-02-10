@@ -8,7 +8,7 @@ function App() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://localhost:5000/api/example");
+        const response = await fetch("http://localhost:5001/api/example");
         setMessage((await response.json())["message"]);
       } catch (error) {
         setMessage("Something went wrong connecting to the backend server:" + error.message);
