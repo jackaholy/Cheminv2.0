@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
@@ -8,8 +7,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch("http://localhost:5000/api/example");
-      setMessage((await response.json())["message"]);
+      try {
+        const response = await fetch("http://localhost:5000/api/example");
+        setMessage((await response.json())["message"]);
+      } catch (error) {
+        setMessage("Something went wrong connecting to the backend server:" + error.message);
+      }
       setLoading(false);
     }
     fetchData();
@@ -26,14 +29,8 @@ function App() {
         </a>
       </div>
       <h1>React</h1>
-      <div className="card">
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p>If you're reading this (in a browser), it's probably working!</p>
-        <p>Example of fetching data from the backend:</p>
-        <p>{message}</p>
+      <p>Example of fetching data from the backend: </p>
+      <p>{message}</p>
     </>
   )
 }
