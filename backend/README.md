@@ -10,10 +10,28 @@ cp .env.example .env
 # Make sure to complete the .env file
 
 # Start the database and backend server
-docker compose up --build
+docker compose up --build -d
 
 # If running the for the first time, you'll need to create the database
 docker exec -i cheminv-mysql-1 sh -c 'exec mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"' < database-dump.sql
+```
+
+To start the server and database in the background, run:
+
+```bash
+docker compose up --build -d
+```
+
+To start the server and database in the foreground, run:
+
+```bash
+docker compose up --build
+```
+
+To stop the server and database, run:
+
+```bash
+docker compose down
 ```
 
 ### Containerless Setup
