@@ -1,4 +1,5 @@
 from flask import g, Flask
+from flask_cors import CORS
 from sqlalchemy import URL, Table
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import DeclarativeBase
@@ -60,7 +61,7 @@ while not ready:
     except Exception:
         raise
 oidc = OpenIDConnect(app)
-
+cors = CORS(app)
 # There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query
 class Base(DeclarativeBase):
     pass
@@ -72,7 +73,10 @@ with app.app_context():
 @app.route('/')
 def hello_world():
     return 'Hello World!'
-
+@app.route('/api/example')
+def get_example():
+    return {
+        "message": "Hello! This data came from the backend!"
 @app.route('/chemicals')
 @oidc.require_login
 def get_users():

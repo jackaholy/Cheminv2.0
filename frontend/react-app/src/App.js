@@ -1,8 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import "./App.css";
 import React from "react";
 
 function App() {
+  const [message, setMessage] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch("http://localhost:5001/api/example");
+        setMessage((await response.json())["message"]);
+      } catch (error) {
+        setMessage(
+          "Something went wrong connecting to the backend server:" +
+            error.message
+        );
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
   return (
     <div className="App">
       <header className="App-header">
@@ -18,6 +35,9 @@ function App() {
         >
           Learn React
         </a>
+
+        <p>Example of fetching data from the backend: </p>
+        <p>{message}</p>
       </header>
     </div>
   );
