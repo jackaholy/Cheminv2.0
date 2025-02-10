@@ -77,6 +77,7 @@ def hello_world():
 def get_example():
     return {
         "message": "Hello! This data came from the backend!"
+    }
 @app.route('/chemicals')
 @oidc.require_login
 def get_users():
