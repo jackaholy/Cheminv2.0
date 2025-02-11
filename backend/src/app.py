@@ -1,5 +1,10 @@
 from flask import g, Flask
+<<<<<<< HEAD
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
+=======
+from flask_cors import CORS
+from sqlalchemy import URL, Table
+>>>>>>> main
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
@@ -143,12 +148,17 @@ class Unit(Base):
 
 
 
+cors = CORS(app)
 
 
 @app.route('/')
 def hello_world():
     return 'Hello World!'
-
+@app.route('/api/example')
+def get_example():
+    return {
+        "message": "Hello! This data came from the backend!"
+    }
 @app.route('/chemicals')
 @oidc.require_login
 def get_chemicals():
