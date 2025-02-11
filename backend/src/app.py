@@ -1,10 +1,6 @@
 from flask import g, Flask
-<<<<<<< HEAD
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
-=======
 from flask_cors import CORS
-from sqlalchemy import URL, Table
->>>>>>> main
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
