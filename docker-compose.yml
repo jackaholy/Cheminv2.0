@@ -1,0 +1,38 @@
+name: cheminv
+services:
+  cheminv_backend:
+    env_file: ".env"
+    ports:
+      - 5001:5000
+
+    # Delete this in a production environment
+    volumes:
+      - ./backend/src:/cheminv
+
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+  cheminv_frontend:
+    ports:
+      - 3000:3000
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - cheminv_backend
+
+    # Delete this in a production environment
+    volumes:
+      - ./frontend:/app
+
+  mysql:
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    image: mysql:latest
+    volumes:
+      - ./backend/db:/var/lib/mysql
+
+networks: {}

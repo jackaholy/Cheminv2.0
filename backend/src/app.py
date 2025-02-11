@@ -1,9 +1,9 @@
 from flask import g, Flask
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
-from sqlalchemy.exc import DatabaseError
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import URL, Table
+from sqlalchemy.exc import DatabaseError, OperationalError
+from sqlalchemy.orm import declarative_base, relationship
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
 import os
@@ -45,6 +45,23 @@ app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
 
 db = SQLAlchemy(app)
+ready = False
+while not ready:
+    try:
+        with app.app_context():
+            db.engine.connect()
+        ready = True
+    except (DatabaseError, OperationalError) as e:
+        try:
+            print("Database not ready, retrying...")
+            print(e)
+            time.sleep(1)
+            pass
+        except KeyboardInterrupt:
+            exit()
+    except Exception:
+        raise
+print("Database ready")
 oidc = OpenIDConnect(app)
 Base = declarative_base()
 
@@ -161,7 +178,7 @@ def get_chemicals():
     return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
 if __name__ == '__main__':
-    if os.getenv("CHEMINV_EVN") == "development":
-        app.run(debug=True)
-    else:
+    if os.getenv("CHEMINV_ENVIRONMENT") == "development":
+        app.run(debug=True, host="0.0.0.0", port=5000)
+    else: 
         waitress.serve(app, host="0.0.0.0", port=5000)
