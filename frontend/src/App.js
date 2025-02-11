@@ -4,11 +4,10 @@ import React from "react";
 
 function App() {
   const [message, setMessage] = React.useState("");
-  const [loading, setLoading] = React.useState(true);
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://localhost:5001/api/example");
+        const response = await fetch("/api/example");
         setMessage((await response.json())["message"]);
       } catch (error) {
         setMessage(
@@ -16,7 +15,6 @@ function App() {
             error.message
         );
       }
-      setLoading(false);
     }
     fetchData();
   }, []);

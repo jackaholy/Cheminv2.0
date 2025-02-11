@@ -1,7 +1,7 @@
 from flask import g, Flask
 from flask_cors import CORS
 from sqlalchemy import URL, Table
-from sqlalchemy.exc import DatabaseError
+from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.orm import DeclarativeBase
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
@@ -50,7 +50,7 @@ while not ready:
         with app.app_context():
             db.engine.connect()
         ready = True
-    except DatabaseError as e:
+    except (DatabaseError, OperationalError) as e:
         try:
             print("Database not ready, retrying...")
             print(e)
@@ -60,6 +60,7 @@ while not ready:
             exit()
     except Exception:
         raise
+print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
 # There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query
@@ -84,7 +85,7 @@ def get_users():
     return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
 if __name__ == '__main__':
-    if os.getenv("CHEMINV_EVN") == "development":
-        app.run(debug=True)
-    else:
+    if os.getenv("CHEMINV_ENVIRONMENT") == "development":
+        app.run(debug=True, host="0.0.0.0", port=5000)
+    else: 
         waitress.serve(app, host="0.0.0.0", port=5000)

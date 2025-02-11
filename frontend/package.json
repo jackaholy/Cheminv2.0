@@ -1,5 +1,6 @@
 {
   "name": "cheminv",
+  "proxy": "http://cheminv_backend:5000",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
