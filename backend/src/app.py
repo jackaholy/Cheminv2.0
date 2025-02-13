@@ -82,9 +82,6 @@ class Chemical(Base):
     Minimum_On_Hand = Column(Float, nullable=True)
     Minimum_Unit_ID = Column(Integer, ForeignKey('Unit.Unit_ID'), nullable=True)
 
-    manufacturers = relationship("ChemicalManufacturer", back_populates="chemical")
-    storage_class = relationship("StorageClass", back_populates="chemicals")
-    minimum_unit = relationship("Unit", back_populates="chemicals")
 class ChemicalManufacturer(Base):
     __tablename__ = 'Chemical_Manufacturer'
 
@@ -97,9 +94,6 @@ class ChemicalManufacturer(Base):
     Barcode = Column(String(200), nullable=True)
     Comment = Column(String(50), nullable=True)
 
-    # Define relationships if needed
-    chemical = relationship("Chemical", back_populates="manufacturers")
-    manufacturer = relationship("Manufacturer", back_populates="chemicals")
 class Inventory(Base):
     __tablename__ = 'Inventory'
 
@@ -118,10 +112,6 @@ class Inventory(Base):
     MSDS = Column(String(200), nullable=True)
     Barcode = Column(String(200), nullable=True)
 
-    chemical_manufacturer = relationship("ChemicalManufacturer", back_populates="inventory")
-    sub_location = relationship("SubLocation", back_populates="inventory")
-    unit = relationship("Unit", back_populates="inventory")
-
 class Location(Base):
     __tablename__ = 'Location'
     Location_ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -133,19 +123,15 @@ class SubLocation(Base):
     Sub_Location_Name = Column(String(35), nullable=False)
     Location_ID = Column(Integer, ForeignKey('Location.Location_ID'), nullable=False)
     
-    location = relationship("Location", back_populates="sub_locations")
-    inventory = relationship("Inventory", back_populates="sub_location")
 class Manufacturer(Base):
     __tablename__ = 'Manufacturer'
     Manufacturer_ID = Column(Integer, primary_key=True, autoincrement=True)
     Manufacturer_Name = Column(String(30), nullable=False)
-    chemicals = relationship("ChemicalManufacturer", back_populates="manufacturer")
 
 class StorageClass(Base):
     __tablename__ = 'Storage_Class'
     
     Storage_Class_ID = Column(Integer, primary_key=True)
-    chemicals = relationship("Chemical", back_populates="storage_class")
 
 
 class Unit(Base):
@@ -153,11 +139,6 @@ class Unit(Base):
     Unit_ID = Column(Integer, primary_key=True, autoincrement=True)
     Unit_Name = Column(String(30), unique=True, nullable=False)
     Multiply_By = Column(Float, nullable=True)
-    to_conversion_unit = relationship("Unit", remote_side=[Unit_ID])
-
-    
-    inventory = relationship("Inventory", back_populates="unit")
-    chemicals = relationship("Chemical", back_populates="minimum_unit")
 
 
 
