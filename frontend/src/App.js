@@ -1,11 +1,26 @@
 import logo from "./logo.svg";
 import "./App.css";
 import React from "react";
-import { useAuth } from "react-oidc-context";
+import { useAuth, hasAuthParams } from "react-oidc-context";
 
 function App() {
   const auth = useAuth();
   const [message, setMessage] = React.useState("");
+  const [hasTriedSignin, setHasTriedSignin] = React.useState(false);
+
+  // automatically sign-in
+  React.useEffect(() => {
+    if (
+      !hasAuthParams() &&
+      !auth.isAuthenticated &&
+      !auth.activeNavigator &&
+      !auth.isLoading &&
+      !hasTriedSignin
+    ) {
+      auth.signinRedirect();
+      setHasTriedSignin(true);
+    }
+  }, [auth, hasTriedSignin]);
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -26,11 +41,9 @@ function App() {
       fetchData();
     }
   }, [auth]);
-  switch (auth.activeNavigator) {
-    case "signinSilent":
-      return <div>Signing you in...</div>;
-    case "signoutRedirect":
-      return <div>Signing you out...</div>;
+
+  if (!auth.isAuthenticated) {
+    return <div>Unable to log in</div>;
   }
 
   if (auth.isLoading) {
@@ -41,31 +54,27 @@ function App() {
     return <div>Oops... {auth.error.message}</div>;
   }
 
-  if (auth.isAuthenticated) {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
 
-          <p>Example of fetching data from the backend: </p>
-          <p>{message}</p>
-        </header>
-      </div>
-    );
-  }
-  auth.signinRedirect();
-  return <div>Redirecting to login...</div>;
+        <p>Example of fetching data from the backend: </p>
+        <p>{message}</p>
+      </header>
+    </div>
+  );
 }
 
 export default App;
