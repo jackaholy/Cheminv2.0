@@ -1,14 +1,16 @@
 from flask import g, Flask
+from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
 from sqlalchemy import URL, Table
 from sqlalchemy.exc import DatabaseError, OperationalError
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import declarative_base, relationship
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
 import os
 from dotenv import load_dotenv
 import time
 import waitress
+from models import db, Chemical, Location
 from authlib.integrations.flask_oauth2 import current_token
 print("Initializing app")
 load_dotenv()
@@ -48,7 +50,8 @@ app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
 
-db = SQLAlchemy(app)
+
+db.init_app(app)
 ready = False
 while not ready:
     try:
@@ -68,12 +71,6 @@ while not ready:
 print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
-# There's probably a better way to do this: https://stackoverflow.com/questions/39955521/sqlalchemy-existing-database-query
-class Base(DeclarativeBase):
-    pass
-with app.app_context():
-    class Chemical(Base):
-        __table__ = Table('Chemical', Base.metadata, autoload_with=db.engine)
 
 
 @app.route('/')
@@ -88,9 +85,14 @@ def get_example():
     }
 
 @app.route('/chemicals')
-@oidc.require_login
-def get_users():
-    return "You signed in as "+g.oidc_user.name+"<br/>"+"<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
+@oidc.accept_token()
+def get_chemicals_example():
+    return "<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
+
+@app.route('/locations')
+#@oidc.accept_token()
+def get_location_example():
+    return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
