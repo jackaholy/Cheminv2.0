@@ -1,13 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { AuthProvider } from "react-oidc-context";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const oidcConfig = {
+  authority: process.env.REACT_APP_OIDC_AUTHORITY,
+  client_id: process.env.REACT_APP_OIDC_CLIENT_ID,
+  redirect_uri: process.env.REACT_APP_OIDC_REDIRECT_URI,
+  scope: "openid profile email",
+};
+
+console.log(oidcConfig);
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider {...oidcConfig}>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
 

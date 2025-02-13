@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
+from authlib.integrations.flask_oauth2 import current_token
 print("Initializing app")
 load_dotenv()
 
@@ -37,7 +38,7 @@ app.config['OIDC_CLIENT_SECRETS'] = {
         ]
     }
 }
-
+app.config['OIDC_RECOURSE_SERVER_ONLY'] = True
 # Additional settings
 app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
@@ -74,11 +75,14 @@ with app.app_context():
 @app.route('/')
 def hello_world():
     return 'Hello World!'
+
 @app.route('/api/example')
+@oidc.accept_token(scopes=['profile'])
 def get_example():
     return {
-        "message": "Hello! This data came from the backend!"
+        "message": "Hello "+current_token["name"]
     }
+
 @app.route('/chemicals')
 @oidc.require_login
 def get_users():
