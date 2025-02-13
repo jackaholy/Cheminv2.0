@@ -8,13 +8,17 @@ services:
     # Delete this in a production environment
     volumes:
       - ./backend/src:/cheminv
-
+    restart: on-failure
     build:
       context: ./backend
       dockerfile: Dockerfile
   cheminv_frontend:
     ports:
       - 3000:3000
+    environment:
+      - REACT_APP_OIDC_AUTHORITY=${CHEMINV_OIDC_ISSUER}
+      - REACT_APP_OIDC_CLIENT_ID=${CHEMINV_OIDC_CLIENT_ID}
+      - REACT_APP_OIDC_REDIRECT_URI=${CHEMINV_OIDC_REDIRECT_URI}
     build:
       context: ./frontend
       dockerfile: Dockerfile

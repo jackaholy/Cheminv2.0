@@ -109,9 +109,6 @@ A long random string that will be used as the secret key for the Flask applicati
 
 The client ID for the OpenID Connect client. This should be provided by the SSO provider.
 
-#### CHEMINV_OIDC_CLIENT_SECRET
-
-The client secret for the OpenID Connect client. This should be provided by the SSO provider.
 
 #### CHEMINV_OIDC_ISSUER
 
