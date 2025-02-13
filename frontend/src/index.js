@@ -13,7 +13,6 @@ const oidcConfig = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
 };
 
-console.log(oidcConfig);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>

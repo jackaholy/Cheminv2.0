@@ -25,7 +25,6 @@ function App() {
     async function fetchData() {
       try {
         const token = auth.user?.access_token;
-        console.log(auth);
         const response = await fetch("/api/example", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -58,11 +57,14 @@ function App() {
       auth.error.message ===
       "The Authorization Server requires End-User authentication"
     ) {
-      console.log(auth.error);
       auth.removeUser();
       auth.signinRedirect();
     }
     return <div>Oops... {auth.error.message}</div>;
+  }
+
+  if (window.location.href.includes("oidc/callback")) {
+    window.location.href = "/";
   }
 
   return (
