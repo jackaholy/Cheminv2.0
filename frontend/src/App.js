@@ -1,9 +1,11 @@
 import logo from "./logo.svg";
 import "./App.css";
 import React from "react";
+import SearchBar from "./SearchBar";
 
 function App() {
   const [message, setMessage] = React.useState("");
+
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -11,13 +13,18 @@ function App() {
         setMessage((await response.json())["message"]);
       } catch (error) {
         setMessage(
-          "Something went wrong connecting to the backend server:" +
+          "Something went wrong connecting to the backend server: " +
             error.message
         );
       }
     }
     fetchData();
   }, []);
+
+  const handleSearch = (query) => {
+    alert("Searching for: " + query);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -34,8 +41,11 @@ function App() {
           Learn React
         </a>
 
-        <p>Example of fetching data from the backend: </p>
+        <p>Example of fetching data from the backend:</p>
         <p>{message}</p>
+
+        {/* M3 Search Bar Component */}
+        <SearchBar onSearch={handleSearch} />
       </header>
     </div>
   );
