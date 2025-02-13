@@ -29,6 +29,9 @@ function App() {
         const response = await fetch("/api/example", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (response.status === 403) {
+          auth.signinRedirect();
+        }
         setMessage((await response.json())["message"]);
       } catch (error) {
         setMessage(
@@ -51,6 +54,14 @@ function App() {
   }
 
   if (auth.error) {
+    if (
+      auth.error.message ===
+      "The Authorization Server requires End-User authentication"
+    ) {
+      console.log(auth.error);
+      auth.removeUser();
+      auth.signinRedirect();
+    }
     return <div>Oops... {auth.error.message}</div>;
   }
 

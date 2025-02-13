@@ -28,17 +28,21 @@ app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
 # Minimal OIDC configuration using environment variables.
 # When the issuer supports discovery, Flask‑OIDC will automatically retrieve the metadata
 # from: <OIDC_ISSUER> + "/.well-known/openid-configuration"
+app.config['OIDC_RESOURCE_SERVER_ONLY'] = True
 app.config['OIDC_CLIENT_SECRETS'] = {
     "web": {
         "client_id": os.environ.get("CHEMINV_OIDC_CLIENT_ID"),
+
+        # This seems really bad. We should make certain this is secure
         "client_secret": os.environ.get("CHEMINV_OIDC_CLIENT_SECRET"),
+        "token_endpoint_auth_method": "none",
+        
         "issuer": os.environ.get("CHEMINV_OIDC_ISSUER"),  # e.g. "https://your-idp.example.com"
         "redirect_uris": [
             os.environ.get("CHEMINV_OIDC_REDIRECT_URI")
-        ]
+        ],
     }
 }
-app.config['OIDC_RECOURSE_SERVER_ONLY'] = True
 # Additional settings
 app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
