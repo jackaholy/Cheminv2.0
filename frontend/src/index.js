@@ -2,23 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { WebStorageStateStore } from "oidc-client-ts";
-import { AuthProvider } from "react-oidc-context";
-
-const oidcConfig = {
-  authority: process.env.REACT_APP_OIDC_AUTHORITY,
-  client_id: process.env.REACT_APP_OIDC_CLIENT_ID,
-  redirect_uri: process.env.REACT_APP_OIDC_REDIRECT_URI,
-  scope: "openid profile email",
-  userStore: new WebStorageStateStore({ store: window.localStorage }),
-};
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <AuthProvider {...oidcConfig}>
-      <App />
-    </AuthProvider>
+    <App />
   </React.StrictMode>
 );
 

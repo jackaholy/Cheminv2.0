@@ -1,4 +1,4 @@
-from flask import g, Flask
+from flask import g, Flask, render_template, session
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
 from sqlalchemy import URL, Table
@@ -15,7 +15,8 @@ from authlib.integrations.flask_oauth2 import current_token
 print("Initializing app")
 load_dotenv()
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_url_path="", static_folder="../frontend/build", template_folder="../frontend/build")
 app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
     drivername="mysql+pymysql",
     username=os.getenv("MYSQL_USER"),
@@ -30,14 +31,13 @@ app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
 # Minimal OIDC configuration using environment variables.
 # When the issuer supports discovery, Flask‑OIDC will automatically retrieve the metadata
 # from: <OIDC_ISSUER> + "/.well-known/openid-configuration"
-app.config['OIDC_RESOURCE_SERVER_ONLY'] = True
+
 app.config['OIDC_CLIENT_SECRETS'] = {
     "web": {
         "client_id": os.environ.get("CHEMINV_OIDC_CLIENT_ID"),
 
         # This seems really bad. We should make certain this is secure
         "client_secret": os.environ.get("CHEMINV_OIDC_CLIENT_SECRET"),
-        "token_endpoint_auth_method": "none",
         
         "issuer": os.environ.get("CHEMINV_OIDC_ISSUER"),  # e.g. "https://your-idp.example.com"
         "redirect_uris": [
@@ -75,22 +75,22 @@ cors = CORS(app)
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    return render_template("index.html")
 
 @app.route('/api/example')
-@oidc.accept_token(scopes=['profile'])
+@oidc.require_login
 def get_example():
     return {
-        "message": "Hello "+current_token["name"]
+        "message": "Hello "+ session["oidc_auth_profile"].get('email')
     }
 
 @app.route('/chemicals')
-@oidc.accept_token()
+@oidc.require_login
 def get_chemicals_example():
     return "<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
 @app.route('/locations')
-#@oidc.accept_token()
+@oidc.require_login
 def get_location_example():
     return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 

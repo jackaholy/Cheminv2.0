@@ -1,42 +1,19 @@
-name: cheminv
 services:
   cheminv_backend:
     env_file: ".env"
     ports:
-      - 5001:5000
-
-    # Delete this in a production environment
-    volumes:
-      - ./backend/src:/cheminv
+      - "5001:5000"
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     restart: on-failure
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-  cheminv_frontend:
-    ports:
-      - 3000:3000
-    environment:
-      - REACT_APP_OIDC_AUTHORITY=${CHEMINV_OIDC_ISSUER}
-      - REACT_APP_OIDC_CLIENT_ID=${CHEMINV_OIDC_CLIENT_ID}
-      - REACT_APP_OIDC_REDIRECT_URI=${CHEMINV_OIDC_REDIRECT_URI}
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-      - cheminv_backend
-
-    # Delete this in a production environment
-    volumes:
-      - ./frontend:/app
 
   mysql:
+    image: mysql:latest
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
-    image: mysql:latest
     volumes:
       - ./backend/db:/var/lib/mysql
-
-networks: {}
