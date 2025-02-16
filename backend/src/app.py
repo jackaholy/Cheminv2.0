@@ -1,3 +1,5 @@
+
+from flask import g, Flask, jsonify
 from flask import g, Flask
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
@@ -10,6 +12,9 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
+from models import db, Chemical, Location
+from authlib.integrations.flask_oauth2 import current_token
+
 print("Initializing app")
 load_dotenv()
 
@@ -43,9 +48,8 @@ app.config['OIDC_CLIENT_SECRETS'] = {
 app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
-
-
 db.init_app(app)
+
 ready = False
 while not ready:
     try:
@@ -70,6 +74,8 @@ cors = CORS(app)
 @app.route('/')
 def hello_world():
     return 'Hello World!'
+
+
 @app.route('/api/example')
 def get_example():
     return {
@@ -85,8 +91,9 @@ def get_chemicals_example():
 def get_location_example():
     return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
+
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app.run(debug=True, host="0.0.0.0", port=5000)
-    else: 
+    else:
         waitress.serve(app, host="0.0.0.0", port=5000)
