@@ -10,8 +10,6 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
-from models import db, Chemical, Location
-from authlib.integrations.flask_oauth2 import current_token
 print("Initializing app")
 load_dotenv()
 
@@ -30,21 +28,17 @@ app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
 # Minimal OIDC configuration using environment variables.
 # When the issuer supports discovery, Flask‑OIDC will automatically retrieve the metadata
 # from: <OIDC_ISSUER> + "/.well-known/openid-configuration"
-app.config['OIDC_RESOURCE_SERVER_ONLY'] = True
 app.config['OIDC_CLIENT_SECRETS'] = {
     "web": {
         "client_id": os.environ.get("CHEMINV_OIDC_CLIENT_ID"),
-
-        # This seems really bad. We should make certain this is secure
         "client_secret": os.environ.get("CHEMINV_OIDC_CLIENT_SECRET"),
-        "token_endpoint_auth_method": "none",
-        
         "issuer": os.environ.get("CHEMINV_OIDC_ISSUER"),  # e.g. "https://your-idp.example.com"
         "redirect_uris": [
             os.environ.get("CHEMINV_OIDC_REDIRECT_URI")
-        ],
+        ]
     }
 }
+
 # Additional settings
 app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
@@ -76,14 +70,11 @@ cors = CORS(app)
 @app.route('/')
 def hello_world():
     return 'Hello World!'
-
 @app.route('/api/example')
-@oidc.accept_token(scopes=['profile'])
 def get_example():
     return {
-        "message": "Hello "+current_token["name"]
+        "message": "Hello! This data came from the backend!"
     }
-
 @app.route('/chemicals')
 @oidc.accept_token()
 def get_chemicals_example():
