@@ -81,7 +81,7 @@ def hello_world():
 @oidc.require_login
 def get_example():
     return {
-        "message": "Hello "+ session["oidc_auth_profile"].get('email')
+        "message": "Hello "+ session["oidc_auth_profile"].get('name')
     }
 
 @app.route('/chemicals')
