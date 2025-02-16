@@ -7,9 +7,12 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: on-failure
-
+    volumes:
+      - ./backend/src:/cheminv
   mysql:
     image: mysql:latest
+    ports:
+      - "3307:3306"
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_USER=${MYSQL_USER}
