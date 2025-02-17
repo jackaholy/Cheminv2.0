@@ -2,10 +2,15 @@ services:
   cheminv_backend:
     env_file: ".env"
     ports:
-      - "5001:5000"
+      - 5001:5000
+
+    # Delete this in a production environment
+    volumes:
+      - ./backend/src:/cheminv
+
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     restart: on-failure
 
   mysql:
