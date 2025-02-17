@@ -91,10 +91,10 @@ def get_chemicals_example():
 def get_location_example():
     return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
-@app.route('/api/search', methods=['POST'])
+@app.route('/api/search', methods=['GET'])
 def search():
     print("Request recieved")
-    query = request.json.get("query")
+    query = request.args.get("query")
     if not query: 
         return []
     
@@ -121,7 +121,8 @@ def search():
         synonym_matches = db.session.query(Chemical).filter(
             or_(
             Chemical.Chemical_Name.like("%"+synonym+"%"), 
-            Chemical.Alphabetical_Name.like("%"+synonym+"%")
+            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
+            Chemical.Chemical_Formula.like("%"+synonym+"%")
         )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
