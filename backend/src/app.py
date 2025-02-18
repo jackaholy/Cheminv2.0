@@ -95,6 +95,7 @@ def get_location_example():
 def search():
     print("Request recieved")
     query = request.args.get("query")
+    synonym_search_enabled = request.args.get("synonyms") == "true"
     if not query: 
         return []
     
@@ -102,20 +103,19 @@ def search():
     query.replace("%2F","")
     query.replace("%2f","")
     print("Looking up in pubchem")
-    response = requests.get(f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/name/{query}/synonyms/json").json()
     all_synonyms = [query]
-    if "InformationList" in response:
-        print("Synonyms found:")
-        for substance in response["InformationList"]["Information"]:
-            all_synonyms.extend(substance["Synonym"])
-    else: 
-        print("No synonyms found")
+    if synonym_search_enabled:
+        response = requests.get(f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/name/{query}/synonyms/json").json()
+        if "InformationList" in response:
+            print("Synonyms found:")
+            for substance in response["InformationList"]["Information"]:
+                all_synonyms.extend(substance["Synonym"])
+    
     all_synonyms =  list(set(all_synonyms))
 
-    # Element symbols match all kinds of things in the database, so we filter them out
+    # Element symbols (like FE, H, etc) match all kinds of things in the database, so we try to filter them out
     all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3]
     print("Querying the database for:")
-    #print("\t\n".join(all_synonyms))
     matching_entries = []
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(

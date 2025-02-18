@@ -25,7 +25,10 @@ function App() {
     setSearching(true);
     const formData = new FormData(e.target);
     const query = formData.get("query");
-    const response = await fetch(`/api/search?query=${query}`);
+    const synonyms = formData.get("synonyms");
+    const response = await fetch(
+      `/api/search?query=${query}&synonyms=${synonyms}`
+    );
     const data = await response.json();
     setResults(data);
     setSearching(false);
@@ -50,6 +53,8 @@ function App() {
         <p>Example of fetching data from the backend: </p>
         <p>{message}</p>
         <form onSubmit={(e) => handleSubmit(e)}>
+          <input type="checkbox" name="synonyms" value="true" />
+          <label for="synonyms">Synonym Search</label>
           <input type="text" name="query" placeholder="Search for chemicals" />
           <button type="submit" disabled={searching}>
             {searching ? "Searching..." : "Search"}
