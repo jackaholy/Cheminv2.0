@@ -81,15 +81,6 @@ def get_example():
     return {
         "message": "Hello! This data came from the backend!"
     }
-@app.route('/chemicals')
-@oidc.accept_token()
-def get_chemicals_example():
-    return "<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
-
-@app.route('/locations')
-#@oidc.accept_token()
-def get_location_example():
-    return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
 
 if __name__ == '__main__':
