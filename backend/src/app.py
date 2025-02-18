@@ -81,6 +81,23 @@ def get_example():
         "message": "Hello! This data came from the backend!"
     }
 
+@app.route('/api/get_chemicals')
+def get_chemicals():
+    with db.session() as session:
+        chemicals = session.query(Chemical).all()
+        for chem in chemicals:
+            for manufacturer in chem.Manufacturers:
+                chemicals_list = [{
+                    "name": chem.Chemical_Name,
+                    "manufacturer": manufacturer.Chemical_Manufacturers.Chemical_Manufacturer_ID,
+                    "location": chem.Location,
+                    "sub-location": chem.Sub_Location,
+                    "sticker-number": chem.Chemical_Manufacturer.Inventory.Sticker_Number
+                 }]
+
+    return jsonify(chemicals_list)
+
+
 
 @app.route('/chemicals')
 @oidc.accept_token()
