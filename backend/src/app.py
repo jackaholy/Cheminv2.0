@@ -11,7 +11,7 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
-from models import db, Chemical, Location
+from models import db, Chemical, Location, Inventory
 from authlib.integrations.flask_oauth2 import current_token
 
 print("Initializing app")
@@ -81,22 +81,28 @@ def get_example():
         "message": "Hello! This data came from the backend!"
     }
 
+
 @app.route('/api/get_chemicals')
 def get_chemicals():
+    chemical_list = []
+    # Search through the entire database
     with db.session() as session:
         chemicals = session.query(Chemical).all()
+        # Iterate through each table from the database
         for chem in chemicals:
-            for manufacturer in chem.Manufacturers:
-                chemicals_list = [{
-                    "name": chem.Chemical_Name,
-                    "manufacturer": manufacturer.Chemical_Manufacturers.Chemical_Manufacturer_ID,
-                    "location": chem.Location,
-                    "sub-location": chem.Sub_Location,
-                    "sticker-number": chem.Chemical_Manufacturer.Inventory.Sticker_Number
-                 }]
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append({
+                        "name": chem.Chemical_Name,
+                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                        "location": inventory.Sub_Location.Sub_Location_Name,
+                        "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
+                        "sticker-number": inventory.Sticker_Number
+                    })
 
-    return jsonify(chemicals_list)
-
+    return jsonify(chemical_list)
 
 
 @app.route('/chemicals')
