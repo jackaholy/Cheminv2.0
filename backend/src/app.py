@@ -105,6 +105,36 @@ def get_locations():
         }
     ]
 
+@app.route('/api/add_chemical', methods=['POST'])
+def add_chemical():
+    chemical_name = request.json.get("chemical_name")
+    chemical_formula = request.json.get("chemical_formula")
+    storage_class = request.json.get("storage_class")
+    order_more =  request.json.get("order_more")
+    order_description = request.json.get("order_description")
+    who_requested = request.json.get("who_requested")
+    date_requested = request.json.get("date_requested")
+    who_ordered = request.json.get("who_ordered")
+    date_ordered = request.json.get("date_ordered")
+    minimum_on_hand = request.json.get("minimum_on_hand")
+
+    chemical = Chemical(
+        Chemical_Name=chemical_name,
+        Chemical_Formula=chemical_formula,
+        Storage_Class_ID=storage_class,
+        Order_More=order_more,
+        Order_Description=order_description,
+        Who_Requested=who_requested,
+        When_Requested=date_requested,
+        Who_Ordered=who_ordered,
+        When_Ordered=date_ordered,
+        Minimum_On_Hand=minimum_on_hand
+    )
+    db.session.add(chemical)
+    db.session.commit()
+    return {"message": "Chemical added successfully"}
+
+
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app.run(debug=True, host="0.0.0.0", port=5000)
