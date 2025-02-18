@@ -132,16 +132,8 @@ def search():
         unique_entries = set()
 
         for chemical in matching_entries:
-            chemical_manufacturers = db.session.query(Chemical_Manufacturer).filter(
-                Chemical_Manufacturer.Chemical_ID == chemical.Chemical_ID
-            ).all()
-
-            for chemical_manufacturer in chemical_manufacturers:
-                inventory_records = db.session.query(Inventory).filter(
-                    Inventory.Product_Number == chemical_manufacturer.Product_Number
-                ).all()
-
-                for record in inventory_records:
+            for chemical_manufacturer in chemical.Chemical_Manufacturers:
+                for record in chemical_manufacturer.Inventory:
                     unique_entries.add((
                         chemical.Chemical_Name,
                         chemical_manufacturer.Product_Number,
