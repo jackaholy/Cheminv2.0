@@ -83,6 +83,28 @@ def get_example():
     }
 
 
+
+@app.route('/api/locations', methods=['GET'])
+def get_locations():
+    query = request.args.get("query")
+    if not query: 
+        return []
+    Locations = db.session.query(Location).filter(Location.Building.like("%"+query+"%") | Location.Room.like("%"+query+"%")).all()
+    return [
+        {
+            "location_id": location.Location_ID,
+            "building": location.Building,
+            "room": location.Room,
+            "sub_locations": [
+                {
+                    "sub_location_id": sub_location.Sub_Location_ID,
+                    "sub_location_name": sub_location.Sub_Location_Name
+                }
+                for sub_location in location.Sub_Locations
+            ]
+        }
+    ]
+
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app.run(debug=True, host="0.0.0.0", port=5000)
