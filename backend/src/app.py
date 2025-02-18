@@ -1,6 +1,5 @@
 
-from flask import g, Flask, jsonify
-from flask import g, Flask
+from flask import g, Flask, jsonify, request
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
 from sqlalchemy import URL, Table
@@ -87,9 +86,10 @@ def get_example():
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
     query = request.args.get("query")
-    if not query: 
-        return []
-    Locations = db.session.query(Location).filter(Location.Building.like("%"+query+"%") | Location.Room.like("%"+query+"%")).all()
+    if query: 
+        locations = db.session.query(Location).filter(Location.Building.like("%"+query+"%") | Location.Room.like("%"+query+"%")).all()
+    else:
+        locations = db.session.query(Location).all()
     return [
         {
             "location_id": location.Location_ID,
@@ -102,7 +102,7 @@ def get_locations():
                 }
                 for sub_location in location.Sub_Locations
             ]
-        }
+        } for location in locations
     ]
 
 @app.route('/api/add_chemical', methods=['POST'])
