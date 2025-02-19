@@ -125,6 +125,29 @@ def add_chemical():
     return {"message": "Chemical added successfully"}
 
 
+@app.route('/api/get_chemicals', methods=['GET'])
+def get_chemicals():
+    """
+    API to get chemical details from the database.
+    :return: A list of chemicals
+    """
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = session.query(Chemical).all()
+        # Iterate through each table from the database
+        for chem in chemicals:
+            # Add the appropriate chemical detail to the chemical list
+            # We can add more chemical attributes below if needed
+            chemical_list.append({
+                "chemical_name": chem.Chemical_Name,
+                "formula": chem.Chemical_Formula,
+                "id": chem.Sub_Location.Sub_Location_ID
+            })
+
+    return jsonify(chemical_list)
+
+
 @app.route('/api/get_locations', methods=['GET'])
 def get_locations():
     """
@@ -149,29 +172,6 @@ def get_locations():
                     })
 
     return jsonify(location_list)
-
-
-@app.route('/api/get_chemicals', methods=['GET'])
-def get_chemicals():
-    """
-    API to get chemical details from the database.
-    :return: A list of chemicals
-    """
-    chemical_list = []
-    # Search through the entire database
-    with db.session() as session:
-        chemicals = session.query(Chemical).all()
-        # Iterate through each table from the database
-        for chem in chemicals:
-            # Add the appropriate chemical detail to the chemical list
-            # We can add more chemical attributes below if needed
-            chemical_list.append({
-                "chemical_name": chem.Chemical_Name,
-                "formula": chem.Chemical_Formula,
-                "id": chem.Sub_Location.Sub_Location_ID
-            })
-
-    return jsonify(chemical_list)
 
 
 @app.route('/api/search', methods=['GET'])
