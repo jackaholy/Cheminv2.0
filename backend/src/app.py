@@ -1,7 +1,6 @@
-
 from flask import g, Flask, jsonify
 from flask import g, Flask
-from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
+from sqlalchemy import URL, Table, Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
 from sqlalchemy import URL, Table
 from sqlalchemy.exc import DatabaseError, OperationalError
@@ -12,7 +11,7 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
-from models import db, Chemical, Location
+from models import db, Chemical, Location, Inventory
 from authlib.integrations.flask_oauth2 import current_token
 
 print("Initializing app")
@@ -81,15 +80,42 @@ def get_example():
     return {
         "message": "Hello! This data came from the backend!"
     }
+
+
+@app.route('/api/get_chemicals')
+def get_chemicals():
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = session.query(Chemical).all()
+        # Iterate through each table from the database
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append({
+                        "name": chem.Chemical_Name,
+                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                        "location": inventory.Sub_Location.Sub_Location_Name,
+                        "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
+                        "sticker-number": inventory.Sticker_Number
+                    })
+
+    return jsonify(chemical_list)
+
+
 @app.route('/chemicals')
 @oidc.accept_token()
 def get_chemicals_example():
     return "<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
 
+
 @app.route('/locations')
-#@oidc.accept_token()
+# @oidc.accept_token()
 def get_location_example():
-    return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
+    return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join(
+        [x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
 
 if __name__ == '__main__':
