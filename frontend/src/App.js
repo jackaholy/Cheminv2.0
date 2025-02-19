@@ -7,9 +7,12 @@ function App() {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("/api/example");
+        const response = await fetch("/api/example", {
+          credentials: "include",
+        });
         setMessage((await response.json())["message"]);
       } catch (error) {
+        window.location.href = "/login";
         setMessage(
           "Something went wrong connecting to the backend server:" +
             error.message
@@ -37,6 +40,7 @@ function App() {
 
         <p>Example of fetching data from the backend: </p>
         <p>{message}</p>
+        <a href="/logout">Logout</a>
       </header>
     </div>
   );
