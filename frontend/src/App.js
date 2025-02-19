@@ -4,6 +4,8 @@ import React from "react";
 
 function App() {
   const [message, setMessage] = React.useState("");
+  const [searching, setSearching] = React.useState(false);
+  const [results, setResults] = React.useState([]);
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -18,6 +20,19 @@ function App() {
     }
     fetchData();
   }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSearching(true);
+    const formData = new FormData(e.target);
+    const query = formData.get("query");
+    const synonyms = formData.get("synonyms");
+    const response = await fetch(
+      `/api/search?query=${query}&synonyms=${synonyms}`
+    );
+    const data = await response.json();
+    setResults(data);
+    setSearching(false);
+  };
   return (
     <div className="App">
       <header className="App-header">
@@ -37,6 +52,19 @@ function App() {
 
         <p>Example of fetching data from the backend: </p>
         <p>{message}</p>
+        <form onSubmit={(e) => handleSubmit(e)}>
+          <input type="checkbox" name="synonyms" value="true" />
+          <label for="synonyms">Synonym Search</label>
+          <input type="text" name="query" placeholder="Search for chemicals" />
+          <button type="submit" disabled={searching}>
+            {searching ? "Searching..." : "Search"}
+          </button>
+        </form>
+        <ul>
+          {results.map((result) => (
+            <li>{result.name}</li>
+          ))}
+        </ul>
       </header>
     </div>
   );
