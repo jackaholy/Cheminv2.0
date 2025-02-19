@@ -1,5 +1,5 @@
 from flask import g, Flask, render_template, session, request, jsonify
-from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean, or_
+from sqlalchemy import URL, Table, Column, Integer, String, Float, Date, ForeignKey, Boolean, or_
 from flask_cors import CORS
 from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.orm import declarative_base, relationship
@@ -74,8 +74,9 @@ cors = CORS(app)
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
     query = request.args.get("query")
-    if query: 
-        locations = db.session.query(Location).filter(Location.Building.like("%"+query+"%") | Location.Room.like("%"+query+"%")).all()
+    if query:
+        locations = db.session.query(Location).filter(
+            Location.Building.like("%" + query + "%") | Location.Room.like("%" + query + "%")).all()
     else:
         locations = db.session.query(Location).all()
     return [
@@ -99,7 +100,7 @@ def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
     storage_class = request.json.get("storage_class")
-    order_more =  request.json.get("order_more")
+    order_more = request.json.get("order_more")
     order_description = request.json.get("order_description")
     who_requested = request.json.get("who_requested")
     date_requested = request.json.get("date_requested")
@@ -124,7 +125,7 @@ def add_chemical():
     return {"message": "Chemical added successfully"}
 
 
-@app.route('/api/get_chemicals')
+@app.route('/api/get_chemicals', methods=['GET'])
 def get_chemicals():
     chemical_list = []
     # Search through the entire database
@@ -132,17 +133,13 @@ def get_chemicals():
         chemicals = session.query(Chemical).all()
         # Iterate through each table from the database
         for chem in chemicals:
-            for manufacturer in chem.Chemical_Manufacturers:
-                for inventory in manufacturer.Inventory:
-                    # Add the appropriate chemical detail to the chemical list
-                    # We can add more chemical attributes below if needed
-                    chemical_list.append({
-                        "name": chem.Chemical_Name,
-                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                        "location": inventory.Sub_Location.Sub_Location_Name,
-                        "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
-                        "sticker-number": inventory.Sticker_Number
-                    })
+            # Add the appropriate chemical detail to the chemical list
+            # We can add more chemical attributes below if needed
+            chemical_list.append({
+                "chemical_name": chem.Chemical_Name,
+                "formula": chem.Chemical_Formula,
+                "id": chem.Sub_Location.Sub_Location_ID
+            })
 
     return jsonify(chemical_list)
 
@@ -152,22 +149,23 @@ def search():
     print("Request recieved")
     query = request.args.get("query")
     synonym_search_enabled = request.args.get("synonyms") == "true"
-    if not query: 
+    if not query:
         return []
-    
-    query.replace("/","")
-    query.replace("%2F","")
-    query.replace("%2f","")
+
+    query.replace("/", "")
+    query.replace("%2F", "")
+    query.replace("%2f", "")
     print("Looking up in pubchem")
     all_synonyms = [query]
     if synonym_search_enabled:
-        response = requests.get(f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/name/{query}/synonyms/json").json()
+        response = requests.get(
+            f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/name/{query}/synonyms/json").json()
         if "InformationList" in response:
             print("Synonyms found:")
             for substance in response["InformationList"]["Information"]:
                 all_synonyms.extend(substance["Synonym"])
-    
-    all_synonyms =  list(set(all_synonyms))
+
+    all_synonyms = list(set(all_synonyms))
 
     # Element symbols (like FE, H, etc) match all kinds of things in the database, so we try to filter them out
     all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3]
@@ -176,10 +174,10 @@ def search():
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(
             or_(
-            Chemical.Chemical_Name.like("%"+synonym+"%"), 
-            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
-            Chemical.Chemical_Formula.like("%"+synonym+"%")
-        )).all()
+                Chemical.Chemical_Name.like("%" + synonym + "%"),
+                Chemical.Alphabetical_Name.like("%" + synonym + "%"),
+                Chemical.Chemical_Formula.like("%" + synonym + "%")
+            )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
         print()
@@ -202,7 +200,8 @@ def search():
         ]
 
     return response_entries
-    
+
+
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app.run(debug=True, host="0.0.0.0", port=5000)
