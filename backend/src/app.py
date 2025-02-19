@@ -1,19 +1,15 @@
-from flask import g, Flask, render_template, session, request, jsonify
-from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean, or_
+from flask import Flask, request, jsonify
+from sqlalchemy import URL, or_
 from flask_cors import CORS
 from sqlalchemy.exc import DatabaseError, OperationalError
-from sqlalchemy.orm import declarative_base, relationship
-from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
 import os
-from dotenv import load_dotenv
 import time
 import waitress
 
-from models import db, Chemical, Location, Inventory, Chemical_Manufacturer
-from authlib.integrations.flask_oauth2 import current_token
+from dotenv import load_dotenv
+from models import db, Chemical, Location
 import requests
-import json
 
 print("Initializing app")
 load_dotenv()
