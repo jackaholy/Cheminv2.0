@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 
 const Navbar = () => (
@@ -133,6 +133,7 @@ const App = () => {
     "Ascorbic Acid",
     "Benzene",
   ];
+  /*
   const rooms = [
     "FC 111",
     "FC 114",
@@ -142,6 +143,18 @@ const App = () => {
     "SH 218",
     "SH 316",
   ];
+  */
+  const [rooms, setRooms] = useState([]);
+  useEffect(() => {
+    fetch("/api/locations")
+      .then((response) => response.json())
+      .then((data) =>
+        setRooms(
+          data.map((location) => location.building + " " + location.room)
+        )
+      )
+      .catch((error) => console.error(error));
+  }, []);
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
   const chemicalsData = [
     { name: "Acetone", symbol: "CH3-CO-CH3" },
