@@ -1,7 +1,6 @@
 from flask import g, Flask, render_template, session, request, jsonify
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean, or_
 from flask_cors import CORS
-from sqlalchemy import URL, Table
 from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.orm import declarative_base, relationship
 from flask_sqlalchemy import SQLAlchemy
@@ -70,18 +69,6 @@ while not ready:
 print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
-
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
-
-@app.route('/api/example')
-def get_example():
-    return {
-        "message": "Hello! This data came from the backend!"
-    }
 
 
 @app.route('/api/locations', methods=['GET'])
@@ -158,19 +145,6 @@ def get_chemicals():
                     })
 
     return jsonify(chemical_list)
-
-
-@app.route('/chemicals')
-@oidc.accept_token()
-def get_chemicals_example():
-    return "<br/>".join([chemical.Chemical_Name for chemical in db.session.query(Chemical).all()])
-
-
-@app.route('/locations')
-# @oidc.accept_token()
-def get_location_example():
-    return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join(
-        [x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
 
 @app.route('/api/search', methods=['GET'])
