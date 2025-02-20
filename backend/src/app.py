@@ -72,6 +72,14 @@ print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
 
+@app.route('/')
+# Important: The auth redirect must
+# occur in the browser, not a fetch request. 
+# The apis need to be protected, but can't actually 
+# redirect to the login page.
+@oidc.require_login
+def index():
+    return render_template('index.html')
 
 @app.route('/api/locations', methods=['GET'])
 @oidc.require_login
