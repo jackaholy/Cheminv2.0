@@ -154,22 +154,21 @@ def get_chemical_location_data():
     API to get location, manufacturer, and other chemical information from the database.
     :return: A list of locations and other chemical details.
     """
+    chemical_id = request.args.get("chemical_id")
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemicals = session.query(Chemical).all()
-        # Iterate through each table from the database
-        for chem in chemicals:
-            for manufacturer in chem.Chemical_Manufacturers:
-                for inventory in manufacturer.Inventory:
-                    # Add the appropriate chemical detail to the chemical list
-                    # We can add more chemical attributes below if needed
-                    location_list.append({
-                        "location": inventory.Sub_Location.Sub_Location_Name,
-                        "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
-                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                        "sticker-number": inventory.Sticker_Number
-                    })
+        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        for manufacturer in chem.Chemical_Manufacturers:
+            for inventory in manufacturer.Inventory:
+                # Add the appropriate chemical detail to the chemical list
+                # We can add more chemical attributes below if needed
+                location_list.append({
+                    "location": inventory.Sub_Location.Sub_Location_Name,
+                    "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
+                    "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                    "sticker-number": inventory.Sticker_Number
+                })
 
     return jsonify(location_list)
 
