@@ -197,7 +197,7 @@ def search():
                     ))
 
         response_entries = [
-            {"name": name, "product_number": product_number, "sticker": sticker}
+            {"name": name, "symbol": chemical.Chemical_Formula, "product_number": product_number, "sticker": sticker}
             for name, product_number, sticker in unique_entries
         ]
 
