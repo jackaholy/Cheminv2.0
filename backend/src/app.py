@@ -154,21 +154,21 @@ def get_chemical_location_data():
     API to get location, manufacturer, and other chemical information from the database.
     :return: A list of locations and other chemical details.
     """
-    chemical_id = request.args.get("chemical_id")
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chem.Chemical_Manufacturers:
-            for inventory in manufacturer.Inventory:
-                # Add the appropriate chemical detail to the chemical list
-                # We can add more chemical attributes below if needed
-                location_list.append({
-                    "location": inventory.Sub_Location.Sub_Location_Name,
-                    "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
-                    "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                    "sticker-number": inventory.Sticker_Number
-                })
+        chemicals = session.query(Chemical).all()
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    location_list.append({
+                        "location": inventory.Sub_Location.Sub_Location_Name,
+                        "sub-location": inventory.Sub_Location.Location.Building + " " + inventory.Sub_Location.Location.Room,
+                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                        "sticker-number": inventory.Sticker_Number
+                    })
 
     return jsonify(location_list)
 
@@ -203,10 +203,10 @@ def search():
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(
             or_(
-            Chemical.Chemical_Name.like("%"+synonym+"%"), 
-            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
-            Chemical.Chemical_Formula == synonym
-        )).all()
+                Chemical.Chemical_Name.like("%" + synonym + "%"),
+                Chemical.Alphabetical_Name.like("%" + synonym + "%"),
+                Chemical.Chemical_Formula == synonym
+            )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
         print()
@@ -226,7 +226,7 @@ def search():
 
         response_entries = [
             {"name": name, "symbol": formula, "product_number": product_number, "sticker": sticker}
-            for name, formula,product_number, sticker in unique_entries
+            for name, formula, product_number, sticker in unique_entries
         ]
 
     return response_entries
