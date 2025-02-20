@@ -185,7 +185,9 @@ const App = () => {
     setSearching(true);
     const formData = new FormData(event.target);
     const query = formData.get("query");
-    const response = await fetch(`/api/search?query=${query}&synonyms=true`);
+    const response = await fetch(`/api/search?query=${query}&synonyms=true`, {
+      credentials: "include",
+    });
     const data = await response.json();
     setResults(data);
     setSearching(false);
