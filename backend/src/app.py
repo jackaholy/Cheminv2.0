@@ -178,7 +178,7 @@ def search():
             or_(
             Chemical.Chemical_Name.like("%"+synonym+"%"), 
             Chemical.Alphabetical_Name.like("%"+synonym+"%"),
-            Chemical.Chemical_Formula.like("%"+synonym+"%")
+            Chemical.Chemical_Formula == synonym
         )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
