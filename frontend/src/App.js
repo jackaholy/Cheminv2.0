@@ -178,7 +178,7 @@ const App = () => {
   };
 
   return (
-    <div className="tw-bg-gray-100">
+    <div className="tw-bg-gray-100 pb-3">
       <Navbar handleSearch={handleSearch} />
       <div className="tw-flex tw-mt-4">
         <Sidebar
