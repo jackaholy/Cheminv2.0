@@ -192,13 +192,14 @@ def search():
                 for record in chemical_manufacturer.Inventory:
                     unique_entries.add((
                         chemical.Chemical_Name,
+                        chemical.Chemical_Formula,
                         chemical_manufacturer.Product_Number,
                         record.Sticker_Number
                     ))
 
         response_entries = [
-            {"name": name, "symbol": chemical.Chemical_Formula, "product_number": product_number, "sticker": sticker}
-            for name, product_number, sticker in unique_entries
+            {"name": name, "symbol": formula, "product_number": product_number, "sticker": sticker}
+            for name, formula,product_number, sticker in unique_entries
         ]
 
     return response_entries
