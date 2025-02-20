@@ -12,8 +12,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: on-failure
-    volumes:
-      - ./backend/src:/cheminv
+    
   mysql:
     image: mysql:latest
     ports:
