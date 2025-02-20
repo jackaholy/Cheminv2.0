@@ -142,14 +142,14 @@ def get_chemicals():
             chemical_list.append({
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
-                "id": chem.Sub_Location.Sub_Location_ID
+                "id": chem.Chemical_ID
             })
 
     return jsonify(chemical_list)
 
 
-@app.route('/api/get_locations', methods=['GET'])
-def get_locations():
+@app.route('/api/get_chemical_location_data', methods=['GET'])
+def get_chemical_location_data():
     """
     API to get location, manufacturer, and other chemical information from the database.
     :return: A list of locations and other chemical details.
