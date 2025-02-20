@@ -4,24 +4,56 @@ import "./style.css";
 const Navbar = () => (
   <nav className="navbar navbar-expand-lg bg-light">
     <div className="container-fluid">
-      <a className="navbar-brand" href="#">Chemical Inventory</a>
-      <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+      <a className="navbar-brand" href="#">
+        Chemical Inventory
+      </a>
+      <button
+        className="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarSupportedContent"
+      >
         <span className="navbar-toggler-icon"></span>
       </button>
       <div className="collapse navbar-collapse" id="navbarSupportedContent">
         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-          <li className="nav-item"><a className="nav-link active" href="#">Home</a></li>
-          <li className="nav-item"><a className="nav-link" href="#">Link</a></li>
+          <li className="nav-item">
+            <a className="nav-link active" href="#">
+              Home
+            </a>
+          </li>
+          <li className="nav-item">
+            <a className="nav-link" href="#">
+              Link
+            </a>
+          </li>
           <li className="nav-item dropdown">
-            <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dropdown</a>
+            <a
+              className="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              Dropdown
+            </a>
             <ul className="dropdown-menu">
-              <li><a className="dropdown-item" href="#">Action</a></li>
+              <li>
+                <a className="dropdown-item" href="#">
+                  Action
+                </a>
+              </li>
             </ul>
           </li>
         </ul>
         <form className="d-flex">
-          <input className="form-control me-2" type="search" placeholder="Search" />
-          <button className="btn btn-outline-success" type="submit">Search</button>
+          <input
+            className="form-control me-2"
+            type="search"
+            placeholder="Search"
+          />
+          <button className="btn btn-outline-success" type="submit">
+            Search
+          </button>
         </form>
       </div>
     </div>
@@ -31,7 +63,11 @@ const Navbar = () => (
 const Sidebar = ({ chemicals, rooms, manufacturers }) => (
   <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
     <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
-      <input type="text" placeholder="Search..." className="tw-ml-2 tw-w-full tw-outline-none" />
+      <input
+        type="text"
+        placeholder="Search..."
+        className="tw-ml-2 tw-w-full tw-outline-none"
+      />
       <button className="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
         <span className="material-icons">search</span>
       </button>
@@ -87,20 +123,41 @@ const MainContent = ({ chemicalsData }) => (
 );
 
 const App = () => {
-  const chemicals = ["Acetic Acid", "Acetone", "Aluminum Nitrate", "Aluminum Oxide", "Ammonium Chloride", "Ammonium Hydroxide", "Ascorbic Acid", "Benzene"];
-  const rooms = ["FC 111", "FC 114", "FC 115", "FC 212", "FC 213", "SH 218", "SH 316"];
+  const chemicals = [
+    "Acetic Acid",
+    "Acetone",
+    "Aluminum Nitrate",
+    "Aluminum Oxide",
+    "Ammonium Chloride",
+    "Ammonium Hydroxide",
+    "Ascorbic Acid",
+    "Benzene",
+  ];
+  const rooms = [
+    "FC 111",
+    "FC 114",
+    "FC 115",
+    "FC 212",
+    "FC 213",
+    "SH 218",
+    "SH 316",
+  ];
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
   const chemicalsData = [
     { name: "Acetone", symbol: "CH3-CO-CH3" },
     { name: "Distilled Water", symbol: "H2O" },
-    { name: "Acetic Acid", symbol: "CH3COOH" }
+    { name: "Acetic Acid", symbol: "CH3COOH" },
   ];
 
   return (
     <div className="tw-bg-gray-100">
       <Navbar />
       <div className="tw-flex tw-mt-4">
-        <Sidebar chemicals={chemicals} rooms={rooms} manufacturers={manufacturers} />
+        <Sidebar
+          chemicals={chemicals}
+          rooms={rooms}
+          manufacturers={manufacturers}
+        />
         <MainContent chemicalsData={chemicalsData} />
       </div>
     </div>
