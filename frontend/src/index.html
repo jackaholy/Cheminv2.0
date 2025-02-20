@@ -1,156 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Chemical Inventory</title>
-      <!-- Load Tailwind First -->
-      <script src="https://cdn.tailwindcss.com"></script>
-      <!-- Tailwind Config (After Loading Tailwind) -->
-      <script>
-         tailwind.config = {
-           prefix: 'tw-' // Use 'tw-' prefix to avoid Bootstrap conflicts
-         }
-      </script>
-      <!-- Load Bootstrap AFTER Tailwind -->
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-      <!-- Material Icons (For Sidebar Icons) -->
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-      <!--  Style Sheet for Overrides  -->
-      <link href="style.css" rel="stylesheet">
-   </head>
-   <body class="tw-bg-gray-100">
-      <!-- Bootstrap Navbar -->
-      <nav class="navbar navbar-expand-lg bg-light">
-         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Chemical Inventory</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-               <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                  <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
-                  <li class="nav-item"><a class="nav-link" href="#">Link</a></li>
-                  <li class="nav-item dropdown">
-                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dropdown</a>
-                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Action</a></li>
-                     </ul>
-                  </li>
-               </ul>
-               <form class="d-flex">
-                  <input class="form-control me-2" type="search" placeholder="Search">
-                  <button class="btn btn-outline-success" type="submit">Search</button>
-               </form>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chemical Inventory</title>
+        <!-- Load Tailwind First -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Tailwind Config (After Loading Tailwind) -->
+        <script>
+            tailwind.config = {
+              prefix: 'tw-' // Use 'tw-' prefix to avoid Bootstrap conflicts
+            }
+        </script>
+        <!-- Load Bootstrap AFTER Tailwind -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Material Icons (For Sidebar Icons) -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!--  Style Sheet for Overrides  -->
+        <link href="style.css" rel="stylesheet">
+    </head>
+    <body class="tw-bg-gray-100">
+        <!-- Bootstrap Navbar -->
+        <nav class="navbar navbar-expand-lg bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Chemical Inventory</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Link</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dropdown</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#">Action</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Search">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
+                </div>
             </div>
-         </div>
-      </nav>
-      <!-- Tailwind Sidebar + Main Content -->
-      <div class="tw-flex tw-mt-4">
-         <!-- Sidebar -->
-         <div class="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
-            <div class="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
-               <input type="text" placeholder="Search..." class="tw-ml-2 tw-w-full tw-outline-none">
-               <button class="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
-               <span class="material-icons">search</span>
-               </button>
+        </nav>
+        <!-- Tailwind Sidebar + Main Content -->
+        <div class="tw-flex tw-mt-4">
+            <!-- Sidebar -->
+            <div class="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
+                <div class="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
+                    <input type="text" placeholder="Search..." class="tw-ml-2 tw-w-full tw-outline-none">
+                    <button class="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
+                    <span class="material-icons">search</span>
+                    </button>
+                </div>
+                <div class="tw-mt-4">
+                    <div class="tw-font-semibold">Popular Chemicals</div>
+                    <div class="tw-mt-2 tw-space-y-1">
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Acetic Acid
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Acetone
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Aluminum Nitrate
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Aluminum Oxide
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Ammonium Chloride
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Ammonium Hydroxide
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Ascorbic Acid
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Benzene
+                        </label>
+                    </div>
+                </div>
+                <div class="tw-mt-4">
+                    <div class="tw-font-semibold">Room Location</div>
+                    <div class="tw-mt-2 tw-space-y-1">
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> FC 111
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> FC 114
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> FC 115
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> FC 212
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> FC 213
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> SH 218
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="radio" name="room" class="tw-mr-2"> SH 316
+                        </label>
+                    </div>
+                </div>
+                <div class="tw-mt-4">
+                    <div class="tw-font-semibold">Manufacturers</div>
+                    <div class="tw-mt-2 tw-space-y-1">
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" checked class="tw-mr-2"> Acros
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" class="tw-mr-2"> Matrix
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" class="tw-mr-2"> TCI
+                        </label>
+                        <label class="tw-flex tw-items-center">
+                        <input type="checkbox" class="tw-mr-2"> BDH
+                        </label>
+                    </div>
+                </div>
             </div>
-            <div class="tw-mt-4">
-               <div class="tw-font-semibold">Popular Chemicals</div>
-               <div class="tw-mt-2 tw-space-y-1">
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Acetic Acid
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Acetone
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Aluminum Nitrate
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Aluminum Oxide
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Ammonium Chloride
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Ammonium Hydroxide
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Ascorbic Acid
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Benzene
-                  </label>
-               </div>
+            <!-- Main Content -->
+            <div class="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
+                <div class="tw-grid tw-grid-cols-2 tw-border-b tw-p-2 tw-font-semibold">
+                    <div>Chemical</div>
+                    <div>Chemical Symbol</div>
+                </div>
+                <div class="tw-divide-y">
+                    <div class="tw-grid tw-grid-cols-2 tw-p-2">
+                        <div class="tw-text-blue-600 tw-cursor-pointer" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Acetone</div>
+                        <div>CH3-CO-CH3</div>
+                    </div>
+                    <div class="tw-grid tw-grid-cols-2 tw-p-2">
+                        <div class="tw-text-blue-600 tw-cursor-pointer" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Distilled Water</div>
+                        <div>H2O</div>
+                    </div>
+                    <div class="tw-grid tw-grid-cols-2 tw-p-2">
+                        <div class="tw-text-blue-600 tw-cursor-pointer" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Acetic Acid</div>
+                        <div>CH3COOH</div>
+                    </div>
+                </div>
             </div>
-            <div class="tw-mt-4">
-               <div class="tw-font-semibold">Room Location</div>
-               <div class="tw-mt-2 tw-space-y-1">
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> FC 111
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> FC 114
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> FC 115
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> FC 212
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> FC 213
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> SH 218
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="radio" name="room" class="tw-mr-2"> SH 316
-                  </label>
-               </div>
+        </div>
+        <!--   Attempting a Proper Modal   -->
+        <!-- Modal -->
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Acetic Acid</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label">Chemical Abbreviation</label>
+                        <input type="text" class="form-control" placeholder="CH3COOH" readonly>
+                        <label class="form-label">Storage Class</label>
+                        <input type="text" class="form-control" placeholder="Corr White" readonly>
+                        <label class="form-label">MSDS</label>
+                        <input type="text" class="form-control" placeholder="MSDS" readonly>
+                        <label class="form-label">Minimum Needed</label>
+                        <input type="text" class="form-control" placeholder="3" readonly>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sticker #</th>
+                                    <th scope="col">Product #</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Sub-Location</th>
+                                    <th scope="col">Manufacturer</th>
+                                    <th scope="col">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>1354</td>
+                                    <td>FC 212</td>
+                                    <td>Hood G</td>
+                                    <td>Acros</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">12</th>
+                                    <td>1354</td>
+                                    <td>FC 114</td>
+                                    <td>Health Blue</td>
+                                    <td>Acros</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">13</th>
+                                    <td>6</td>
+                                    <td>FC 212</td>
+                                    <td>Hood G</td>
+                                    <td>J.T. Baker</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">17</th>
+                                    <td>1354</td>
+                                    <td>FC 212</td>
+                                    <td>Hood G</td>
+                                    <td>Acros</td>
+                                    <td>2</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">23</th>
+                                    <td>1354</td>
+                                    <td>FC 212</td>
+                                    <td>Hood G</td>
+                                    <td>Acros</td>
+                                    <td>1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
             </div>
-            <div class="tw-mt-4">
-               <div class="tw-font-semibold">Manufacturers</div>
-               <div class="tw-mt-2 tw-space-y-1">
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" checked class="tw-mr-2"> Acros
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" class="tw-mr-2"> Matrix
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" class="tw-mr-2"> TCI
-                  </label>
-                  <label class="tw-flex tw-items-center">
-                  <input type="checkbox" class="tw-mr-2"> BDH
-                  </label>
-               </div>
-            </div>
-         </div>
-         <!-- Main Content -->
-         <div class="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
-            <div class="tw-grid tw-grid-cols-2 tw-border-b tw-p-2 tw-font-semibold">
-               <div>Chemical</div>
-               <div>Chemical Symbol</div>
-            </div>
-            <div class="tw-divide-y">
-               <div class="tw-grid tw-grid-cols-2 tw-p-2">
-                  <div>Acetone</div>
-                  <div>CH3-CO-CH3</div>
-               </div>
-               <div class="tw-grid tw-grid-cols-2 tw-p-2">
-                  <div>Distilled Water</div>
-                  <div>H2O</div>
-               </div>
-               <div class="tw-grid tw-grid-cols-2 tw-p-2">
-                  <div>Acetic Acid</div>
-                  <div>CH3COOH</div>
-               </div>
-            </div>
-         </div>
-      </div>
-      <!-- Bootstrap JS -->
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-   </body>
+        </div>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>
