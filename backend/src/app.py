@@ -1,4 +1,4 @@
-from flask import g, Flask, render_template, session
+from flask import g, Flask, render_template, session, jsonify
 from sqlalchemy import URL, Table,  Column, Integer, String, Float, Date, ForeignKey, Boolean
 from flask_cors import CORS
 from sqlalchemy import URL, Table
@@ -12,6 +12,7 @@ import time
 import waitress
 from models import db, Chemical, Location
 from authlib.integrations.flask_oauth2 import current_token
+
 print("Initializing app")
 load_dotenv()
 
@@ -35,23 +36,20 @@ app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
 app.config['OIDC_CLIENT_SECRETS'] = {
     "web": {
         "client_id": os.environ.get("CHEMINV_OIDC_CLIENT_ID"),
-
-        # This seems really bad. We should make certain this is secure
         "client_secret": os.environ.get("CHEMINV_OIDC_CLIENT_SECRET"),
-        
         "issuer": os.environ.get("CHEMINV_OIDC_ISSUER"),  # e.g. "https://your-idp.example.com"
         "redirect_uris": [
             os.environ.get("CHEMINV_OIDC_REDIRECT_URI")
-        ],
+        ]
     }
 }
+
 # Additional settings
 app.config['OIDC_SCOPES'] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
-
-
 db.init_app(app)
+
 ready = False
 while not ready:
     try:
@@ -77,13 +75,13 @@ cors = CORS(app)
 def hello_world():
     return render_template("index.html")
 
+
 @app.route('/api/example')
 @oidc.require_login
 def get_example():
     return {
         "message": "Hello "+ session["oidc_auth_profile"].get('name')
     }
-
 @app.route('/chemicals')
 @oidc.require_login
 def get_chemicals_example():
@@ -94,8 +92,9 @@ def get_chemicals_example():
 def get_location_example():
     return "<br/>".join([location.Building + " " + location.Room + ": " + ",".join([x.Sub_Location_Name for x in location.Sub_Locations]) for location in db.session.query(Location).all()])
 
+
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app.run(debug=True, host="0.0.0.0", port=5000)
-    else: 
+    else:
         waitress.serve(app, host="0.0.0.0", port=5000)
