@@ -203,10 +203,10 @@ def search():
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(
             or_(
-                Chemical.Chemical_Name.like("%" + synonym + "%"),
-                Chemical.Alphabetical_Name.like("%" + synonym + "%"),
-                Chemical.Chemical_Formula.like("%" + synonym + "%")
-            )).all()
+            Chemical.Chemical_Name.like("%"+synonym+"%"), 
+            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
+            Chemical.Chemical_Formula == synonym
+        )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
         print()
@@ -219,13 +219,14 @@ def search():
                 for record in chemical_manufacturer.Inventory:
                     unique_entries.add((
                         chemical.Chemical_Name,
+                        chemical.Chemical_Formula,
                         chemical_manufacturer.Product_Number,
                         record.Sticker_Number
                     ))
 
         response_entries = [
-            {"name": name, "product_number": product_number, "sticker": sticker}
-            for name, product_number, sticker in unique_entries
+            {"name": name, "symbol": formula, "product_number": product_number, "sticker": sticker}
+            for name, formula,product_number, sticker in unique_entries
         ]
 
     return response_entries
