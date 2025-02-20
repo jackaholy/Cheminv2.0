@@ -149,12 +149,13 @@ const App = () => {
     fetch("/api/locations")
       .then((response) => response.json())
       .then((data) =>
-        setRooms(data.map((location) => location.building + " " + location.room))
+        setRooms(
+          data.map((location) => location.building + " " + location.room)
+        )
       )
       .catch((error) => console.error(error));
   }, []);
 
-  const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
   const chemicals = [
     "Acetic Acid",
     "Acetone",
@@ -165,13 +166,28 @@ const App = () => {
     "Ascorbic Acid",
     "Benzene",
   ];
+  useEffect(() => {
+    fetch("/api/locations", {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) =>
+        setRooms(
+          data.map((location) => location.building + " " + location.room)
+        )
+      )
+      .catch((error) => console.error(error));
+  }, []);
+  const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
 
   const handleSearch = async (event) => {
     event.preventDefault();
     setSearching(true);
     const formData = new FormData(event.target);
     const query = formData.get("query");
-    const response = await fetch(`/api/search?query=${query}&synonyms=true`);
+    const response = await fetch(`/api/search?query=${query}&synonyms=true`, {
+      credentials: "include",
+    });
     const data = await response.json();
     setResults(data);
     setSearching(false);

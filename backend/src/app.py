@@ -18,7 +18,8 @@ import json
 print("Initializing app")
 load_dotenv()
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_url_path="", static_folder="../frontend/build", template_folder="../frontend/build")
 app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
     drivername="mysql+pymysql",
     username=os.getenv("MYSQL_USER"),
@@ -33,6 +34,7 @@ app.config['SECRET_KEY'] = os.getenv("CHEMINV_SECRET_KEY")
 # Minimal OIDC configuration using environment variables.
 # When the issuer supports discovery, Flask‑OIDC will automatically retrieve the metadata
 # from: <OIDC_ISSUER> + "/.well-known/openid-configuration"
+
 app.config['OIDC_CLIENT_SECRETS'] = {
     "web": {
         "client_id": os.environ.get("CHEMINV_OIDC_CLIENT_ID"),
@@ -70,8 +72,17 @@ print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
 
+@app.route('/')
+# Important: The auth redirect must
+# occur in the browser, not a fetch request. 
+# The apis need to be protected, but can't actually 
+# redirect to the login page.
+@oidc.require_login
+def index():
+    return render_template('index.html')
 
 @app.route('/api/locations', methods=['GET'])
+@oidc.require_login
 def get_locations():
     query = request.args.get("query")
     if query:
@@ -96,6 +107,7 @@ def get_locations():
 
 
 @app.route('/api/add_chemical', methods=['POST'])
+@oidc.require_login
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
@@ -126,6 +138,7 @@ def add_chemical():
 
 
 @app.route('/api/get_chemicals', methods=['GET'])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.
@@ -149,6 +162,7 @@ def get_chemicals():
 
 
 @app.route('/api/get_chemical_location_data', methods=['GET'])
+@oidc.require_login
 def get_chemical_location_data():
     """
     API to get location, manufacturer, and other chemical information from the database.
@@ -174,6 +188,7 @@ def get_chemical_location_data():
 
 
 @app.route('/api/search', methods=['GET'])
+@oidc.require_login
 def search():
     print("Request recieved")
     query = request.args.get("query")
