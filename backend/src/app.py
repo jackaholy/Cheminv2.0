@@ -197,7 +197,7 @@ def search():
     all_synonyms = list(set(all_synonyms))
 
     # Element symbols (like FE, H, etc) match all kinds of things in the database, so we try to filter them out
-    all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3]
+    all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3 or synonym == query]
     print("Querying the database for:")
     matching_entries = []
     for synonym in all_synonyms:
@@ -212,18 +212,18 @@ def search():
         print()
         print()
         matching_entries.extend(synonym_matches)
-        unique_entries = set()
 
-        for chemical in matching_entries:            
-            unique_entries.add((
-                chemical.Chemical_Name,
-                chemical.Chemical_Formula
-            ))
+    unique_entries = set()
+    for chemical in matching_entries:            
+        unique_entries.add((
+            chemical.Chemical_Name,
+            chemical.Chemical_Formula
+        ))
 
-        response_entries = [
-            {"name": name, "symbol": formula}
-            for name, formula in unique_entries
-        ]
+    response_entries = [
+        {"name": name, "symbol": formula}
+        for name, formula in unique_entries
+    ]
     #                        v This order is significant
     def calculate_similarity(query, entry):
         match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
