@@ -224,18 +224,19 @@ def search():
             {"name": name, "symbol": formula}
             for name, formula in unique_entries
         ]
-    def calculate_similarity(entry):
-        match = SequenceMatcher(None, query, entry["name"]).find_longest_match()
+    #                        v This order is significant
+    def calculate_similarity(query, entry):
+        match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
         return (
             # Prioritize strings that contain all or most of the query
             match.size, 
             # Prioritize strings that start with the query
             # Irrelevant compounds are usually prefix+query
-            match.size - match.b)
+            match.size - match.b, 
+            # If results are "query" and "query with a bunch of other stuff", prioritize the former
+            SequenceMatcher(None, query, entry).ratio())
 
-    response_entries.sort(
-        calculate_similarity(query, x["name"]), 
-        reverse=True)
+    response_entries.sort(key=lambda x: calculate_similarity(query, x["name"]), reverse=True)
     return response_entries
 
 
