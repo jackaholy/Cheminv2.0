@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 import time
 import waitress
-
+from difflib import SequenceMatcher
 from models import db, Chemical, Location, Inventory, Chemical_Manufacturer
 from authlib.integrations.flask_oauth2 import current_token
 import requests
@@ -197,7 +197,7 @@ def search():
     all_synonyms = list(set(all_synonyms))
 
     # Element symbols (like FE, H, etc) match all kinds of things in the database, so we try to filter them out
-    all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3]
+    all_synonyms = [synonym for synonym in all_synonyms if len(synonym) > 3 or synonym == query]
     print("Querying the database for:")
     matching_entries = []
     for synonym in all_synonyms:
@@ -212,23 +212,31 @@ def search():
         print()
         print()
         matching_entries.extend(synonym_matches)
-        unique_entries = set()
 
-        for chemical in matching_entries:
-            for chemical_manufacturer in chemical.Chemical_Manufacturers:
-                for record in chemical_manufacturer.Inventory:
-                    unique_entries.add((
-                        chemical.Chemical_Name,
-                        chemical.Chemical_Formula,
-                        chemical_manufacturer.Product_Number,
-                        record.Sticker_Number
-                    ))
+    unique_entries = set()
+    for chemical in matching_entries:            
+        unique_entries.add((
+            chemical.Chemical_Name,
+            chemical.Chemical_Formula
+        ))
 
-        response_entries = [
-            {"name": name, "symbol": formula, "product_number": product_number, "sticker": sticker}
-            for name, formula,product_number, sticker in unique_entries
-        ]
+    response_entries = [
+        {"name": name, "symbol": formula}
+        for name, formula in unique_entries
+    ]
+    #                        v This order is significant
+    def calculate_similarity(query, entry):
+        match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
+        return (
+            # Prioritize strings that contain all or most of the query
+            match.size, 
+            # Prioritize strings that start with the query
+            # Irrelevant compounds are usually prefix+query
+            match.size - match.b, 
+            # If results are "query" and "query with a bunch of other stuff", prioritize the former
+            SequenceMatcher(None, query, entry).ratio())
 
+    response_entries.sort(key=lambda x: calculate_similarity(query, x["name"]), reverse=True)
     return response_entries
 
 
