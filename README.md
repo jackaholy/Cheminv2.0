@@ -54,4 +54,13 @@ _Use Case Requirements_
   * Sub-Location
 
 4. _Faculty Permissions and Uses_
-Faculty have elevated permissions which allow for database modification.
+* Faculty have elevated permissions which allow for database modification.
+* Faculty have additional navigation menus that allow for numerous data categories to be added, including:
+  * Create manufacturer information
+  * New chemicals introduced
+  * Chemical updates (whether it's dead)
+  * Assigning new professors 'faculty-level' access
+  * Delete a chemical once confirmed 'dead'
+  * Update manufacturer information
+  * Update chemical storage class
+  * Add material safety data sheets to each chemical

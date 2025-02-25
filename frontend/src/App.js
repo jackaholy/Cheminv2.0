@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import "./style.css";
 
-const Navbar = ({ handleSearch }) => {
+const Navbar = ({}) => {
   return (
     <nav className="navbar navbar-expand-lg bg-light">
       <div className="container-fluid">
@@ -34,7 +34,14 @@ const Navbar = ({ handleSearch }) => {
   );
 };
 
-const Sidebar = ({ chemicals, rooms, manufacturers, handleSearch }) => {
+const Sidebar = ({
+  chemicals,
+  rooms,
+  manufacturers,
+  query,
+  setQuery,
+  handleSearch,
+}) => {
   const [selectedChemicals, setSelectedChemicals] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState("");
   const [selectedManufacturers, setSelectedManufacturers] = useState([]);
@@ -54,12 +61,20 @@ const Sidebar = ({ chemicals, rooms, manufacturers, handleSearch }) => {
   return (
     <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
       <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
-        <form onSubmit={handleSearch} className="tw-w-full tw-flex">
+        <form
+          className="tw-w-full tw-flex"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSearch(query);
+          }}
+        >
           <input
             name="query"
             type="text"
             placeholder="Search..."
             className="tw-ml-2 tw-w-full tw-outline-none"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
           <button className="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
             <span className="material-icons">search</span>
@@ -119,14 +134,14 @@ const Sidebar = ({ chemicals, rooms, manufacturers, handleSearch }) => {
   );
 };
 
-const MainContent = ({ chemicalsData, loading }) => (
+const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
     <div className="tw-grid tw-grid-cols-2 tw-border-b tw-p-2 tw-font-semibold">
       <div>Chemical</div>
       <div>Chemical Symbol</div>
     </div>
     <div className="tw-divide-y">
-      {loading ? (
+      {loading && chemicalsData.length === 0 ? (
         <p>Loading...</p>
       ) : (
         chemicalsData.map((chem, index) => (
@@ -137,14 +152,39 @@ const MainContent = ({ chemicalsData, loading }) => (
         ))
       )}
     </div>
+    <div class="d-flex justify-content-center">
+      {query != "" && (
+        <button
+          class="btn btn-outline-success mt-3 mx-auto"
+          type="submit"
+          onClick={() => handleSearch(query, true)}
+          disabled={loading}
+        >
+          {loading ? "Searching..." : "Expand Search"}
+        </button>
+      )}
+    </div>
   </div>
 );
 
 const App = () => {
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [rooms, setRooms] = useState([]);
 
+  function handleSearch(query, synonyms = false) {
+    setSearching(true);
+    fetch(`/api/search?query=${query}&synonyms=${synonyms}`, {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setResults(data);
+        setSearching(false);
+      })
+      .catch((error) => console.error(error));
+  }
   useEffect(() => {
     fetch("/api/locations")
       .then((response) => response.json())
@@ -166,44 +206,33 @@ const App = () => {
     "Ascorbic Acid",
     "Benzene",
   ];
+  const debounceDelay = 400;
   useEffect(() => {
-    fetch("/api/locations", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) =>
-        setRooms(
-          data.map((location) => location.building + " " + location.room)
-        )
-      )
-      .catch((error) => console.error(error));
-  }, []);
-  const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
+    const handler = setTimeout(() => {
+      handleSearch(query);
+    }, debounceDelay);
 
-  const handleSearch = async (event) => {
-    event.preventDefault();
-    setSearching(true);
-    const formData = new FormData(event.target);
-    const query = formData.get("query");
-    const response = await fetch(`/api/search?query=${query}&synonyms=true`, {
-      credentials: "include",
-    });
-    const data = await response.json();
-    setResults(data);
-    setSearching(false);
-  };
+    return () => clearTimeout(handler);
+  }, [query]);
 
   return (
-    <div className="tw-bg-gray-100">
-      <Navbar handleSearch={handleSearch} />
+    <div className="tw-bg-gray-100 pb-3">
+      <Navbar />
       <div className="tw-flex tw-mt-4">
         <Sidebar
           chemicals={chemicals}
           rooms={rooms}
           manufacturers={manufacturers}
+          query={query}
+          setQuery={setQuery}
           handleSearch={handleSearch}
         />
-        <MainContent chemicalsData={results} loading={searching} />
+        <MainContent
+          chemicalsData={results}
+          loading={searching}
+          query={query}
+          handleSearch={handleSearch}
+        />
       </div>
     </div>
   );
