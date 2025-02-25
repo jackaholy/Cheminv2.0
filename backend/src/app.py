@@ -80,6 +80,11 @@ cors = CORS(app)
 @oidc.require_login
 def index():
     return render_template('index.html')
+    
+@app.route('/api/whoami', methods=['GET'])
+@oidc.require_login
+def whoami():
+    return jsonify({"name":oidc.user_getfield('name')})
 
 @app.route('/api/locations', methods=['GET'])
 @oidc.require_login

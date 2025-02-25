@@ -172,7 +172,7 @@ const App = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [rooms, setRooms] = useState([]);
-
+  const [manufacturers, setManufacturers] = useState([]);
   function handleSearch(query, synonyms = false) {
     setSearching(true);
     fetch(`/api/search?query=${query}&synonyms=${synonyms}`, {
