@@ -142,10 +142,22 @@ def get_chemicals():
             chemical_list.append({
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
-                "id": chem.Chemical_ID
+                "id": chem.Chemical_ID,
+                "quantity": chem.get_quantity(chem.Chemical_ID)
             })
 
     return jsonify(chemical_list)
+
+
+def get_quantity(chemical_id):
+    quantity = 0
+    with db.session() as session:
+        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        for manufacturer in chemical.Chemical_Manufacturers:
+            for inventory in manufacturer.Inventory:
+                quantity += 1
+
+    return quantity
 
 
 @app.route('/api/get_chemical_location_data', methods=['GET'])
@@ -172,17 +184,6 @@ def get_chemical_location_data():
 
     return jsonify(location_list)
 
-@app.route('/api/get_quantity', methods=['GET'])
-def get_quantity():
-    chemical_id = request.args.get("chemical_id")
-    quantity = 0
-    with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chemical.Chemical_Manufacturers:
-            for inventory in manufacturer.Inventory:
-                quantity += 1
-
-    return jsonify(quantity)
 
 @app.route('/api/search', methods=['GET'])
 def search():
@@ -214,10 +215,10 @@ def search():
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(
             or_(
-            Chemical.Chemical_Name.like("%"+synonym+"%"), 
-            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
-            Chemical.Chemical_Formula == synonym
-        )).all()
+                Chemical.Chemical_Name.like("%" + synonym + "%"),
+                Chemical.Alphabetical_Name.like("%" + synonym + "%"),
+                Chemical.Chemical_Formula == synonym
+            )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
         print()
@@ -225,7 +226,7 @@ def search():
         matching_entries.extend(synonym_matches)
 
     unique_entries = set()
-    for chemical in matching_entries:            
+    for chemical in matching_entries:
         unique_entries.add((
             chemical.Chemical_Name,
             chemical.Chemical_Formula
@@ -235,15 +236,16 @@ def search():
         {"name": name, "symbol": formula}
         for name, formula in unique_entries
     ]
+
     #                        v This order is significant
     def calculate_similarity(query, entry):
         match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
         return (
             # Prioritize strings that contain all or most of the query
-            match.size, 
+            match.size,
             # Prioritize strings that start with the query
             # Irrelevant compounds are usually prefix+query
-            match.size - match.b, 
+            match.size - match.b,
             # If results are "query" and "query with a bunch of other stuff", prioritize the former
             SequenceMatcher(None, query, entry).ratio())
 
