@@ -136,7 +136,8 @@ const Sidebar = ({
 
 const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
-    <div className="tw-grid tw-grid-cols-2 tw-border-b tw-p-2 tw-font-semibold">
+    <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
+      <div>Quantity</div>
       <div>Chemical</div>
       <div>Chemical Symbol</div>
     </div>
@@ -145,7 +146,8 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
         <p>Loading...</p>
       ) : (
         chemicalsData.map((chem, index) => (
-          <div key={index} className="tw-grid tw-grid-cols-2 tw-p-2">
+          <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
+            <div>{chem.quantity}</div>
             <div>{chem.name}</div>
             <div>{chem.symbol}</div>
           </div>
