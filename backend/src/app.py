@@ -159,7 +159,7 @@ def get_chemical_location_data():
     # Search through the entire database
     with db.session() as session:
         chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chem.Chemical_Manufacturers:
+        for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list
                 # We can add more chemical attributes below if needed
@@ -172,6 +172,17 @@ def get_chemical_location_data():
 
     return jsonify(location_list)
 
+@app.route('/api/get_quantity', methods=['GET'])
+def get_quantity():
+    chemical_id = request.args.get("chemical_id")
+    quantity = 0
+    with db.session() as session:
+        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        for manufacturer in chemical.Chemical_Manufacturers:
+            for inventory in manufacturer.Inventory:
+                quantity += 1
+
+    return jsonify(quantity)
 
 @app.route('/api/search', methods=['GET'])
 def search():
