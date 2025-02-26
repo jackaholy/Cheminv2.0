@@ -213,16 +213,6 @@ const App = () => {
 
     return () => clearTimeout(handler);
   }, [query]);
-  /*const handleSearch = async (event) => {
-    event.preventDefault();
-    setSearching(true);
-    const formData = new FormData(event.target);
-    const query = formData.get("query");
-    const response = await fetch(`/api/search?query=${query}&synonyms=false`);
-    const data = await response.json();
-    setResults(data);
-    setSearching(false);
-  };*/
 
   return (
     <div className="tw-bg-gray-100 pb-3">
