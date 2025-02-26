@@ -154,10 +154,10 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
         ))
       )}
     </div>
-    <div class="d-flex justify-content-center">
-      {query != "" && (
+    <div className="d-flex justify-content-center">
+      {query !== "" && (
         <button
-          class="btn btn-outline-success mt-3 mx-auto"
+          className="btn btn-outline-success mt-3 mx-auto"
           type="submit"
           onClick={() => handleSearch(query, true)}
           disabled={loading}
@@ -187,10 +187,6 @@ const App = () => {
   }
 
   useEffect(() => {
-    getQuantity(); // Fetch chemicals on component mount
-}, []);
-
-  useEffect(() => {
     fetch("/api/locations")
       .then((response) => response.json())
       .then((data) =>
@@ -205,10 +201,15 @@ const App = () => {
       fetch('/api/get_chemicals')
           .then((response) => response.json())
           .then((data) => {
+              // console.log("Fetched chemicals:", data);
               setResults(data);
           })
           .catch((error) => console.error(error));
   }
+
+    useEffect(() => {
+        getQuantity(); // Fetch chemicals on component mount
+}, []);
 
 
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
