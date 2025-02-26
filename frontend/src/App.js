@@ -185,6 +185,11 @@ const App = () => {
       })
       .catch((error) => console.error(error));
   }
+
+  useEffect(() => {
+    getQuantity(); // Fetch chemicals on component mount
+}, []);
+
   useEffect(() => {
     fetch("/api/locations")
       .then((response) => response.json())
@@ -195,6 +200,16 @@ const App = () => {
       )
       .catch((error) => console.error(error));
   }, []);
+
+  function getQuantity() {
+      fetch('/api/get_chemicals')
+          .then((response) => response.json())
+          .then((data) => {
+              setResults(data);
+          })
+          .catch((error) => console.error(error));
+  }
+
 
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
   const chemicals = [
