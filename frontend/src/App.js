@@ -147,6 +147,7 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
       ) : (
         chemicalsData.map((chem, index) => (
           <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
+              {/*Columns on the main page*/}
             <div>{chem.quantity}</div>
             <div>{chem.chemical_name}</div>
             <div>{chem.formula}</div>
@@ -197,6 +198,9 @@ const App = () => {
       .catch((error) => console.error(error));
   }, []);
 
+    /**
+     * Get the quantity of a specific chemical.
+     */
   function getQuantity() {
       fetch('/api/get_chemicals')
           .then((response) => response.json())
