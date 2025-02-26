@@ -80,11 +80,21 @@ cors = CORS(app)
 @oidc.require_login
 def index():
     return render_template('index.html')
-    
-@app.route('/api/whoami', methods=['GET'])
-@oidc.require_login
-def whoami():
-    return jsonify({"name":oidc.user_getfield('name')})
+
+# NOT IMPLEMENTED!
+@app.route('/api/user', methods=['GET'])
+def get_user():
+    # Will replace in the auth-fixes branch
+    return jsonify({"name": "whoever you are", "access": "admin"})
+
+@app.route('/api/users/update_access', methods=['POST'])
+def update_access():
+    user_id = request.json.get("user_id")
+    access = request.json.get("access")
+
+    # TODO: IMPLEMENT THIS! (And make sure user is an admin)
+
+    return {"message": "Access updated successfully"}
 
 @app.route('/api/locations', methods=['GET'])
 @oidc.require_login
@@ -177,8 +187,8 @@ def get_chemical_location_data():
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chem.Chemical_Manufacturers:
+        chemical = serssion.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list
                 # We can add more chemical attributes below if needed
