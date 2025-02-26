@@ -2,10 +2,8 @@
 from functools import wraps
 from flask import session, abort
 from models import db, User, Permissions
-# Make sure you import your database session and User model:
-# from your_app import db
-# from your_app.models import User
 
+# Mostly implemented using ChatGPT
 def require_editor(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
