@@ -143,7 +143,7 @@ def get_chemicals():
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
                 "id": chem.Chemical_ID,
-                "quantity": chem.get_quantity(chem.Chemical_ID)
+                "quantity": get_quantity(chem.Chemical_ID)
             })
 
     return jsonify(chemical_list)
