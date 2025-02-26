@@ -153,9 +153,10 @@ def get_quantity(chemical_id):
     quantity = 0
     with db.session() as session:
         chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chemical.Chemical_Manufacturers:
-            for inventory in manufacturer.Inventory:
-                quantity += 1
+        if chemical:
+            for manufacturer in chemical.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    quantity += 1
 
     return quantity
 
