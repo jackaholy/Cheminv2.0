@@ -171,7 +171,7 @@ def get_chemical_location_data():
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        chemical = session.query(Chemical).filter(Chemical.Chemicl_ID == chemical_id).first()
         for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list
@@ -229,13 +229,18 @@ def search():
     unique_entries = set()
     for chemical in matching_entries:
         unique_entries.add((
-            chemical.Chemical_Name,
-            chemical.Chemical_Formula
+            chemical
         ))
 
     response_entries = [
-        {"chemical_name": name, "formula": formula, "quantity" : get_quantity(chemical.Chemical_ID)}
-        for name, formula in unique_entries
+
+        {
+            "chemical_name": chemical.Chemical_Name,
+            "formula": chemical.Chemical_Formula,
+            "id": chemical.Chemical_ID,
+            "quantity": get_quantity(chemical.Chemical_ID)
+        }
+        for chemical in unique_entries
     ]
 
     #                        v This order is significant
@@ -250,7 +255,7 @@ def search():
             # If results are "query" and "query with a bunch of other stuff", prioritize the former
             SequenceMatcher(None, query, entry).ratio())
 
-    response_entries.sort(key=lambda x: calculate_similarity(query, x["name"]), reverse=True)
+    response_entries.sort(key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True)
     return response_entries
 
 
