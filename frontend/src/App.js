@@ -1,7 +1,7 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 
-const Navbar = ({}) => {
+const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg bg-light">
       <div className="container-fluid">
@@ -153,7 +153,7 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
       )}
     </div>
     <div class="d-flex justify-content-center">
-      {query != "" && (
+      {query !== "" && (
         <button
           class="btn btn-outline-success mt-3 mx-auto"
           type="submit"
