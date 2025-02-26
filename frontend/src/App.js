@@ -148,8 +148,8 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
         chemicalsData.map((chem, index) => (
           <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
             <div>{chem.quantity}</div>
-            <div>{chem.name}</div>
-            <div>{chem.symbol}</div>
+            <div>{chem.chemical_name}</div>
+            <div>{chem.formula}</div>
           </div>
         ))
       )}

@@ -234,7 +234,7 @@ def search():
         ))
 
     response_entries = [
-        {"name": name, "symbol": formula}
+        {"chemical_name": name, "formula": formula, "quantity" : get_quantity(chemical.Chemical_ID)}
         for name, formula in unique_entries
     ]
 
