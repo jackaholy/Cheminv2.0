@@ -1,26 +1,26 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 export const ManageUsersModal = () => {
-  const [users, setUsers] = useState([
-    // Delete these lines and fetch from the backend
-    {
-      id: 1,
-      username: "sally student",
-      access: "student",
-    },
-    {
-      id: 2,
-      username: "steven student",
-      access: "student",
-    },
-    {
-      id: 3,
-      username: "paul professor",
-      access: "admin",
-    },
-  ]);
+  const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState(users);
+
+  useEffect(() => {
+    fetch("/api/get_users")
+      .then((response) => response.json())
+      .then((data) => {
+        setUsers(data);
+      })
+      .catch((error) => console.error(error));
+  }, []);
+
+  useEffect(() => {
+    setFilteredUsers(
+      users.filter((user) =>
+        user.username.toLowerCase().includes(query.toLowerCase())
+      )
+    );
+  }, [query, users]);
 
   function onAccessChange(e, user_id) {
     const access = e.target.value;
@@ -106,6 +106,7 @@ export const ManageUsersModal = () => {
                         name={user.id + "access"}
                         value="student"
                         checked={user.access === "student"}
+                        onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>
                     <td>
@@ -114,6 +115,7 @@ export const ManageUsersModal = () => {
                         name={user.id + "access"}
                         value="faculty"
                         checked={user.access === "faculty"}
+                        onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>
                     <td>
@@ -122,6 +124,7 @@ export const ManageUsersModal = () => {
                         name={user.id + "access"}
                         value="admin"
                         checked={user.access === "admin"}
+                        onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>
                   </tr>
