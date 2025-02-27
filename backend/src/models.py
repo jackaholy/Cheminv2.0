@@ -1,8 +1,5 @@
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
 Base = declarative_base()
 
 
@@ -31,6 +28,10 @@ class Chemical(Base):
     )
     Chemical_Manufacturers = relationship("Chemical_Manufacturer", back_populates="Chemical")
 
+    def __hash__(self):
+        return hash(self.Chemical_ID)
+    def __eq__(self, other):
+        return self.Chemical_ID == other.Chemical_ID
 
 class Chemical_Manufacturer(Base):
     __tablename__ = 'Chemical_Manufacturer'
