@@ -204,7 +204,6 @@ const App = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [rooms, setRooms] = useState([]);
-  const [manufacturers, setManufacturers] = useState([]);
 
   function handleSearch(query, synonyms = false) {
     setSearching(true);
@@ -228,7 +227,24 @@ const App = () => {
       )
       .catch((error) => console.error(error));
   }, []);
+  /**
+   * Get the quantity of a specific chemical.
+   */
+  function getQuantity() {
+    fetch("/api/get_chemicals")
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log("Fetched chemicals:", data);
+        setResults(data);
+      })
+      .catch((error) => console.error(error));
+  }
 
+  useEffect(() => {
+    getQuantity(); // Fetch chemicals on component mount
+  }, []);
+
+  const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
   const chemicals = [
     "Acetic Acid",
     "Acetone",
@@ -247,7 +263,16 @@ const App = () => {
 
     return () => clearTimeout(handler);
   }, [query]);
-
+  /*const handleSearch = async (event) => {
+      event.preventDefault();
+      setSearching(true);
+      const formData = new FormData(event.target);
+      const query = formData.get("query");
+      const response = await fetch(`/api/search?query=${query}&synonyms=false`);
+      const data = await response.json();
+      setResults(data);
+      setSearching(false);
+    };*/
   return (
     <div className="tw-bg-gray-100 pb-3">
       <Navbar />
