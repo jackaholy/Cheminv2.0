@@ -60,6 +60,7 @@ def search_route():
     # Deduplicate search terms
     search_terms = list(set(search_terms))
 
+    # Element symbols (like FE, H, etc.) match all kinds of things in the database, so we try to filter them out
     search_terms = [
         search_term
         for search_term in search_terms

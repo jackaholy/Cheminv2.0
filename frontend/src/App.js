@@ -1,7 +1,93 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import "./style.css";
 import { ManageUsersModal } from "./ManageUsersModal";
 
+const ChemicalModal = ({ chemical, show, handleClose }) => {
+  if (!chemical) return null; // Don't render if no chemical is selected
+
+  return (
+    <div
+      className={`modal fade ${show ? "show d-block" : "d-none"}`}
+      tabIndex="-1"
+    >
+      <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h1 className="modal-title fs-5">{chemical.name}</h1>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={handleClose}
+            ></button>
+          </div>
+          <div className="modal-body">
+            <label className="form-label">Chemical Abbreviation</label>
+            <input
+              type="text"
+              className="form-control"
+              value={chemical.symbol}
+              readOnly
+            />
+            <label className="form-label">Storage Class</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Corr White"
+              readOnly
+            />
+            <label className="form-label">MSDS</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="MSDS"
+              readOnly
+            />
+            <label className="form-label">Minimum Needed</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="3"
+              readOnly
+            />
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Sticker #</th>
+                  <th scope="col">Product #</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Sub-Location</th>
+                  <th scope="col">Manufacturer</th>
+                  <th scope="col">Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chemical.inventory?.map((item, index) => (
+                  <tr key={index}>
+                    <th scope="row">{item.sticker}</th>
+                    <td>{item.product}</td>
+                    <td>{item.location}</td>
+                    <td>{item.subLocation}</td>
+                    <td>{item.manufacturer}</td>
+                    <td>{item.quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 const Navbar = () => {
   const [user, setUser] = useState({});
 
@@ -163,7 +249,14 @@ const Sidebar = ({
     </div>
   );
 };
-const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
+
+const MainContent = ({
+  chemicalsData,
+  loading,
+  query,
+  handleSearch,
+  handleShowModal,
+}) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
     <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
       <div>Quantity</div>
@@ -178,7 +271,18 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
           <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
             {/*Columns on the main page*/}
             <div>{chem.quantity}</div>
-            <div>{chem.chemical_name}</div>
+            <div>
+              <a
+                href="#"
+                className="text-primary text-decoration-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleShowModal(chem);
+                }}
+              >
+                {chem.chemical_name}
+              </a>
+            </div>
             <div>{chem.formula}</div>
           </div>
         ))
@@ -205,6 +309,18 @@ const App = () => {
   const [searching, setSearching] = useState(false);
   const [rooms, setRooms] = useState([]);
 
+  const [selectedChemical, setSelectedChemical] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleShowModal = (chem) => {
+    setSelectedChemical(chem);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   function handleSearch(query, synonyms = false) {
     if (query === "") {
       getChemicals();
@@ -220,6 +336,54 @@ const App = () => {
       })
       .catch((error) => console.error(error));
   }
+
+  useEffect(() => {
+    fetch("/api/locations")
+      .then((response) => response.json())
+      .then((data) =>
+        setRooms(
+          data.map((location) => location.building + " " + location.room)
+        )
+      )
+      .catch((error) => console.error(error));
+  }, []);
+
+  /**
+   * Get the quantity of a specific chemical.
+   */
+  function getQuantity() {
+    fetch("/api/get_chemicals")
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log("Fetched chemicals:", data);
+        console.log("Get chemicals setting results:", data);
+        setResults(data);
+      })
+      .catch((error) => console.error(error));
+  }
+
+  useEffect(() => {
+    getQuantity(); // Fetch chemicals on component mount
+  }, []);
+
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      handleSearch(query);
+    }, debounceDelay);
+
+    return () => clearTimeout(handler);
+  }, [query]);
+  /*const handleSearch = async (event) => {
+        event.preventDefault();
+        setSearching(true);
+        const formData = new FormData(event.target);
+        const query = formData.get("query");
+        const response = await fetch(`/api/search?query=${query}&synonyms=false`);
+        const data = await response.json();
+        setResults(data);
+        setSearching(false);
+      };*/
 
   function getLocations() {
     fetch("/api/locations")
@@ -288,9 +452,15 @@ const App = () => {
           loading={searching}
           query={query}
           handleSearch={handleSearch}
+          handleShowModal={handleShowModal}
         />
         <ManageUsersModal />
       </div>
+      <ChemicalModal
+        chemical={selectedChemical}
+        show={showModal}
+        handleClose={handleCloseModal}
+      />
     </div>
   );
 };
