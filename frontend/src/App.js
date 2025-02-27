@@ -202,7 +202,6 @@ const MainContent = ({chemicalsData, loading, query, handleSearch}) => (
         </div>
     </div>
   );
-};
 
 const App = () => {
 
