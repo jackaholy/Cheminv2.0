@@ -249,7 +249,6 @@ const App = () => {
   useEffect(() => {
     getChemicals(); // Fetch chemicals on component mount
     getLocations();
-
   }, []);
 
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
@@ -263,7 +262,7 @@ const App = () => {
     "Ascorbic Acid",
     "Benzene",
   ];
-  const debounceDelay = 200;
+  const debounceDelay = 75;
   useEffect(() => {
     const handler = setTimeout(() => {
       handleSearch(query);
