@@ -166,7 +166,8 @@ const Sidebar = ({
 
 const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
-    <div className="tw-grid tw-grid-cols-2 tw-border-b tw-p-2 tw-font-semibold">
+    <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
+      <div>Quantity</div>
       <div>Chemical</div>
       <div>Chemical Symbol</div>
     </div>
@@ -175,17 +176,19 @@ const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
         <p>Loading...</p>
       ) : (
         chemicalsData.map((chem, index) => (
-          <div key={index} className="tw-grid tw-grid-cols-2 tw-p-2">
-            <div>{chem.name}</div>
-            <div>{chem.symbol}</div>
+          <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
+            {/*Columns on the main page*/}
+            <div>{chem.quantity}</div>
+            <div>{chem.chemical_name}</div>
+            <div>{chem.formula}</div>
           </div>
         ))
       )}
     </div>
-    <div class="d-flex justify-content-center">
-      {query != "" && (
+    <div className="d-flex justify-content-center">
+      {query !== "" && (
         <button
-          class="btn btn-outline-success mt-3 mx-auto"
+          className="btn btn-outline-success mt-3 mx-auto"
           type="submit"
           onClick={() => handleSearch(query, true)}
           disabled={loading}
@@ -203,6 +206,7 @@ const App = () => {
   const [searching, setSearching] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
+
   function handleSearch(query, synonyms = false) {
     setSearching(true);
     fetch(`/api/search?query=${query}&synonyms=${synonyms}`, {
