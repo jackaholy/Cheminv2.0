@@ -43,15 +43,34 @@ def get_chemicals():
     chemical_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical_list = session.query(Chemical).all()
+        chemicals = session.query(Chemical).all()
         # Iterate through each table from the database
-        for chem in chemical_list:
+        for chem in chemicals:
             # Add the appropriate chemical detail to the chemical list
             # We can add more chemical attributes below if needed
             chemical_list.append({
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
-                "id": chem.Chemical_ID
+                "id": chem.Chemical_ID,
+                "quantity": get_quantity(chem.Chemical_ID)
             })
 
     return jsonify(chemical_list)
+
+
+def get_quantity(chemical_id):
+    """
+    Search through the database to find the number of instances a chemical appears.
+    :param chemical_id: the chemical ID
+    :return: quantity: of the chemical passed as an argument
+    """
+    quantity = 0
+    with db.session() as session:
+        # Check to see if chemical_ID's match
+        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        if chemical:
+            for manufacturer in chemical.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    quantity += 1
+
+    return quantity

@@ -39,6 +39,7 @@ def get_chemical_location_data():
     # Search through the entire database
     with db.session() as session:
         chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+
         for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list

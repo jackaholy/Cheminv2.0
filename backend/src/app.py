@@ -9,6 +9,7 @@ from flask_oidc import OpenIDConnect
 from chemicals import chemicals
 from locations import locations
 from search import search
+from users import users
 from database import init_db
 
 print("Initializing app")
@@ -43,13 +44,7 @@ cors = CORS(app)
 app.register_blueprint(chemicals)
 app.register_blueprint(locations)
 app.register_blueprint(search)
-
-
-
-
-
-
-
+app.register_blueprint(users)
 
 if __name__ == '__main__':
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
