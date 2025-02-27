@@ -206,10 +206,14 @@ const App = () => {
   const [rooms, setRooms] = useState([]);
 
   function handleSearch(query, synonyms = false) {
+    if (query === "") {
+      return;
+    }
     setSearching(true);
     fetch(`/api/search?query=${query}&synonyms=${synonyms}`)
       .then((response) => response.json())
       .then((data) => {
+        console.log("Search setting results:", data);
         setResults(data);
         setSearching(false);
       })
@@ -235,6 +239,7 @@ const App = () => {
       .then((response) => response.json())
       .then((data) => {
         // console.log("Fetched chemicals:", data);
+        console.log("Get chemicals setting results:", data);
         setResults(data);
       })
       .catch((error) => console.error(error));
