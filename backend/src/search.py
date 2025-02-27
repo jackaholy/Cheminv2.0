@@ -64,8 +64,7 @@ def search_route():
     search_terms = [
         search_term
         for search_term in search_terms
-        for synonym in search_term
-        if len(synonym) > 3 or synonym == query
+        if len(search_term) > 3 or search_term == query
     ]
 
     matching_chemicals = []
@@ -90,7 +89,6 @@ def search_route():
     matching_chemicals = list(set(matching_chemicals))
 
     logger.info(f"Found {len(matching_chemicals)} matches for {query}")
-    
     response_entries = [
         {
             "chemical_name": chemical.Chemical_Name,
@@ -103,7 +101,7 @@ def search_route():
         }
         for chemical in matching_chemicals
     ]
-    response_entries.sort(  
-        key=lambda x: calculate_similarity(query, x["name"]), reverse=True
+    response_entries.sort(
+        key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
     )
     return response_entries
