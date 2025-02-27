@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import "./style.css";
 import { ManageUsersModal } from "./ManageUsersModal";
@@ -13,6 +12,7 @@ const Navbar = () => {
       .then((data) => setUser(data))
       .catch((error) => console.error(error));
   }, []);
+  
   return (
     <nav className="navbar navbar-expand-lg bg-light">
       <div className="container-fluid">
@@ -201,7 +201,8 @@ const MainContent = ({chemicalsData, loading, query, handleSearch}) => (
             )}
         </div>
     </div>
-);
+  );
+};
 
 const App = () => {
 
