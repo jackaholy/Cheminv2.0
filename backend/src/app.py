@@ -142,10 +142,29 @@ def get_chemicals():
             chemical_list.append({
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
-                "id": chem.Chemical_ID
+                "id": chem.Chemical_ID,
+                "quantity": get_quantity(chem.Chemical_ID)
             })
 
     return jsonify(chemical_list)
+
+
+def get_quantity(chemical_id):
+    """
+    Search through the database to find the number of instances a chemical appears.
+    :param chemical_id: the chemical ID
+    :return: quantity: of the chemical passed as an argument
+    """
+    quantity = 0
+    with db.session() as session:
+        # Check to see if chemical_ID's match
+        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+        if chemical:
+            for manufacturer in chemical.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    quantity += 1
+
+    return quantity
 
 
 @app.route('/api/get_chemical_location_data', methods=['GET'])
@@ -158,8 +177,8 @@ def get_chemical_location_data():
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        for manufacturer in chem.Chemical_Manufacturers:
+        chemical = session.query(Chemical).filter(Chemical.Chemicl_ID == chemical_id).first()
+        for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list
                 # We can add more chemical attributes below if needed
@@ -203,10 +222,10 @@ def search():
     for synonym in all_synonyms:
         synonym_matches = db.session.query(Chemical).filter(
             or_(
-            Chemical.Chemical_Name.like("%"+synonym+"%"), 
-            Chemical.Alphabetical_Name.like("%"+synonym+"%"),
-            Chemical.Chemical_Formula == synonym
-        )).all()
+                Chemical.Chemical_Name.like("%" + synonym + "%"),
+                Chemical.Alphabetical_Name.like("%" + synonym + "%"),
+                Chemical.Chemical_Formula == synonym
+            )).all()
         print("Matches for " + synonym + ":")
         print("\t\n".join([x.Alphabetical_Name for x in synonym_matches]))
         print()
@@ -214,29 +233,35 @@ def search():
         matching_entries.extend(synonym_matches)
 
     unique_entries = set()
-    for chemical in matching_entries:            
+    for chemical in matching_entries:
         unique_entries.add((
-            chemical.Chemical_Name,
-            chemical.Chemical_Formula
+            chemical
         ))
 
     response_entries = [
-        {"name": name, "symbol": formula}
-        for name, formula in unique_entries
+
+        {
+            "chemical_name": chemical.Chemical_Name,
+            "formula": chemical.Chemical_Formula,
+            "id": chemical.Chemical_ID,
+            "quantity": get_quantity(chemical.Chemical_ID)
+        }
+        for chemical in unique_entries
     ]
+
     #                        v This order is significant
     def calculate_similarity(query, entry):
         match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
         return (
             # Prioritize strings that contain all or most of the query
-            match.size, 
+            match.size,
             # Prioritize strings that start with the query
             # Irrelevant compounds are usually prefix+query
-            match.size - match.b, 
+            match.size - match.b,
             # If results are "query" and "query with a bunch of other stuff", prioritize the former
             SequenceMatcher(None, query, entry).ratio())
 
-    response_entries.sort(key=lambda x: calculate_similarity(query, x["name"]), reverse=True)
+    response_entries.sort(key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True)
     return response_entries
 
 
