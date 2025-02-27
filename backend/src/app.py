@@ -6,7 +6,6 @@ import waitress
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_cors import CORS
-from flask_oidc import OpenIDConnect
 
 from chemicals import chemicals
 from locations import locations
