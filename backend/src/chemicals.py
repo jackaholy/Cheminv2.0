@@ -62,21 +62,3 @@ def get_chemicals():
     ]
 
     return jsonify(chemical_list)
-
-
-# def get_quantity(chemical_id):
-#     """
-#     Search through the database to find the number of instances a chemical appears.
-#     :param chemical_id: the chemical ID
-#     :return: quantity: of the chemical passed as an argument
-#     """
-#     quantity = 0
-#     with db.session() as session:
-#         # Check to see if chemical_ID's match
-#         chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-#         if chemical:
-#             for manufacturer in chemical.Chemical_Manufacturers:
-#                 for inventory in manufacturer.Inventory:
-#                     quantity += 1
-#
-#     return quantity
