@@ -5,12 +5,14 @@ from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.orm import declarative_base, relationship
 from flask_sqlalchemy import SQLAlchemy
 from flask_oidc import OpenIDConnect
+from flask_oidc.signals import after_authorize
 import os
 from dotenv import load_dotenv
 import time
 import waitress
 from difflib import SequenceMatcher
-from models import db, Chemical, Location, Inventory, Chemical_Manufacturer
+from models import db, Chemical, Location, Inventory, Chemical_Manufacturer, Permissions, User
+from permission_requirements import require_full_access
 from authlib.integrations.flask_oauth2 import current_token
 import requests
 import json
@@ -72,6 +74,21 @@ print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
 
+def on_authorize(sender, token, return_to):
+    user_info = token.get("userinfo")
+    visitor_permission = db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
+    if not db.session.query(User).filter(User.User_Name == user_info["preferred_username"]).first():
+        print("Creating new user")
+        user = User(
+            User_Name=user_info["preferred_username"], 
+            Is_Active=True, 
+            permissions=visitor_permission,
+            User_Password="Managed by Auth server"
+        )
+        db.session.add(user)
+        db.session.commit()
+after_authorize.connect(on_authorize)
+
 @app.route('/')
 # Important: The auth redirect must
 # occur in the browser, not a fetch request. 
@@ -83,38 +100,38 @@ def index():
 
 # NOT IMPLEMENTED!
 @app.route('/api/user', methods=['GET'])
+@oidc.require_login
 def get_current_user():
-    # Will replace in the auth-fixes branch
-    return jsonify({"name": "whoever you are", "access": "admin"})
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+    user = db.session.query(User).filter_by(User_Name=current_username).first()
+    
+    return jsonify({"name": session["oidc_auth_profile"].get("name"), "access": user.permissions.Permissions_Name})
 
 @app.route('/api/get_users', methods=['GET'])
+@oidc.require_login
+@require_full_access
 def get_users():
-    # Will replace in the auth-fixes branch
+    users = db.session.query(User).filter_by(Is_Active=True).all()
     return jsonify([
-    {
-      "id": 1,
-      "username": "sally student",
-      "access": "student",
-    },
-    {
-      "id": 2,
-      "username": "steven student",
-      "access": "student",
-    },
-    {
-      "id": 3,
-      "username": "paul professor",
-      "access": "admin",
-    },
-  ])
+        {
+            "id": user.User_ID,
+            "username": user.User_Name,
+            "access": user.permissions.Permissions_Name
+        } for user in users
+    ])
+    
 
 @app.route('/api/users/update_access', methods=['POST'])
+@oidc.require_login
+@require_full_access
 def update_access():
     user_id = request.json.get("user_id")
     access = request.json.get("access")
 
-    # TODO: IMPLEMENT THIS! (And make sure user is an admin)
-
+    user = db.session.query(User).filter_by(User_ID=user_id).first()
+    user.permissions = db.session.query(Permissions).filter_by(Permissions_Name=access).first()
+    db.session.commit()
+    
     return {"message": "Access updated successfully"}
 
 @app.route('/api/locations', methods=['GET'])
