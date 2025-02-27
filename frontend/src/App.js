@@ -207,6 +207,7 @@ const App = () => {
 
   function handleSearch(query, synonyms = false) {
     if (query === "") {
+      getChemicals();
       return;
     }
     setSearching(true);
@@ -220,7 +221,7 @@ const App = () => {
       .catch((error) => console.error(error));
   }
 
-  useEffect(() => {
+  function getLocations() {
     fetch("/api/locations")
       .then((response) => response.json())
       .then((data) =>
@@ -229,12 +230,12 @@ const App = () => {
         )
       )
       .catch((error) => console.error(error));
-  }, []);
+  }
 
   /**
    * Get the quantity of a specific chemical.
    */
-  function getQuantity() {
+  function getChemicals() {
     fetch("/api/get_chemicals")
       .then((response) => response.json())
       .then((data) => {
@@ -246,7 +247,9 @@ const App = () => {
   }
 
   useEffect(() => {
-    getQuantity(); // Fetch chemicals on component mount
+    getChemicals(); // Fetch chemicals on component mount
+    getLocations();
+
   }, []);
 
   const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
@@ -260,7 +263,7 @@ const App = () => {
     "Ascorbic Acid",
     "Benzene",
   ];
-  const debounceDelay = 400;
+  const debounceDelay = 200;
   useEffect(() => {
     const handler = setTimeout(() => {
       handleSearch(query);
@@ -268,16 +271,6 @@ const App = () => {
 
     return () => clearTimeout(handler);
   }, [query]);
-  /*const handleSearch = async (event) => {
-      event.preventDefault();
-      setSearching(true);
-      const formData = new FormData(event.target);
-      const query = formData.get("query");
-      const response = await fetch(`/api/search?query=${query}&synonyms=false`);
-      const data = await response.json();
-      setResults(data);
-      setSearching(false);
-    };*/
 
   return (
     <div className="tw-bg-gray-100 pb-3">
