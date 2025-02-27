@@ -70,7 +70,41 @@ print("Database ready")
 oidc = OpenIDConnect(app)
 cors = CORS(app)
 
+# NOT IMPLEMENTED!
+@app.route('/api/user', methods=['GET'])
+def get_current_user():
+    # Will replace in the auth-fixes branch
+    return jsonify({"name": "whoever you are", "access": "admin"})
 
+@app.route('/api/get_users', methods=['GET'])
+def get_users():
+    # Will replace in the auth-fixes branch
+    return jsonify([
+    {
+      "id": 1,
+      "username": "sally student",
+      "access": "student",
+    },
+    {
+      "id": 2,
+      "username": "steven student",
+      "access": "student",
+    },
+    {
+      "id": 3,
+      "username": "paul professor",
+      "access": "admin",
+    },
+  ])
+
+@app.route('/api/users/update_access', methods=['POST'])
+def update_access():
+    user_id = request.json.get("user_id")
+    access = request.json.get("access")
+
+    # TODO: IMPLEMENT THIS! (And make sure user is an admin)
+
+    return {"message": "Access updated successfully"}
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
     query = request.args.get("query")
@@ -177,7 +211,9 @@ def get_chemical_location_data():
     location_list = []
     # Search through the entire database
     with db.session() as session:
-        chemical = session.query(Chemical).filter(Chemical.Chemicl_ID == chemical_id).first()
+
+        chemical = serssion.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+
         for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list

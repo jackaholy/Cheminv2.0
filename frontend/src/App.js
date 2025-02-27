@@ -1,37 +1,69 @@
-import React, {useState, useEffect, use} from "react";
-import "./style.css";
 
-const Navbar = ({}) => {
-    return (
-        <nav className="navbar navbar-expand-lg bg-light">
-            <div className="container-fluid">
-                <a className="navbar-brand" href="#">
-                    Chemical Inventory
-                </a>
-                {/*<button*/}
-                {/*  className="navbar-toggler"*/}
-                {/*  type="button"*/}
-                {/*  data-bs-toggle="collapse"*/}
-                {/*  data-bs-target="#navbarSupportedContent"*/}
-                {/*>*/}
-                {/*  <span className="navbar-toggler-icon"></span>*/}
-                {/*</button>*/}
-                {/*<div className="collapse navbar-collapse" id="navbarSupportedContent">*/}
-                {/*  <form className="d-flex" onSubmit={handleSearch}>*/}
-                {/*    <input*/}
-                {/*      name="query"*/}
-                {/*      className="form-control me-2"*/}
-                {/*      type="text"*/}
-                {/*      placeholder="Search"*/}
-                {/*    />*/}
-                {/*    <button className="btn btn-outline-success" type="submit">*/}
-                {/*      Search*/}
-                {/*    </button>*/}
-                {/*  </form>*/}
-                {/*</div>*/}
-            </div>
-        </nav>
-    );
+import React, { useState, useEffect } from "react";
+import "./style.css";
+import { ManageUsersModal } from "./ManageUsersModal";
+
+
+const Navbar = () => {
+  const [user, setUser] = useState({});
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((response) => response.json())
+      .then((data) => setUser(data))
+      .catch((error) => console.error(error));
+  }, []);
+  return (
+    <nav className="navbar navbar-expand-lg bg-light">
+      <div className="container-fluid">
+        <a className="navbar-brand me-auto" href="/">
+          Chemical Inventory
+        </a>
+        <div className="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0"></ul>
+          <ul className="navbar-nav mb-2 mb-lg-0">
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Hi {user.name}
+              </a>
+              <ul
+                className="dropdown-menu dropdown-menu-end"
+                aria-labelledby="navbarDropdown"
+              >
+                <li className="dropdown-item">You have {user.access} access</li>
+                {user.access === "admin" ? (
+                  <li>
+                    <a
+                      className="dropdown-item"
+                      data-bs-toggle="modal"
+                      data-bs-target="#manageUsersModal"
+                    >
+                      Manage access
+                    </a>
+                  </li>
+                ) : null}
+                <li>
+                  <hr className="dropdown-divider" />
+                </li>
+                <li>
+                  <a className="dropdown-item" href="#">
+                    Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 const Sidebar = ({
@@ -172,6 +204,7 @@ const MainContent = ({chemicalsData, loading, query, handleSearch}) => (
 );
 
 const App = () => {
+
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -248,26 +281,27 @@ const App = () => {
     };*/
 
     return (
-        <div className="tw-bg-gray-100 pb-3">
-            <Navbar/>
-            <div className="tw-flex tw-mt-4">
-                <Sidebar
-                    chemicals={chemicals}
-                    rooms={rooms}
-                    manufacturers={manufacturers}
-                    query={query}
-                    setQuery={setQuery}
-                    handleSearch={handleSearch}
-                />
-                <MainContent
-                    chemicalsData={results}
-                    loading={searching}
-                    query={query}
-                    handleSearch={handleSearch}
-                />
-            </div>
-        </div>
-    );
+    <div className="tw-bg-gray-100 pb-3">
+      <Navbar/>
+      <div className="tw-flex tw-mt-4">
+        <Sidebar
+          chemicals={chemicals}
+          rooms={rooms}
+          manufacturers={manufacturers}
+          query={query}
+          setQuery={setQuery}
+          handleSearch={handleSearch}
+        />
+        <MainContent
+          chemicalsData={results}
+          loading={searching}
+          query={query}
+          handleSearch={handleSearch}
+        />
+        <ManageUsersModal/>
+      </div>
+    </div>
+  );
 };
 
 export default App;
