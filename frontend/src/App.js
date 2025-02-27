@@ -163,7 +163,6 @@ const Sidebar = ({
     </div>
   );
 };
-
 const MainContent = ({ chemicalsData, loading, query, handleSearch }) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
     <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
