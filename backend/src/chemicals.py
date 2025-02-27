@@ -1,6 +1,8 @@
 
 from flask import Blueprint, request, jsonify
-from models import Chemical
+from sqlalchemy import func
+
+from models import Chemical, Inventory, Chemical_Manufacturer
 from database import db
 from oidc import oidc
 from permission_requirements import require_editor
@@ -46,37 +48,23 @@ def get_chemicals():
     API to get chemical details from the database.
     :return: A list of chemicals
     """
-    chemical_list = []
-    # Search through the entire database
-    with db.session() as session:
-        chemicals = session.query(Chemical).all()
-        # Iterate through each table from the database
-        for chem in chemicals:
-            # Add the appropriate chemical detail to the chemical list
-            # We can add more chemical attributes below if needed
-            chemical_list.append({
-                "chemical_name": chem.Chemical_Name,
-                "formula": chem.Chemical_Formula,
-                "id": chem.Chemical_ID,
-                "quantity": get_quantity(chem.Chemical_ID)
-            })
+    chemicals_data = db.session.query(
+        Chemical.Chemical_ID,
+        Chemical.Chemical_Name,
+        Chemical.Chemical_Formula,
+        func.count(Inventory.Inventory_ID).label("quantity")
+    ).outerjoin(Chemical_Manufacturer, Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID
+    ).outerjoin(Inventory, Chemical_Manufacturer.Chemical_Manufacturer_ID == Inventory.Chemical_Manufacturer_ID
+    ).group_by(Chemical.Chemical_ID).all()
+
+    chemical_list = [
+        {
+            "id": chem.Chemical_ID,
+            "chemical_name": chem.Chemical_Name,
+            "formula": chem.Chemical_Formula,
+            "quantity": chem.quantity
+        }
+        for chem in chemicals_data
+    ]
 
     return jsonify(chemical_list)
-
-
-def get_quantity(chemical_id):
-    """
-    Search through the database to find the number of instances a chemical appears.
-    :param chemical_id: the chemical ID
-    :return: quantity: of the chemical passed as an argument
-    """
-    quantity = 0
-    with db.session() as session:
-        # Check to see if chemical_ID's match
-        chemical = session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        if chemical:
-            for manufacturer in chemical.Chemical_Manufacturers:
-                for inventory in manufacturer.Inventory:
-                    quantity += 1
-
-    return quantity

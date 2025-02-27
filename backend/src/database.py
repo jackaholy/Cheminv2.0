@@ -1,22 +1,26 @@
-import os 
+import os
 import time
+import logging
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from sqlalchemy.engine import URL
 from sqlalchemy.exc import DatabaseError, OperationalError
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 db = SQLAlchemy()
 
+
 def init_db(app):
-    app.config['SQLALCHEMY_DATABASE_URI'] = URL.create(
+    logger.info("Initializing database")
+    app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
         drivername="mysql+pymysql",
         username=os.getenv("MYSQL_USER"),
         password=os.getenv("MYSQL_PASSWORD"),
         host=os.getenv("MYSQL_HOST"),
         database=os.getenv("MYSQL_DATABASE"),
-        port=os.getenv("MYSQL_PORT")
+        port=os.getenv("MYSQL_PORT"),
     )
     db.init_app(app)
 
@@ -28,13 +32,11 @@ def init_db(app):
             ready = True
         except (DatabaseError, OperationalError) as e:
             try:
-                print("Database not ready, retrying...")
-                print(e)
+                logger.info("Database not ready, retrying...")
                 time.sleep(1)
-                pass
             except KeyboardInterrupt:
                 exit()
         except Exception:
             raise
     return db
-    print("Database ready")
+    logger.info("Database ready")
