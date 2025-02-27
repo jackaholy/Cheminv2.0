@@ -60,10 +60,12 @@ def search_route():
     # Deduplicate search terms
     search_terms = list(set(search_terms))
 
-    # Element symbols (like FE, H, etc) match all kinds of things in the database, so we try to filter them out
     search_terms = [
         search_term
         for search_term in search_terms
+
+        # Try to filter out element symbols
+        # (for synonyms, allow the user to search directly)
         if len(search_term) > 3 or search_term == query
     ]
 
@@ -72,6 +74,8 @@ def search_route():
         matches = (
             db.session.query(Chemical)
             .options(
+                # Load the information needed to calculate quantity right away 
+                # for better performance
                 joinedload(Chemical.Chemical_Manufacturers).joinedload(
                     Chemical_Manufacturer.Inventory
                 )
