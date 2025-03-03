@@ -87,9 +87,9 @@ export const ManageUsersModal = () => {
               <thead>
                 <tr>
                   <th scope="col">Username</th>
-                  <th scope="col">Student</th>
-                  <th scope="col">Faculty</th>
-                  <th scope="col">Admin</th>
+                  <th scope="col">Visitor</th>
+                  <th scope="col">Editor</th>
+                  <th scope="col">Full Access</th>
                 </tr>
               </thead>
               <tbody>
@@ -104,8 +104,8 @@ export const ManageUsersModal = () => {
                       <input
                         type="radio"
                         name={user.id + "access"}
-                        value="student"
-                        checked={user.access === "student"}
+                        value="Visitor"
+                        checked={user.access === "Visitor"}
                         onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>
@@ -113,8 +113,8 @@ export const ManageUsersModal = () => {
                       <input
                         type="radio"
                         name={user.id + "access"}
-                        value="faculty"
-                        checked={user.access === "faculty"}
+                        value="Editor"
+                        checked={user.access === "Editor"}
                         onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>
@@ -122,8 +122,8 @@ export const ManageUsersModal = () => {
                       <input
                         type="radio"
                         name={user.id + "access"}
-                        value="admin"
-                        checked={user.access === "admin"}
+                        value="Full Access"
+                        checked={user.access === "Full Access"}
                         onChange={(e) => onAccessChange(e, user.id)}
                       />
                     </td>

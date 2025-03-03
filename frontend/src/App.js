@@ -122,7 +122,7 @@ const Navbar = () => {
                 aria-labelledby="navbarDropdown"
               >
                 <li className="dropdown-item">You have {user.access} access</li>
-                {user.access === "admin" ? (
+                {user.access === "Full Access" ? (
                   <li>
                     <a
                       className="dropdown-item"
@@ -137,7 +137,7 @@ const Navbar = () => {
                   <hr className="dropdown-divider" />
                 </li>
                 <li>
-                  <a className="dropdown-item" href="#">
+                  <a className="dropdown-item" href="/logout">
                     Logout
                   </a>
                 </li>
@@ -327,7 +327,9 @@ const App = () => {
       return;
     }
     setSearching(true);
-    fetch(`/api/search?query=${query}&synonyms=${synonyms}`)
+    fetch(`/api/search?query=${query}&synonyms=${synonyms}`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Search setting results:", data);
@@ -336,7 +338,6 @@ const App = () => {
       })
       .catch((error) => console.error(error));
   }
-
   useEffect(() => {
     fetch("/api/locations")
       .then((response) => response.json())
@@ -347,7 +348,6 @@ const App = () => {
       )
       .catch((error) => console.error(error));
   }, []);
-
   /**
    * Get the quantity of a specific chemical.
    */
@@ -434,7 +434,6 @@ const App = () => {
 
     return () => clearTimeout(handler);
   }, [query]);
-
   return (
     <div className="tw-bg-gray-100 pb-3">
       <Navbar />

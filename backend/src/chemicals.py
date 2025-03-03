@@ -4,9 +4,14 @@ from sqlalchemy import func
 
 from models import Chemical, Inventory, Chemical_Manufacturer
 from database import db
+from oidc import oidc
+from permission_requirements import require_editor
 chemicals = Blueprint('chemicals', __name__)
 
+
 @chemicals.route('/api/add_chemical', methods=['POST'])
+@oidc.require_login
+@require_editor
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
@@ -37,6 +42,7 @@ def add_chemical():
 
 
 @chemicals.route('/api/get_chemicals', methods=['GET'])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.

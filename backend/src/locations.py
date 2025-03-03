@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from database import db
+from oidc import oidc
 from models import Location, Chemical
 
 locations = Blueprint('locations', __name__)
 
 @locations.route('/api/locations', methods=['GET'])
+@oidc.require_login
 def get_locations():
     query = request.args.get("query")
     if query:

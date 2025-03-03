@@ -4,15 +4,15 @@ import logging
 
 import waitress
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
-from flask_oidc import OpenIDConnect
 
 from chemicals import chemicals
 from locations import locations
 from search import search
 from users import users
 from database import init_db
+from oidc import init_oidc, oidc
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename="../cheminv.log", encoding="utf-8", level=logging.INFO)
@@ -21,8 +21,15 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 load_dotenv()
 
 logger.info("Starting application")
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_url_path="",
+    static_folder="../frontend/build",
+    template_folder="../frontend/build",
+)
 init_db(app)
+init_oidc(app)
+
 app.config["SECRET_KEY"] = os.getenv("CHEMINV_SECRET_KEY")
 
 # Minimal OIDC configuration using environment variables.
@@ -44,8 +51,18 @@ app.config["OIDC_SCOPES"] = "openid email profile"
 app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
 
-oidc = OpenIDConnect(app)
 cors = CORS(app)
+
+
+@app.route("/")
+# Important: The auth redirect must
+# occur in the browser, not a fetch request.
+# The apis need to be protected, but can't actually
+# redirect to the login page.
+@oidc.require_login
+def index():
+    return render_template("index.html")
+
 
 app.register_blueprint(chemicals)
 app.register_blueprint(locations)
