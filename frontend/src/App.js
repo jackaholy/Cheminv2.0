@@ -55,170 +55,273 @@ const ChemicalModal = ({chemical, show, handleClose}) => {
         </div>
     );
 };
-    const Navbar = () => {
-        const [user, setUser] = useState({});
+const Navbar = ({handleShowAddChemicalModal}) => {
+    const [user, setUser] = useState({});
 
-        useEffect(() => {
-            fetch("/api/user")
-                .then((response) => response.json())
-                .then((data) => setUser(data))
-                .catch((error) => console.error(error));
-        }, []);
-        return (
-            <nav className="navbar navbar-expand-lg bg-light">
-                <div className="container-fluid">
-                    <a className="navbar-brand me-auto" href="/">
-                        Chemical Inventory
-                    </a>
-                    <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0"></ul>
-                        <ul className="navbar-nav mb-2 mb-lg-0">
-                            <li className="nav-item dropdown">
-                                <a
-                                    className="nav-link dropdown-toggle"
-                                    href="#"
-                                    id="navbarDropdown"
-                                    role="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                >
-                                    Hi {user.name}
-                                </a>
-                                <ul
-                                    className="dropdown-menu dropdown-menu-end"
-                                    aria-labelledby="navbarDropdown"
-                                >
-                                    <li className="dropdown-item">You have {user.access} access</li>
-                                    {user.access === "admin" ? (
-                                        <li>
-                                            <a
-                                                className="dropdown-item"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#manageUsersModal"
-                                            >
-                                                Manage access
-                                            </a>
-                                        </li>
-                                    ) : null}
+    useEffect(() => {
+        fetch("/api/user")
+            .then((response) => response.json())
+            .then((data) => setUser(data))
+            .catch((error) => console.error(error));
+    }, []);
+    return (
+        <nav className="navbar navbar-expand-lg bg-light">
+            <div className="container-fluid">
+                <a className="navbar-brand me-auto" href="/">
+                    Chemical Inventory
+                </a>
+                <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li className="nav-item">
+                            <a
+                                className="nav-link active"
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleShowAddChemicalModal();
+                                }}
+                            >
+                                Add Chemical
+                            </a>
+                        </li>
+                    </ul>
+                    <ul className="navbar-nav mb-2 mb-lg-0">
+                        <li className="nav-item dropdown">
+                            <a
+                                className="nav-link dropdown-toggle"
+                                href="#"
+                                id="navbarDropdown"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                Hi {user.name}
+                            </a>
+                            <ul
+                                className="dropdown-menu dropdown-menu-end"
+                                aria-labelledby="navbarDropdown"
+                            >
+                                <li className="dropdown-item">You have {user.access} access</li>
+                                {user.access === "admin" ? (
                                     <li>
-                                        <hr className="dropdown-divider"/>
-                                    </li>
-                                    <li>
-                                        <a className="dropdown-item" href="#">
-                                            Logout
+                                        <a
+                                            className="dropdown-item"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#manageUsersModal"
+                                        >
+                                            Manage access
                                         </a>
                                     </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
+                                ) : null}
+                                <li>
+                                    <hr className="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <a className="dropdown-item" href="#">
+                                        Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
-            </nav>
-        );
-    };
+            </div>
+        </nav>
+    );
+};
 
-    const Sidebar = ({
-                         chemicals,
-                         rooms,
-                         manufacturers,
-                         query,
-                         setQuery,
-                         handleSearch,
-                     }) => {
-        const [selectedChemicals, setSelectedChemicals] = useState([]);
-        const [selectedRoom, setSelectedRoom] = useState("");
-        const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+const AddChemicalModal = ({show, handleClose}) => {
+    return (
+        <div className={`modal fade ${show ? "show d-block" : "d-none"}`} tabIndex="-1">
+            <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h1 className="modal-title fs-5" id="addChemicalLabel">Acetic Acid</h1>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={handleClose}></button>
+                    </div>
+                    <div className="modal-body">
+                        {/* Identification Section */}
+                        <div className="grouped-section">
+                            <label className="form-label">Sticker Number</label>
+                            <input type="text" className="form-control" placeholder="3008" readOnly/>
+                            <label className="form-label">Chemical Name</label>
+                            <input type="text" className="form-control" placeholder="Acetic Acid" readOnly/>
+                            <label className="form-label">Chemical Formula/Common Name</label>
+                            <input type="text" className="form-control" placeholder="" readOnly/>
+                            <label className="form-label">Storage Class</label>
+                            <input type="text" className="form-control" placeholder="Corr White" readOnly/>
+                            <button type="button" className="btn btn-secondary">Select Chemical</button>
+                            <button type="button" className="btn btn-secondary">Fix Chemical Typo</button>
+                        </div>
 
-        const toggleChemical = (chem) => {
-            setSelectedChemicals((prev) =>
-                prev.includes(chem) ? prev.filter((c) => c !== chem) : [...prev, chem]
-            );
-        };
+                        {/* Quantity Section */}
+                        <div className="grouped-section">
+                            <label className="form-label">Quantity</label>
+                            <input type="text" className="form-control" placeholder="1"/>
+                            <label className="form-label">Unit</label>
+                            <select className="form-select">
+                                <option selected>Bottle</option>
+                                <option value="Liters">Liters</option>
+                                <option value="Milliliters">Milliliters</option>
+                                <option value="Kilograms">Kilograms</option>
+                            </select>
+                        </div>
 
-        const toggleManufacturer = (man) => {
-            setSelectedManufacturers((prev) =>
-                prev.includes(man) ? prev.filter((m) => m !== man) : [...prev, man]
-            );
-        };
+                        {/* Update Info Section */}
+                        <div className="grouped-section">
+                            <label className="form-label">Last Updated</label>
+                            <input type="text" className="form-control" placeholder="2024-09-19" readOnly/>
+                            <label className="form-label">Updated By</label>
+                            <input type="text" className="form-control" placeholder="emowat" readOnly/>
+                        </div>
 
-        return (
-            <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
-                <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
-                    <form
-                        className="tw-w-full tw-flex"
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSearch(query);
-                        }}
-                    >
-                        <input
-                            name="query"
-                            type="text"
-                            placeholder="Search..."
-                            className="tw-ml-2 tw-w-full tw-outline-none"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                        <button
-                            className="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
-                            <span className="material-icons">search</span>
+                        {/* Location Section */}
+                        <div className="grouped-section">
+                            <label className="form-label">Location</label>
+                            <select className="form-select">
+                                <option selected>FC 212</option>
+                                <option value="FC 101">FC 101</option>
+                                <option value="Lab 3">Lab 3</option>
+                            </select>
+                            <label className="form-label">Sub-Location</label>
+                            <select className="form-select">
+                                <option selected>Hood G</option>
+                                <option value="Shelf A">Shelf A</option>
+                                <option value="Cabinet B">Cabinet B</option>
+                            </select>
+                        </div>
+
+                        {/* Manufacturer Section */}
+                        <div className="grouped-section">
+                            <label className="form-label">Manufacturer Name</label>
+                            <select className="form-select">
+                                <option selected>TCI</option>
+                                <option value="Sigma-Aldrich">Sigma-Aldrich</option>
+                                <option value="Fisher Scientific">Fisher Scientific</option>
+                            </select>
+                            <label className="form-label">Product Number</label>
+                            <input type="text" className="form-control" placeholder="N0155"/>
+                            <label className="form-label">Material Safety Data Sheet</label>
+                            <input type="text" className="form-control" placeholder="MSDS Link" readOnly/>
+                            <button type="button" className="btn btn-secondary">Add Manufacturer</button>
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"
+                                aria-label="Close" onClick={handleClose}>Cancel
                         </button>
-                    </form>
-                </div>
-                <div className="tw-mt-4">
-                    <div className="tw-font-semibold">Popular Chemicals</div>
-                    <div className="tw-mt-2 tw-space-y-1">
-                        {chemicals.map((chem, index) => (
-                            <label key={index} className="tw-flex tw-items-center">
-                                <input
-                                    type="checkbox"
-                                    className="tw-mr-2"
-                                    checked={selectedChemicals.includes(chem)}
-                                    onChange={() => toggleChemical(chem)}
-                                />
-                                {chem}
-                            </label>
-                        ))}
-                    </div>
-                </div>
-                <div className="tw-mt-4">
-                    <div className="tw-font-semibold">Room Location</div>
-                    <div className="tw-mt-2 tw-space-y-1">
-                        {rooms.map((room, index) => (
-                            <label key={index} className="tw-flex tw-items-center">
-                                <input
-                                    type="radio"
-                                    name="room"
-                                    className="tw-mr-2"
-                                    checked={selectedRoom === room}
-                                    onChange={() => setSelectedRoom(room)}
-                                />
-                                {room}
-                            </label>
-                        ))}
-                    </div>
-                </div>
-                <div className="tw-mt-4">
-                    <div className="tw-font-semibold">Manufacturers</div>
-                    <div className="tw-mt-2 tw-space-y-1">
-                        {manufacturers.map((man, index) => (
-                            <label key={index} className="tw-flex tw-items-center">
-                                <input
-                                    type="checkbox"
-                                    className="tw-mr-2"
-                                    checked={selectedManufacturers.includes(man)}
-                                    onChange={() => toggleManufacturer(man)}
-                                />
-                                {man}
-                            </label>
-                        ))}
+                        <button type="button" className="btn btn-primary">Save Chemical</button>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const Sidebar = ({
+                     chemicals,
+                     rooms,
+                     manufacturers,
+                     query,
+                     setQuery,
+                     handleSearch,
+                 }) => {
+    const [selectedChemicals, setSelectedChemicals] = useState([]);
+    const [selectedRoom, setSelectedRoom] = useState("");
+    const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+
+    const toggleChemical = (chem) => {
+        setSelectedChemicals((prev) =>
+            prev.includes(chem) ? prev.filter((c) => c !== chem) : [...prev, chem]
         );
     };
 
-const MainContent = ({chemicalsData, loading, query, handleSearch, handleShowModal}) => (
+    const toggleManufacturer = (man) => {
+        setSelectedManufacturers((prev) =>
+            prev.includes(man) ? prev.filter((m) => m !== man) : [...prev, man]
+        );
+    };
+
+    return (
+        <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
+            <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
+                <form
+                    className="tw-w-full tw-flex"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSearch(query);
+                    }}
+                >
+                    <input
+                        name="query"
+                        type="text"
+                        placeholder="Search..."
+                        className="tw-ml-2 tw-w-full tw-outline-none"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <button
+                        className="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-bg-transparent tw-border-none hover:tw-opacity-70">
+                        <span className="material-icons">search</span>
+                    </button>
+                </form>
+            </div>
+            <div className="tw-mt-4">
+                <div className="tw-font-semibold">Popular Chemicals</div>
+                <div className="tw-mt-2 tw-space-y-1">
+                    {chemicals.map((chem, index) => (
+                        <label key={index} className="tw-flex tw-items-center">
+                            <input
+                                type="checkbox"
+                                className="tw-mr-2"
+                                checked={selectedChemicals.includes(chem)}
+                                onChange={() => toggleChemical(chem)}
+                            />
+                            {chem}
+                        </label>
+                    ))}
+                </div>
+            </div>
+            <div className="tw-mt-4">
+                <div className="tw-font-semibold">Room Location</div>
+                <div className="tw-mt-2 tw-space-y-1">
+                    {rooms.map((room, index) => (
+                        <label key={index} className="tw-flex tw-items-center">
+                            <input
+                                type="radio"
+                                name="room"
+                                className="tw-mr-2"
+                                checked={selectedRoom === room}
+                                onChange={() => setSelectedRoom(room)}
+                            />
+                            {room}
+                        </label>
+                    ))}
+                </div>
+            </div>
+            <div className="tw-mt-4">
+                <div className="tw-font-semibold">Manufacturers</div>
+                <div className="tw-mt-2 tw-space-y-1">
+                    {manufacturers.map((man, index) => (
+                        <label key={index} className="tw-flex tw-items-center">
+                            <input
+                                type="checkbox"
+                                className="tw-mr-2"
+                                checked={selectedManufacturers.includes(man)}
+                                onChange={() => toggleManufacturer(man)}
+                            />
+                            {man}
+                        </label>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const MainContent = ({
+                         chemicalsData, loading, query, handleSearch, handleShowModal
+                     }) => (
     <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
         <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
             <div>Quantity</div>
@@ -270,6 +373,8 @@ const App = () => {
     const [selectedChemical, setSelectedChemical] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
+    const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
+
     const handleShowModal = (chem) => {
         setSelectedChemical(chem);
         setShowModal(true);
@@ -277,6 +382,14 @@ const App = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
+    };
+
+    const handleShowAddChemicalModal = () => {
+        setShowAddChemicalModal(true);
+    };
+
+    const handleCloseAddChemicalModal = () => {
+        setShowAddChemicalModal(false);
     };
 
     function handleSearch(query, synonyms = false) {
@@ -355,7 +468,7 @@ const App = () => {
 
     return (
         <div className="tw-bg-gray-100 pb-3">
-            <Navbar/>
+            <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal}/>
             <div className="tw-flex tw-mt-4">
                 <Sidebar
                     chemicals={chemicals}
@@ -375,6 +488,10 @@ const App = () => {
                 <ManageUsersModal/>
             </div>
             <ChemicalModal chemical={selectedChemical} show={showModal} handleClose={handleCloseModal}/>
+            <AddChemicalModal
+                show={showAddChemicalModal}
+                handleClose={handleCloseAddChemicalModal}
+            />
         </div>
     );
 };
