@@ -5,7 +5,7 @@ from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
 from database import db
 from sqlalchemy import or_
-from models import Chemical, Chemical_Manufacturer
+from models import Chemical, Chemical_Manufacturer, Inventory
 
 search = Blueprint("search", __name__)
 logger = logging.getLogger(__name__)
@@ -64,7 +64,6 @@ def search_route():
     search_terms = [
         search_term
         for search_term in search_terms
-
         # Try to filter out element symbols
         # (for synonyms, allow the user to search directly)
         if len(search_term) > 3 or search_term == query
@@ -75,7 +74,7 @@ def search_route():
         matches = (
             db.session.query(Chemical)
             .options(
-                # Load the information needed to calculate quantity right away 
+                # Load the information needed to calculate quantity right away
                 # for better performance
                 joinedload(Chemical.Chemical_Manufacturers).joinedload(
                     Chemical_Manufacturer.Inventory
@@ -86,6 +85,11 @@ def search_route():
                     Chemical.Chemical_Name.like("%" + search_term + "%"),
                     Chemical.Alphabetical_Name.like("%" + search_term + "%"),
                     Chemical.Chemical_Formula == search_term,
+                    Chemical.Chemical_Manufacturers.any(
+                        Chemical_Manufacturer.Inventory.any(
+                            Inventory.Sticker_Number == search_term
+                        )
+                    ),
                 )
             )
             .all()
