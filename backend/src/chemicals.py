@@ -86,6 +86,7 @@ def get_chemicals():
 def product_number_lookup():
     """
     API to get chemical details based on the product number.
+    :param product_number: The product number of the chemical.
     :return: Details for the chemical with the given product number.
     """
     product_number = request.args.get("product_number")
