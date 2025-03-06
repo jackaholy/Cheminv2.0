@@ -166,15 +166,19 @@ const Navbar = ({ handleShowAddChemicalModal }) => {
 const AddChemicalModal = ({ show, handleClose }) => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState({});
-
+  const [manufacturers, setManufacturers] = useState([]);
   useEffect(() => {
     fetch(`/api/locations`)
       .then((response) => response.json())
       .then((data) => setLocations(data))
       .catch((error) => console.error(error));
   }, []);
-  console.log(selectedLocation);
-
+  useEffect(() => {
+    fetch(`/api/manufacturers`)
+      .then((response) => response.json())
+      .then((data) => setManufacturers(data))
+      .catch((error) => console.error(error));
+  }, []);
   return (
     <div
       className={`modal fade ${show ? "show d-block" : "d-none"}`}
@@ -198,13 +202,9 @@ const AddChemicalModal = ({ show, handleClose }) => {
             {/* Identification Section */}
             <div className="grouped-section">
               <label className="form-label">Sticker Number</label>
-              <input type="text" className="form-control" placeholder="3008" />
+              <input type="number" className="form-control" />
               <label className="form-label">Chemical Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Acetic Acid"
-              />
+              <input type="text" className="form-control" />
               <label className="form-label">Chemical Formula/Common Name</label>
               <input type="text" className="form-control" placeholder="" />
               <label className="form-label">Storage Class</label>
@@ -294,9 +294,11 @@ const AddChemicalModal = ({ show, handleClose }) => {
             <div className="grouped-section">
               <label className="form-label">Manufacturer Name</label>
               <select className="form-select">
-                <option selected>TCI</option>
-                <option value="Sigma-Aldrich">Sigma-Aldrich</option>
-                <option value="Fisher Scientific">Fisher Scientific</option>
+                {manufacturers.map((manufacturer) => (
+                  <option value={manufacturer.id}>
+                    {manufacturer.name}
+                  </option>
+                ))}
               </select>
               <label className="form-label">Product Number</label>
               <input type="text" className="form-control" placeholder="N0155" />
