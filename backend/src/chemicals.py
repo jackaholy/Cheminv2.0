@@ -123,6 +123,43 @@ def product_number_lookup():
     return jsonify(chemicals_data)
 
 
+@chemicals.route("/api/chemicals/chemical_name_lookup", methods=["GET"])
+def chemical_name_lookup():
+    """
+    API to get chemical details based on the chemical name.
+    :return: Details for the chemical with the given chemical name.
+    """
+    chemical_name = request.args.get("chemical_name")
+    query_result = (
+        db.session.query(
+            Chemical.Chemical_Name,
+            Chemical.Chemical_Formula,
+            Storage_Class.Storage_Class_Name,
+        )
+        .join(
+            Chemical_Manufacturer,
+            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
+        )
+        .join(
+            Storage_Class, Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID
+        )
+        .join(
+            Manufacturer,
+            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
+        )
+        .filter(Chemical.Chemical_Name == chemical_name)
+        .first()
+    )
+    if not query_result:
+        return jsonify({}), 404
+    chemicals_data = {
+        "chemical_name": query_result[0],
+        "chemical_formula": query_result[1],
+        "storage_class": query_result[2],
+    }
+    return jsonify(chemicals_data)
+
+
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
 def mark_dead():
     """

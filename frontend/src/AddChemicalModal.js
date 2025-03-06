@@ -56,7 +56,15 @@ export const AddChemicalModal = ({ show, parentHandleClose }) => {
       .catch((error) => console.error(error));
   };
   const lookupChemicalByName = () => {
-    console.log("here");
+    fetch("/api/chemicals/chemical_name_lookup?chemical_name=" + chemicalName)
+    .then((response) => response.json())
+    .then((data) => {
+        setChemicalNameSubmitted(true);
+        if (Object.keys(data).length === 0) {
+          setAutoFilled(false);
+          return;
+        }
+        set
   };
 
   const addChemical = () => {
