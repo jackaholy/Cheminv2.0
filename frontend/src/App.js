@@ -198,32 +198,20 @@ const AddChemicalModal = ({ show, handleClose }) => {
             {/* Identification Section */}
             <div className="grouped-section">
               <label className="form-label">Sticker Number</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="3008"
-                readOnly
-              />
+              <input type="text" className="form-control" placeholder="3008" />
               <label className="form-label">Chemical Name</label>
               <input
                 type="text"
                 className="form-control"
                 placeholder="Acetic Acid"
-                readOnly
               />
               <label className="form-label">Chemical Formula/Common Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder=""
-                readOnly
-              />
+              <input type="text" className="form-control" placeholder="" />
               <label className="form-label">Storage Class</label>
               <input
                 type="text"
                 className="form-control"
                 placeholder="Corr White"
-                readOnly
               />
               <button type="button" className="btn btn-secondary">
                 Select Chemical
