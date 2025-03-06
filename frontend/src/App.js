@@ -13,7 +13,7 @@ const ChemicalModal = ({ chemical, show, handleClose }) => {
       <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content">
           <div className="modal-header">
-            <h1 className="modal-title fs-5">{chemical.name}</h1>
+            <h1 className="modal-title fs-5">{chemical.chemical_name}</h1>
             <button
               type="button"
               className="btn-close"
@@ -21,18 +21,12 @@ const ChemicalModal = ({ chemical, show, handleClose }) => {
             ></button>
           </div>
           <div className="modal-body">
-            <label className="form-label">Chemical Abbreviation</label>
-            <input
-              type="text"
-              className="form-control"
-              value={chemical.symbol}
-              readOnly
-            />
             <label className="form-label">Storage Class</label>
             <input
               type="text"
               className="form-control"
-              placeholder="Corr White"
+              value={chemical.storage_class}
+              // placeholder="Corr White"
               readOnly
             />
             <label className="form-label">MSDS</label>
@@ -163,7 +157,7 @@ const Navbar = ({handleShowAddChemicalModal}) => {
   );
 };
 
-const AddChemicalModal = ({show, handleClose}) => {
+const AddChemicalModal = ({show, handleClose, chemical}) => {
     return (
         <div className={`modal fade ${show ? "show d-block" : "d-none"}`} tabIndex="-1">
             <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -178,7 +172,7 @@ const AddChemicalModal = ({show, handleClose}) => {
                             <label className="form-label">Sticker Number</label>
                             <input type="text" className="form-control" placeholder="3008" readOnly/>
                             <label className="form-label">Chemical Name</label>
-                            <input type="text" className="form-control" placeholder="Acetic Acid" readOnly/>
+                            <input type="text" className="form-control" placeholder={chemical?.chemical_name} readOnly/>
                             <label className="form-label">Chemical Formula/Common Name</label>
                             <input type="text" className="form-control" placeholder="" readOnly/>
                             <label className="form-label">Storage Class</label>
@@ -413,7 +407,7 @@ const App = () => {
   const [selectedChemical, setSelectedChemical] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-    const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
+  const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
 
   const handleShowModal = (chem) => {
     setSelectedChemical(chem);
@@ -422,6 +416,7 @@ const App = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setSelectedChemical(null);
   };
 
     const handleShowAddChemicalModal = () => {
@@ -567,10 +562,14 @@ const App = () => {
         />
         <ManageUsersModal />
       </div>
-            <ChemicalModal chemical={selectedChemical} show={showModal} handleClose={handleCloseModal}/>
+            <ChemicalModal
+                chemical={selectedChemical}
+                show={showModal}
+                handleClose={handleCloseModal}/>
             <AddChemicalModal
                 show={showAddChemicalModal}
                 handleClose={handleCloseAddChemicalModal}
+                chemical={selectedChemical}
             />
     </div>
   );
