@@ -58,7 +58,6 @@ def get_chemicals():
             func.count(Inventory.Inventory_ID).label("quantity"),
             Inventory.Inventory_ID.label("inventory_id"),
             Inventory.Sticker_Number.label("sticker"),
-            Inventory.Quantity.label("inventory_quantity"),
             Sub_Location.Sub_Location_Name.label("sub_location"),
             Location.Location_ID.label("location_id"),
             Manufacturer.Manufacturer_Name.label("manufacturer"),
@@ -108,7 +107,6 @@ def get_chemicals():
                 "id": chem.Chemical_ID,
                 "chemical_name": chem.Chemical_Name,
                 "formula": chem.Chemical_Formula,
-                "quantity": chem.quantity,
                 "storage_class": chem.Storage_Class_Name,
                 "inventory": [],
             }
@@ -116,11 +114,12 @@ def get_chemicals():
         # Append inventory information to the correct chemical entry
         chemical_dict[chem.Chemical_ID]["inventory"].append({
             "sticker": chem.sticker,
-            "quantity": chem.inventory_quantity,
             "sub_location": chem.sub_location,
             "location": chem.location_id,
             "manufacturer": chem.manufacturer,
         })
+
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(chemical_dict[chem.Chemical_ID]["inventory"])
 
     # Converting the dictionary into a list of chemicals
     chemical_list = list(chemical_dict.values())
