@@ -121,7 +121,7 @@ def product_number_lookup():
     return jsonify(chemicals_data)
 
 
-@api.route("/api/chemicals/mark_dead", methods=["POST"])
+@chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
 def mark_dead():
     """
     API to mark a chemical as dead.

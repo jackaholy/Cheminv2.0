@@ -1,7 +1,50 @@
-const AddChemicalModal = ({ show, handleClose }) => {
+import React, { useState, useEffect } from "react";
+
+export const AddChemicalModal = ({ show, handleClose }) => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState({});
   const [manufacturers, setManufacturers] = useState([]);
+  const [selectedManufacturer, setSelectedManufacturer] = useState({});
+  const [productNumber, setProductNumber] = useState("");
+  const [stickerNumber, setStickerNumber] = useState("");
+  const [chemicalName, setChemicalName] = useState("");
+  const [chemicalFormula, setChemicalFormula] = useState("");
+  const [storageClass, setStorageClass] = useState("");
+  const [autoFilled, setAutoFilled] = useState(false);
+  const [productNumberSubmitted, setProductNumberSubmitted] = useState(false);
+  const lookupProductNumber = () => {
+    fetch(
+      `/api/chemicals/product_number_lookup?product_number=${productNumber}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setChemicalName(data.chemical_name);
+        setChemicalFormula(data.chemical_formula);
+        setSelectedManufacturer(
+          manufacturers.find(
+            (manufacturer) => manufacturer.name === data.manufacturer
+          )
+        );
+        setStorageClass(data.storage_class);
+        setProductNumberSubmitted(true);
+      })
+      .catch((error) => console.error(error));
+  };
+
+  const addChemical = () => {
+    console.log(
+      JSON.stringify({
+        sticker_number: stickerNumber,
+        chemical_name: chemicalName,
+        chemical_formula: chemicalFormula,
+        storage_class: storageClass,
+        location_id: selectedLocation.id,
+        manufacturer_id: selectedManufacturer.id,
+        product_number: productNumber,
+      })
+    );
+  };
+
   useEffect(() => {
     fetch(`/api/locations`)
       .then((response) => response.json())
@@ -14,6 +57,26 @@ const AddChemicalModal = ({ show, handleClose }) => {
       .then((data) => setManufacturers(data))
       .catch((error) => console.error(error));
   }, []);
+  if (!productNumberSubmitted) {
+    return (
+      <div
+        className={`modal fade ${show ? "show d-block" : "d-none"}`}
+        tabIndex="-1"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-body">
+              <ProductNumberInput
+                productNumber={productNumber}
+                setProductNumber={setProductNumber}
+                lookupProductNumber={lookupProductNumber}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className={`modal fade ${show ? "show d-block" : "d-none"}`}
@@ -37,23 +100,57 @@ const AddChemicalModal = ({ show, handleClose }) => {
             {/* Identification Section */}
             <div className="grouped-section">
               <label className="form-label">Sticker Number</label>
-              <input type="number" className="form-control" />
-              <label className="form-label">Chemical Name</label>
-              <input type="text" className="form-control" />
-              <label className="form-label">Chemical Formula/Common Name</label>
-              <input type="text" className="form-control" placeholder="" />
-              <label className="form-label">Storage Class</label>
               <input
-                type="text"
+                type="number"
                 className="form-control"
-                placeholder="Corr White"
+                value={stickerNumber}
+                onChange={(e) => {
+                  setStickerNumber(e.target.value);
+                }}
               />
+              {!productNumberSubmitted && (
+                <div>
+                  <label className="form-label">Chemical Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={chemicalName}
+                    onChange={(e) => {
+                      setChemicalName(e.target.value);
+                    }}
+                  />
+                  <label className="form-label">
+                    Chemical Formula/Common Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder=""
+                    value={chemicalFormula}
+                    onChange={(e) => {
+                      setChemicalFormula(e.target.value);
+                    }}
+                  />
+                  <label className="form-label">Storage Class</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Corr White"
+                    value={storageClass}
+                    onChange={(e) => {
+                      setStorageClass(e.target.value);
+                    }}
+                  />
+                </div>
+              )}
+              {/*
               <button type="button" className="btn btn-secondary">
                 Select Chemical
               </button>
               <button type="button" className="btn btn-secondary">
                 Fix Chemical Typo
               </button>
+              */}
             </div>
 
             {/* Quantity Section */}
@@ -126,26 +223,43 @@ const AddChemicalModal = ({ show, handleClose }) => {
             </div>
 
             {/* Manufacturer Section */}
-            <div className="grouped-section">
-              <label className="form-label">Manufacturer Name</label>
-              <select className="form-select">
-                {manufacturers.map((manufacturer) => (
-                  <option value={manufacturer.id}>{manufacturer.name}</option>
-                ))}
-              </select>
-              <label className="form-label">Product Number</label>
-              <input type="text" className="form-control" placeholder="N0155" />
-              <label className="form-label">Material Safety Data Sheet</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="MSDS Link"
-                readOnly
-              />
-              <button type="button" className="btn btn-secondary">
-                Add Manufacturer
-              </button>
-            </div>
+            {autoFilled && (
+              <div className="grouped-section">
+                <label className="form-label">Manufacturer Name</label>
+                <select
+                  className="form-select"
+                  value={selectedManufacturer?.id}
+                  onChange={(e) =>
+                    setSelectedManufacturer(
+                      manufacturers.find(
+                        (manufacturer) =>
+                          manufacturer.id === parseInt(e.target.value)
+                      )
+                    )
+                  }
+                >
+                  {manufacturers.map((manufacturer) => (
+                    <option value={manufacturer.id}>{manufacturer.name}</option>
+                  ))}
+                </select>
+                <label className="form-label">Product Number</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="N0155"
+                />
+                <label className="form-label">Material Safety Data Sheet</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="MSDS Link"
+                  readOnly
+                />
+                <button type="button" className="btn btn-secondary">
+                  Add Manufacturer
+                </button>
+              </div>
+            )}
           </div>
           <div className="modal-footer">
             <button
@@ -157,12 +271,44 @@ const AddChemicalModal = ({ show, handleClose }) => {
             >
               Cancel
             </button>
-            <button type="button" className="btn btn-primary">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={addChemical}
+            >
               Save Chemical
             </button>
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const ProductNumberInput = ({
+  productNumber,
+  setProductNumber,
+  lookupProductNumber,
+}) => {
+  return (
+    <div>
+      <label className="form-label">Product Number</label>
+      <input
+        type="text"
+        className="form-control"
+        placeholder=""
+        value={productNumber}
+        onInput={(e) => {
+          setProductNumber(e.target.value);
+        }}
+      />
+      <button
+        type="button"
+        className="ms-auto btn btn-success mt-2"
+        onClick={lookupProductNumber}
+      >
+        Next
+      </button>
     </div>
   );
 };
