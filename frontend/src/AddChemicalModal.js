@@ -1,4 +1,19 @@
-export const AddChemicalModal = ({ show, handleClose }) => {
+const AddChemicalModal = ({ show, handleClose }) => {
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState({});
+  const [manufacturers, setManufacturers] = useState([]);
+  useEffect(() => {
+    fetch(`/api/locations`)
+      .then((response) => response.json())
+      .then((data) => setLocations(data))
+      .catch((error) => console.error(error));
+  }, []);
+  useEffect(() => {
+    fetch(`/api/manufacturers`)
+      .then((response) => response.json())
+      .then((data) => setManufacturers(data))
+      .catch((error) => console.error(error));
+  }, []);
   return (
     <div
       className={`modal fade ${show ? "show d-block" : "d-none"}`}
@@ -22,32 +37,16 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             {/* Identification Section */}
             <div className="grouped-section">
               <label className="form-label">Sticker Number</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="3008"
-                readOnly
-              />
+              <input type="number" className="form-control" />
               <label className="form-label">Chemical Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Acetic Acid"
-                readOnly
-              />
+              <input type="text" className="form-control" />
               <label className="form-label">Chemical Formula/Common Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder=""
-                readOnly
-              />
+              <input type="text" className="form-control" placeholder="" />
               <label className="form-label">Storage Class</label>
               <input
                 type="text"
                 className="form-control"
                 placeholder="Corr White"
-                readOnly
               />
               <button type="button" className="btn btn-secondary">
                 Select Chemical
@@ -58,6 +57,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             </div>
 
             {/* Quantity Section */}
+            {/* Unused Steve Harper feature? */}
+            {/*
             <div className="grouped-section">
               <label className="form-label">Quantity</label>
               <input type="text" className="form-control" placeholder="1" />
@@ -69,8 +70,11 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                 <option value="Kilograms">Kilograms</option>
               </select>
             </div>
+            */}
 
             {/* Update Info Section */}
+            {/* Automatically filled in with current user */}
+            {/*
             <div className="grouped-section">
               <label className="form-label">Last Updated</label>
               <input
@@ -87,20 +91,37 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                 readOnly
               />
             </div>
+            */}
 
             {/* Location Section */}
             <div className="grouped-section">
               <label className="form-label">Location</label>
-              <select className="form-select">
-                <option selected>FC 212</option>
-                <option value="FC 101">FC 101</option>
-                <option value="Lab 3">Lab 3</option>
+              <select
+                className="form-select"
+                onChange={(e) =>
+                  setSelectedLocation(
+                    locations.find(
+                      (location) =>
+                        location.location_id === parseInt(e.target.value)
+                    )
+                  )
+                }
+              >
+                {locations.map((location) => (
+                  <option value={location.location_id}>
+                    {location.building} {location.room}
+                  </option>
+                ))}
               </select>
               <label className="form-label">Sub-Location</label>
               <select className="form-select">
-                <option selected>Hood G</option>
-                <option value="Shelf A">Shelf A</option>
-                <option value="Cabinet B">Cabinet B</option>
+                {selectedLocation &&
+                  selectedLocation.sub_locations &&
+                  selectedLocation.sub_locations.map((sub_location) => (
+                    <option value={sub_location.sub_location_id}>
+                      {sub_location.sub_location_name}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -108,9 +129,9 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             <div className="grouped-section">
               <label className="form-label">Manufacturer Name</label>
               <select className="form-select">
-                <option selected>TCI</option>
-                <option value="Sigma-Aldrich">Sigma-Aldrich</option>
-                <option value="Fisher Scientific">Fisher Scientific</option>
+                {manufacturers.map((manufacturer) => (
+                  <option value={manufacturer.id}>{manufacturer.name}</option>
+                ))}
               </select>
               <label className="form-label">Product Number</label>
               <input type="text" className="form-control" placeholder="N0155" />
