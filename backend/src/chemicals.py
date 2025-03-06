@@ -61,6 +61,7 @@ def get_chemicals():
             Sub_Location.Sub_Location_Name.label("sub_location"),
             Location.Location_ID.label("location_id"),
             Manufacturer.Manufacturer_Name.label("manufacturer"),
+            Chemical_Manufacturer.Product_Number.label("product_number"),
         )
         .outerjoin(
             Chemical_Manufacturer,
@@ -93,6 +94,7 @@ def get_chemicals():
             Sub_Location.Sub_Location_Name,
             Location.Location_ID,
             Manufacturer.Manufacturer_Name,
+            Chemical_Manufacturer.Product_Number,
         )
         .all()
     )
@@ -114,6 +116,7 @@ def get_chemicals():
         # Append inventory information to the correct chemical entry
         chemical_dict[chem.Chemical_ID]["inventory"].append({
             "sticker": chem.sticker,
+            "product_number": chem.product_number,
             "sub_location": chem.sub_location,
             "location": chem.location_id,
             "manufacturer": chem.manufacturer,
