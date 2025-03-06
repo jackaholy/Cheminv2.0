@@ -69,8 +69,6 @@ const App = () => {
     fetch("/api/get_chemicals")
       .then((response) => response.json())
       .then((data) => {
-        // console.log("Fetched chemicals:", data);
-        console.log("Get chemicals setting results:", data);
         setResults(data);
       })
       .catch((error) => console.error(error));
@@ -116,8 +114,6 @@ const App = () => {
     fetch("/api/get_chemicals")
       .then((response) => response.json())
       .then((data) => {
-        // console.log("Fetched chemicals:", data);
-        console.log("Get chemicals setting results:", data);
         setResults(data);
       })
       .catch((error) => console.error(error));
@@ -176,7 +172,7 @@ const App = () => {
       />
       <AddChemicalModal
         show={showAddChemicalModal}
-        handleClose={handleCloseAddChemicalModal}
+        parentHandleClose={handleCloseAddChemicalModal}
       />
     </div>
   );

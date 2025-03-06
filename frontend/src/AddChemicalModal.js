@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-export const AddChemicalModal = ({ show, handleClose }) => {
+export const AddChemicalModal = ({ show, parentHandleClose }) => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState({});
   const [manufacturers, setManufacturers] = useState([]);
@@ -12,12 +12,37 @@ export const AddChemicalModal = ({ show, handleClose }) => {
   const [storageClass, setStorageClass] = useState("");
   const [autoFilled, setAutoFilled] = useState(false);
   const [productNumberSubmitted, setProductNumberSubmitted] = useState(false);
+  const [chemicalNameSubmitted, setChemicalNameSubmitted] = useState(false);
+
+  function handleClose() {
+    clearFields();
+    parentHandleClose();
+  }
+
+  const clearFields = () => {
+    setProductNumber("");
+    setStickerNumber("");
+    setChemicalName("");
+    setChemicalFormula("");
+    setStorageClass("");
+    setSelectedLocation({});
+    setSelectedManufacturer({});
+    setAutoFilled(false);
+    setProductNumberSubmitted(false);
+  };
+
   const lookupProductNumber = () => {
     fetch(
       `/api/chemicals/product_number_lookup?product_number=${productNumber}`
     )
       .then((response) => response.json())
       .then((data) => {
+        setProductNumberSubmitted(true);
+        if (Object.keys(data).length === 0) {
+          setAutoFilled(false);
+
+          return;
+        }
         setChemicalName(data.chemical_name);
         setChemicalFormula(data.chemical_formula);
         setSelectedManufacturer(
@@ -26,9 +51,12 @@ export const AddChemicalModal = ({ show, handleClose }) => {
           )
         );
         setStorageClass(data.storage_class);
-        setProductNumberSubmitted(true);
+        setAutoFilled(true);
       })
       .catch((error) => console.error(error));
+  };
+  const lookupChemicalByName = () => {
+    console.log("here");
   };
 
   const addChemical = () => {
@@ -77,6 +105,31 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       </div>
     );
   }
+  if (!autoFilled && !chemicalNameSubmitted) {
+    return (
+      <div
+        className={`modal fade ${show ? "show d-block" : "d-none"}`}
+        tabIndex="-1"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-body">
+              <p className="text-danger">
+                We couldn't find {productNumber}. Try looking chemical up by
+                name instead:
+              </p>
+              <ChemicalNameInput
+                clearFields={clearFields}
+                chemicalName={chemicalName}
+                setChemicalName={setChemicalName}
+                lookupChemicalByName={lookupChemicalByName}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className={`modal fade ${show ? "show d-block" : "d-none"}`}
@@ -86,7 +139,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
         <div className="modal-content">
           <div className="modal-header">
             <h1 className="modal-title fs-5" id="addChemicalLabel">
-              Acetic Acid
+              Add Chemical
             </h1>
             <button
               type="button"
@@ -97,6 +150,15 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             ></button>
           </div>
           <div className="modal-body">
+            {autoFilled ? (
+              <p className="text-success">
+                We found {productNumber}, just fill in the following details
+              </p>
+            ) : (
+              <p className="text-danger">
+                We couldn't find {productNumber}, please enter it manually
+              </p>
+            )}
             {/* Identification Section */}
             <div className="grouped-section">
               <label className="form-label">Sticker Number</label>
@@ -108,7 +170,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                   setStickerNumber(e.target.value);
                 }}
               />
-              {!productNumberSubmitted && (
+              {!autoFilled && (
                 <div>
                   <label className="form-label">Chemical Name</label>
                   <input
@@ -223,7 +285,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             </div>
 
             {/* Manufacturer Section */}
-            {autoFilled && (
+            {!autoFilled && (
               <div className="grouped-section">
                 <label className="form-label">Manufacturer Name</label>
                 <select
@@ -247,13 +309,14 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                   type="text"
                   className="form-control"
                   placeholder="N0155"
+                  value={productNumber}
+                  onChange={(e) => setProductNumber(e.target.value)}
                 />
                 <label className="form-label">Material Safety Data Sheet</label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder="MSDS Link"
-                  readOnly
                 />
                 <button type="button" className="btn btn-secondary">
                   Add Manufacturer
@@ -267,9 +330,11 @@ export const AddChemicalModal = ({ show, handleClose }) => {
               className="btn btn-secondary"
               data-bs-dismiss="modal"
               aria-label="Close"
-              onClick={handleClose}
+              onClick={() => {
+                clearFields();
+              }}
             >
-              Cancel
+              Back
             </button>
             <button
               type="button"
@@ -281,6 +346,63 @@ export const AddChemicalModal = ({ show, handleClose }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+const ChemicalNameInput = ({
+  chemicalName,
+  setChemicalName,
+  clearFields,
+  lookupChemicalByName,
+}) => {
+  const [searchResults, setSearchResults] = useState([]);
+  function searchByName() {
+    fetch(`/api/search?query=${chemicalName}&synonyms=false`)
+      .then((response) => response.json())
+      .then((data) => {
+        setSearchResults(data);
+      })
+      .catch((error) => console.error(error));
+  }
+  return (
+    <div>
+      <label className="form-label">Chemical Name</label>
+      <input
+        list="chemicalResultsList"
+        type="text"
+        className="form-control"
+        placeholder=""
+        value={chemicalName}
+        onInput={(e) => {
+          setChemicalName(e.target.value);
+          searchByName();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            lookupChemicalByName();
+          }
+        }}
+      />
+      <datalist id="chemicalResultsList">
+        {searchResults.map((result) => (
+          <option>{result.chemical_name}</option>
+        ))}
+      </datalist>
+
+      <button
+        type="button"
+        className="ms-auto btn btn-secondary mt-2 me-1"
+        onClick={clearFields}
+      >
+        Back
+      </button>
+      <button
+        type="button"
+        className="ms-auto btn btn-success mt-2"
+        onClick={lookupChemicalByName}
+      >
+        Next
+      </button>
     </div>
   );
 };
@@ -300,6 +422,11 @@ const ProductNumberInput = ({
         value={productNumber}
         onInput={(e) => {
           setProductNumber(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            lookupProductNumber();
+          }
         }}
       />
       <button
