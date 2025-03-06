@@ -25,7 +25,7 @@ const ChemicalModal = ({ chemical, show, handleClose }) => {
             <input
               type="text"
               className="form-control"
-              value={chemical.storage_class}
+              value={chemical.storage_class_name}
               // placeholder="Corr White"
               readOnly
             />

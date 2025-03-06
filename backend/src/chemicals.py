@@ -49,16 +49,22 @@ def get_chemicals():
     API to get chemical details from the database.
     :return: A list of chemicals
     """
+
     chemicals_data = (
         db.session.query(
             Chemical.Chemical_ID,
             Chemical.Chemical_Name,
             Chemical.Chemical_Formula,
+            Chemical.Storage_Class,
             func.count(Inventory.Inventory_ID).label("quantity"),
         )
         .outerjoin(
             Chemical_Manufacturer,
             Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
+        )
+        .outerjoin(
+            Storage_Class,
+            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
         )
         .outerjoin(
             Inventory,
@@ -75,6 +81,7 @@ def get_chemicals():
             "chemical_name": chem.Chemical_Name,
             "formula": chem.Chemical_Formula,
             "quantity": chem.quantity,
+            "storage_class": chem.Storage_Class_Name,
         }
         for chem in chemicals_data
     ]
