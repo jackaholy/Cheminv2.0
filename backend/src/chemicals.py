@@ -120,3 +120,16 @@ def product_number_lookup():
         "product_number": query_result[4],
     }
     return jsonify(chemicals_data)
+
+
+@api.route("/api/chemicals/mark_dead", methods=["POST"])
+def mark_dead():
+    """
+    API to mark a chemical as dead.
+    :return: Message indicating the chemical has been marked as dead.
+    """
+    chemical_id = request.json.get("chemical_id")
+    chemical = Chemical.query.get(chemical_id)
+    chemical.Is_Dead = True
+    db.session.commit()
+    return {"message": "Chemical marked as dead"}

@@ -30,3 +30,4 @@ database-dump.sql
 db
 
 .idea/
+.vscode/
