@@ -3,7 +3,6 @@ import time
 import logging
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from sqlalchemy.engine import URL
 from sqlalchemy.exc import DatabaseError, OperationalError
 
 load_dotenv()
@@ -14,14 +13,6 @@ db = SQLAlchemy()
 
 def init_db(app):
     logger.info("Initializing database")
-    app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
-        drivername="mysql+pymysql",
-        username=os.getenv("MYSQL_USER"),
-        password=os.getenv("MYSQL_PASSWORD"),
-        host=os.getenv("MYSQL_HOST"),
-        database=os.getenv("MYSQL_DATABASE"),
-        port=os.getenv("MYSQL_PORT"),
-    )
     db.init_app(app)
 
     ready = False
@@ -38,5 +29,5 @@ def init_db(app):
                 exit()
         except Exception:
             raise
-    return db
     logger.info("Database ready")
+    return db
