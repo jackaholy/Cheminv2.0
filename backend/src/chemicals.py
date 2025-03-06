@@ -50,43 +50,31 @@ def get_chemicals():
     :return: A list of chemicals
     """
 
-    chemicals_data = (
+    query = (
         db.session.query(
-            Chemical.Chemical_ID,
-            Chemical.Chemical_Name,
-            Chemical.Chemical_Formula,
-            Chemical.Storage_Class,
-            func.count(Inventory.Inventory_ID).label("quantity"),
+            Chemical.Chemical_ID.label("id"),
+            Chemical.Chemical_Name.label("chemical_name"),
+            Chemical.Chemical_Formula.label("formula"),
+            Inventory.Quantity.label("quantity"),
+            Storage_Class.Storage_Class_Name.label("storage_class"),
         )
-        .outerjoin(
+        .join(
             Chemical_Manufacturer,
             Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
         )
-        .outerjoin(
-            Storage_Class,
-            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
-        )
-        .outerjoin(
+        .join(
             Inventory,
             Chemical_Manufacturer.Chemical_Manufacturer_ID
             == Inventory.Chemical_Manufacturer_ID,
         )
-        .group_by(Chemical.Chemical_ID)
-        .all()
+        .join(
+            Storage_Class, Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID
+        )
     )
 
-    chemical_list = [
-        {
-            "id": chem.Chemical_ID,
-            "chemical_name": chem.Chemical_Name,
-            "formula": chem.Chemical_Formula,
-            "quantity": chem.quantity,
-            "storage_class": chem.Storage_Class_Name,
-        }
-        for chem in chemicals_data
-    ]
+    results = query.all()
 
-    return jsonify(chemical_list)
+    return [result._asdict() for result in results]
 
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
