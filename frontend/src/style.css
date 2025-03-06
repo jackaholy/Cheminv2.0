@@ -1,4 +1,12 @@
 /* Adjusts the Padding of the Main Screen */
 .tw-flex {
-  padding: 0rem 1rem 0rem 1rem;
+    padding: 0rem 1rem 0rem 1rem;
+}
+
+.grouped-section {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
 }
