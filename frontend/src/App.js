@@ -403,6 +403,11 @@ const MainContent = ({
     </div>
   </div>
 );
+import { Sidebar } from "./Sidebar";
+import { MainContent } from "./MainContent";
+import { Navbar } from "./Navbar";
+import { AddChemicalModal } from "./AddChemicalModal";
+import { ChemicalModal } from "./ChemicalModal";
 
 const App = () => {
   const [query, setQuery] = useState("");
@@ -449,6 +454,7 @@ const App = () => {
       })
       .catch((error) => console.error(error));
   }
+
   useEffect(() => {
     fetch("/api/locations")
       .then((response) => response.json())
@@ -459,6 +465,7 @@ const App = () => {
       )
       .catch((error) => console.error(error));
   }, []);
+
   /**
    * Get the quantity of a specific chemical.
    */
@@ -476,7 +483,6 @@ const App = () => {
   useEffect(() => {
     getQuantity(); // Fetch chemicals on component mount
   }, []);
-
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -545,9 +551,10 @@ const App = () => {
 
     return () => clearTimeout(handler);
   }, [query]);
+
   return (
     <div className="tw-bg-gray-100 pb-3">
-            <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal}/>
+      <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal} />
       <div className="tw-flex tw-mt-4">
         <Sidebar
           chemicals={chemicals}
@@ -566,11 +573,15 @@ const App = () => {
         />
         <ManageUsersModal />
       </div>
-            <ChemicalModal chemical={selectedChemical} show={showModal} handleClose={handleCloseModal}/>
-            <AddChemicalModal
-                show={showAddChemicalModal}
-                handleClose={handleCloseAddChemicalModal}
-            />
+      <ChemicalModal
+        chemical={selectedChemical}
+        show={showModal}
+        handleClose={handleCloseModal}
+      />
+      <AddChemicalModal
+        show={showAddChemicalModal}
+        handleClose={handleCloseAddChemicalModal}
+      />
     </div>
   );
 };
