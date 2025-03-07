@@ -6,7 +6,7 @@ from models import (
     Inventory,
     Chemical_Manufacturer,
     Storage_Class,
-    Manufacturer,
+    Manufacturer, Location, Sub_Location,
 )
 from database import db
 
@@ -54,7 +54,14 @@ def get_chemicals():
             Chemical.Chemical_ID,
             Chemical.Chemical_Name,
             Chemical.Chemical_Formula,
+            Storage_Class.Storage_Class_Name,
             func.count(Inventory.Inventory_ID).label("quantity"),
+            Inventory.Inventory_ID.label("inventory_id"),
+            Inventory.Sticker_Number.label("sticker"),
+            Sub_Location.Sub_Location_Name.label("sub_location"),
+            Location.Location_ID.label("location_id"),
+            Manufacturer.Manufacturer_Name.label("manufacturer"),
+            Chemical_Manufacturer.Product_Number.label("product_number"),
         )
         .outerjoin(
             Chemical_Manufacturer,
@@ -62,22 +69,63 @@ def get_chemicals():
         )
         .outerjoin(
             Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID
-            == Inventory.Chemical_Manufacturer_ID,
+            Chemical_Manufacturer.Chemical_Manufacturer_ID == Inventory.Chemical_Manufacturer_ID,
         )
-        .group_by(Chemical.Chemical_ID)
+        .outerjoin(
+            Storage_Class,
+            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
+        )
+        .outerjoin(
+            Sub_Location,
+            Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID,
+        )
+        .outerjoin(
+            Location,
+            Sub_Location.Location_ID == Location.Location_ID,
+        )
+        .outerjoin(
+            Manufacturer,
+            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
+        )
+        .group_by(
+            Chemical.Chemical_ID,
+            Inventory.Inventory_ID,
+            Storage_Class.Storage_Class_Name,
+            Sub_Location.Sub_Location_Name,
+            Location.Location_ID,
+            Manufacturer.Manufacturer_Name,
+            Chemical_Manufacturer.Product_Number,
+        )
         .all()
     )
 
-    chemical_list = [
-        {
-            "id": chem.Chemical_ID,
-            "chemical_name": chem.Chemical_Name,
-            "formula": chem.Chemical_Formula,
-            "quantity": chem.quantity,
-        }
-        for chem in chemicals_data
-    ]
+    # Organizing the fetched data into a dictionary of chemicals
+    chemical_dict = {}
+
+    for chem in chemicals_data:
+        # Create a chemical entry if not already added
+        if chem.Chemical_ID not in chemical_dict:
+            chemical_dict[chem.Chemical_ID] = {
+                "id": chem.Chemical_ID,
+                "chemical_name": chem.Chemical_Name,
+                "formula": chem.Chemical_Formula,
+                "storage_class": chem.Storage_Class_Name,
+                "inventory": [],
+            }
+
+        # Append inventory information to the correct chemical entry
+        chemical_dict[chem.Chemical_ID]["inventory"].append({
+            "sticker": chem.sticker,
+            "product_number": chem.product_number,
+            "sub_location": chem.sub_location,
+            "location": chem.location_id,
+            "manufacturer": chem.manufacturer,
+        })
+
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(chemical_dict[chem.Chemical_ID]["inventory"])
+
+    # Converting the dictionary into a list of chemicals
+    chemical_list = list(chemical_dict.values())
 
     return jsonify(chemical_list)
 
