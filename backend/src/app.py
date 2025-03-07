@@ -34,6 +34,10 @@ def create_app(config=ProdConfig):
     oidc = OpenIDConnect(app)
     cors = CORS(app)
 
+    @app.route("/api/health")
+    def health():
+        return "OK"
+
     app.register_blueprint(chemicals)
     app.register_blueprint(locations)
     app.register_blueprint(manufacturers)
