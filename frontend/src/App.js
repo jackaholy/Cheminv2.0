@@ -172,7 +172,7 @@ const App = () => {
       />
       <AddChemicalModal
         show={showAddChemicalModal}
-        parentHandleClose={handleCloseAddChemicalModal}
+        handleClose={handleCloseAddChemicalModal}
       />
     </div>
   );

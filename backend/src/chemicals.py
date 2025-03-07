@@ -6,7 +6,9 @@ from models import (
     Inventory,
     Chemical_Manufacturer,
     Storage_Class,
-    Manufacturer, Location, Sub_Location,
+    Manufacturer,
+    Location,
+    Sub_Location,
 )
 from database import db
 
@@ -69,7 +71,8 @@ def get_chemicals():
         )
         .outerjoin(
             Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID == Inventory.Chemical_Manufacturer_ID,
+            Chemical_Manufacturer.Chemical_Manufacturer_ID
+            == Inventory.Chemical_Manufacturer_ID,
         )
         .outerjoin(
             Storage_Class,
@@ -114,15 +117,19 @@ def get_chemicals():
             }
 
         # Append inventory information to the correct chemical entry
-        chemical_dict[chem.Chemical_ID]["inventory"].append({
-            "sticker": chem.sticker,
-            "product_number": chem.product_number,
-            "sub_location": chem.sub_location,
-            "location": chem.location_id,
-            "manufacturer": chem.manufacturer,
-        })
+        chemical_dict[chem.Chemical_ID]["inventory"].append(
+            {
+                "sticker": chem.sticker,
+                "product_number": chem.product_number,
+                "sub_location": chem.sub_location,
+                "location": chem.location_id,
+                "manufacturer": chem.manufacturer,
+            }
+        )
 
-        chemical_dict[chem.Chemical_ID]["quantity"] = len(chemical_dict[chem.Chemical_ID]["inventory"])
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(
+            chemical_dict[chem.Chemical_ID]["inventory"]
+        )
 
     # Converting the dictionary into a list of chemicals
     chemical_list = list(chemical_dict.values())
@@ -139,36 +146,14 @@ def product_number_lookup():
     """
     product_number = request.args.get("product_number")
     query_result = (
-        db.session.query(
-            Chemical.Chemical_Name,
-            Chemical.Chemical_Formula,
-            Storage_Class.Storage_Class_Name,
-            Manufacturer.Manufacturer_Name,
-            Chemical_Manufacturer.Product_Number,
-        )
-        .join(
-            Chemical_Manufacturer,
-            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
-        )
-        .join(
-            Storage_Class, Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID
-        )
-        .join(
-            Manufacturer,
-            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
-        )
+        db.session.query(Chemical_Manufacturer)
         .filter(Chemical_Manufacturer.Product_Number == product_number)
         .first()
     )
+    print(query_result)
     if not query_result:
         return jsonify({}), 404
-    chemicals_data = {
-        "chemical_name": query_result[0],
-        "chemical_formula": query_result[1],
-        "storage_class": query_result[2],
-        "manufacturer": query_result[3],
-        "product_number": query_result[4],
-    }
+    chemicals_data = {"chemical_id": query_result.Chemical.Chemical_ID}
     return jsonify(chemicals_data)
 
 
