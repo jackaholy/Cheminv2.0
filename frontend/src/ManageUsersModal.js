@@ -6,7 +6,9 @@ export const ManageUsersModal = () => {
   const [filteredUsers, setFilteredUsers] = useState(users);
 
   useEffect(() => {
-    fetch("/api/get_users")
+    fetch("/api/get_users", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         setUsers(data);

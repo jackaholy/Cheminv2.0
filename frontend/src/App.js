@@ -54,7 +54,9 @@ const App = () => {
   }
 
   useEffect(() => {
-    fetch("/api/locations")
+    fetch("/api/locations", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) =>
         setRooms(
@@ -68,7 +70,9 @@ const App = () => {
    * Get the quantity of a specific chemical.
    */
   function getQuantity() {
-    fetch("/api/get_chemicals")
+    fetch("/api/get_chemicals", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         // console.log("Fetched chemicals:", data);
@@ -94,14 +98,18 @@ const App = () => {
         setSearching(true);
         const formData = new FormData(event.target);
         const query = formData.get("query");
-        const response = await fetch(`/api/search?query=${query}&synonyms=false`);
+        const response = await fetch(`/api/search?query=${query}&synonyms=false`, {
+      credentials: "include",
+    }));
         const data = await response.json();
         setResults(data);
         setSearching(false);
       };*/
 
   function getLocations() {
-    fetch("/api/locations")
+    fetch("/api/locations", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) =>
         setRooms(
@@ -115,7 +123,9 @@ const App = () => {
    * Get the quantity of a specific chemical.
    */
   function getChemicals() {
-    fetch("/api/get_chemicals")
+    fetch("/api/get_chemicals", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         // console.log("Fetched chemicals:", data);
