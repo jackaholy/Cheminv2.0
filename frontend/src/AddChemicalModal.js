@@ -1,5 +1,32 @@
 import React, { useState, useEffect } from "react";
 
+// Reusable modal container component
+const ModalWrapper = ({ show, handleClose, header, children, footer }) => (
+  <div
+    className={`modal fade ${show ? "show d-block" : "d-none"}`}
+    tabIndex="-1"
+  >
+    <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div className="modal-content">
+        {header && (
+          <div className="modal-header">
+            {header}
+            <button
+              type="button"
+              className="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+              onClick={handleClose}
+            ></button>
+          </div>
+        )}
+        <div className="modal-body">{children}</div>
+        {footer && <div className="modal-footer">{footer}</div>}
+      </div>
+    </div>
+  </div>
+);
+
 export const AddChemicalModal = ({ show, handleClose }) => {
   const [chemicalID, setChemicalID] = useState(0);
   const [selectedManufacturer, setSelectedManufacturer] = useState({});
@@ -48,217 +75,167 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       })
       .catch((error) => console.error(error));
   }
+
   console.log(chemicalLookupMethod);
   console.log(chemicalID);
-  if (chemicalLookupMethod == "product_number" && !chemicalID) {
+
+  // Branches for different chemical lookup methods
+  if (chemicalLookupMethod === "product_number" && !chemicalID) {
     return (
-      <div
-        className={`modal fade ${show ? "show d-block" : "d-none"}`}
-        tabIndex="-1"
-      >
-        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-          <div className="modal-content">
-            <div className="modal-body">
-              <ProductNumberInput
-                setChemicalID={setChemicalID}
-                selectedManufacturer={selectedManufacturer}
-                setSelectedManufacturer={setSelectedManufacturer}
-                productNumber={productNumber}
-                setProductNumber={setProductNumber}
-                setChemicalLookupMethod={setChemicalLookupMethod}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ModalWrapper show={show} handleClose={handleClose}>
+        <ProductNumberInput
+          setChemicalID={setChemicalID}
+          selectedManufacturer={selectedManufacturer}
+          setSelectedManufacturer={setSelectedManufacturer}
+          productNumber={productNumber}
+          setProductNumber={setProductNumber}
+          setChemicalLookupMethod={setChemicalLookupMethod}
+        />
+      </ModalWrapper>
     );
   }
+
   if (chemicalLookupMethod === "chemical_name" && !chemicalID) {
     return (
-      <div
-        className={`modal fade ${show ? "show d-block" : "d-none"}`}
-        tabIndex="-1"
-      >
-        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-          <div className="modal-content">
-            <div className="modal-body">
-              <p className="text-danger">
-                We couldn't find {productNumber}. Try looking chemical up by
-                name instead:
-              </p>
-              <ChemicalNameInput
-                setChemicalID={setChemicalID}
-                setChemicalLookupMethod={setChemicalLookupMethod}
-                chemicalName={chemicalName}
-                setChemicalName={setChemicalName}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ModalWrapper show={show} handleClose={handleClose}>
+        <p className="text-danger">
+          We couldn't find {productNumber}. Try looking chemical up by name
+          instead:
+        </p>
+        <ChemicalNameInput
+          setChemicalID={setChemicalID}
+          setChemicalLookupMethod={setChemicalLookupMethod}
+          chemicalName={chemicalName}
+          setChemicalName={setChemicalName}
+        />
+      </ModalWrapper>
     );
   }
+
   if (chemicalLookupMethod === "new_chemical" && !chemicalID) {
     return (
-      <div
-        className={`modal fade ${show ? "show d-block" : "d-none"}`}
-        tabIndex="-1"
-      >
-        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-          <div className="modal-content">
-            <div className="modal-body">
-              <p>
-                Looks like we couldn't find your chemical by product number or
-                name. Enter the details below
-              </p>
-              <NewChemicalType
-                productNumber={productNumber}
-                setChemicalID={setChemicalID}
-                selectedManufacturer={selectedManufacturer}
-                setSelectedManufacturer={setSelectedManufacturer}
-                setChemicalLookupMethod={setChemicalLookupMethod}
-                chemicalName={chemicalName}
-                setChemicalName={setChemicalName}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ModalWrapper show={show} handleClose={handleClose}>
+        <p>
+          Looks like we couldn't find your chemical by product number or name.
+          Enter the details below
+        </p>
+        <NewChemicalType
+          productNumber={productNumber}
+          setChemicalID={setChemicalID}
+          selectedManufacturer={selectedManufacturer}
+          setSelectedManufacturer={setSelectedManufacturer}
+          setChemicalLookupMethod={setChemicalLookupMethod}
+          chemicalName={chemicalName}
+          setChemicalName={setChemicalName}
+        />
+      </ModalWrapper>
     );
   }
-  if (chemicalLookupMethod === "chemical_name" && chemicalID) {
-    return (
-      <div
-        className={`modal fade ${show ? "show d-block" : "d-none"}`}
-        tabIndex="-1"
-      >
-        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-          <div className="modal-content">
-            <div className="modal-body">
-              <p>
-                We found your chemical, but we don't know which manufacturer
-              </p>
-              <ManufacturerInput
-                productNumber={productNumber}
-                setSelectedManufacturer={setSelectedManufacturer}
-              />
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={() => {
-                  setChemicalLookupMethod("chemical_found");
-                }}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div
-      className={`modal fade ${show ? "show d-block" : "d-none"}`}
-      tabIndex="-1"
-    >
-      <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h1 className="modal-title fs-5" id="addChemicalLabel">
-              Add Chemical
-            </h1>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              onClick={handleClose}
-            ></button>
-          </div>
-          <div className="modal-body">
-            {/* Identification Section */}
-            <div className="grouped-section">
-              <label className="form-label">Sticker Number</label>
-              <input
-                type="number"
-                className="form-control"
-                value={stickerNumber}
-                onChange={(e) => {
-                  setStickerNumber(parseInt(e.target.value));
-                }}
-              />
-            </div>
 
-            {/* Location Section */}
-            <div className="grouped-section">
-              <label className="form-label">Location</label>
-              <select
-                className="form-select"
-                onChange={(e) =>
-                  setSelectedLocation(
-                    locations.find(
-                      (location) =>
-                        location.location_id === parseInt(e.target.value)
-                    )
-                  )
-                }
-              >
-                {locations.map((location) => (
-                  <option value={location.location_id}>
-                    {location.building} {location.room}
-                  </option>
-                ))}
-              </select>
-              <label className="form-label">Sub-Location</label>
-              <select
-                className="form-select"
-                onChange={(e) =>
-                  setSelectedSubLocation(
-                    selectedLocation.sub_locations.find(
-                      (sub_location) =>
-                        sub_location.sub_location_id ===
-                        parseInt(e.target.value)
-                    )
-                  )
-                }
-              >
-                {selectedLocation &&
-                  selectedLocation.sub_locations &&
-                  selectedLocation.sub_locations.map((sub_location) => (
-                    <option value={sub_location.sub_location_id}>
-                      {sub_location.sub_location_name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              onClick={() => {
-                setChemicalLookupMethod("product_number");
-                setChemicalID(0);
-              }}
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={addBottle}
-            >
-              Save Chemical
-            </button>
-          </div>
-        </div>
+  if (chemicalLookupMethod === "chemical_name" && chemicalID) {
+    const footer = (
+      <button
+        type="button"
+        className="btn btn-success"
+        onClick={() => setChemicalLookupMethod("chemical_found")}
+      >
+        Next
+      </button>
+    );
+    return (
+      <ModalWrapper show={show} handleClose={handleClose} footer={footer}>
+        <p>We found your chemical, but we don't know which manufacturer</p>
+        <ManufacturerInput setSelectedManufacturer={setSelectedManufacturer} />
+      </ModalWrapper>
+    );
+  }
+
+  // Default modal for adding bottle details
+  const header = (
+    <h1 className="modal-title fs-5" id="addChemicalLabel">
+      Add Chemical
+    </h1>
+  );
+  const footer = (
+    <>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+        onClick={() => {
+          setChemicalLookupMethod("product_number");
+          setChemicalID(0);
+        }}
+      >
+        Back
+      </button>
+      <button type="button" className="btn btn-primary" onClick={addBottle}>
+        Save Chemical
+      </button>
+    </>
+  );
+
+  return (
+    <ModalWrapper
+      show={show}
+      handleClose={handleClose}
+      header={header}
+      footer={footer}
+    >
+      <div className="grouped-section">
+        <label className="form-label">Sticker Number</label>
+        <input
+          type="number"
+          className="form-control"
+          value={stickerNumber}
+          onChange={(e) => setStickerNumber(parseInt(e.target.value))}
+        />
       </div>
-    </div>
+
+      <div className="grouped-section">
+        <label className="form-label">Location</label>
+        <select
+          className="form-select"
+          onChange={(e) =>
+            setSelectedLocation(
+              locations.find(
+                (location) => location.location_id === parseInt(e.target.value)
+              )
+            )
+          }
+        >
+          {locations.map((location) => (
+            <option key={location.location_id} value={location.location_id}>
+              {location.building} {location.room}
+            </option>
+          ))}
+        </select>
+        <label className="form-label">Sub-Location</label>
+        <select
+          className="form-select"
+          onChange={(e) =>
+            setSelectedSubLocation(
+              selectedLocation.sub_locations.find(
+                (sub_location) =>
+                  sub_location.sub_location_id === parseInt(e.target.value)
+              )
+            )
+          }
+        >
+          {selectedLocation &&
+            selectedLocation.sub_locations &&
+            selectedLocation.sub_locations.map((sub_location) => (
+              <option
+                key={sub_location.sub_location_id}
+                value={sub_location.sub_location_id}
+              >
+                {sub_location.sub_location_name}
+              </option>
+            ))}
+        </select>
+      </div>
+    </ModalWrapper>
   );
 };
 
@@ -286,6 +263,7 @@ const ProductNumberInput = ({
       })
       .catch((error) => console.error(error));
   };
+
   return (
     <div>
       <label className="form-label">Product Number</label>
@@ -294,14 +272,8 @@ const ProductNumberInput = ({
         className="form-control"
         placeholder=""
         value={productNumber}
-        onInput={(e) => {
-          setProductNumber(e.target.value);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            lookupProductNumber();
-          }
-        }}
+        onInput={(e) => setProductNumber(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && lookupProductNumber()}
       />
       <button
         type="button"
@@ -323,14 +295,12 @@ const ChemicalNameInput = ({
 }) => {
   const [searchResults, setSearchResults] = useState([]);
 
-  function searchByName() {
+  const searchByName = () => {
     fetch(`/api/search?query=${chemicalName}&synonyms=false`)
       .then((response) => response.json())
-      .then((data) => {
-        setSearchResults(data);
-      })
+      .then((data) => setSearchResults(data))
       .catch((error) => console.error(error));
-  }
+  };
 
   const lookupChemicalByName = () => {
     fetch("/api/chemicals/chemical_name_lookup?chemical_name=" + chemicalName)
@@ -343,6 +313,7 @@ const ChemicalNameInput = ({
         setChemicalID(data.chemical_id);
       });
   };
+
   return (
     <div>
       <label className="form-label">Chemical Name</label>
@@ -356,18 +327,13 @@ const ChemicalNameInput = ({
           setChemicalName(e.target.value);
           searchByName();
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            lookupChemicalByName();
-          }
-        }}
+        onKeyDown={(e) => e.key === "Enter" && lookupChemicalByName()}
       />
       <datalist id="chemicalResultsList">
-        {searchResults.map((result) => (
-          <option>{result.chemical_name}</option>
+        {searchResults.map((result, index) => (
+          <option key={index}>{result.chemical_name}</option>
         ))}
       </datalist>
-
       <button
         type="button"
         className="ms-auto btn btn-secondary mt-2 me-1"
@@ -388,6 +354,7 @@ const ChemicalNameInput = ({
     </div>
   );
 };
+
 const NewChemicalType = ({
   productNumber,
   setProductNumber,
@@ -400,9 +367,7 @@ const NewChemicalType = ({
 }) => {
   const [chemicalFormula, setChemicalFormula] = useState("");
   const [storageClasses, setStorageClasses] = useState([]);
-  const [selectedStorageClass, setSelectedStorageClass] = useState(
-    storageClasses[0]
-  );
+  const [selectedStorageClass, setSelectedStorageClass] = useState(null);
   const [manufacturers, setManufacturers] = useState([]);
 
   useEffect(() => {
@@ -414,6 +379,7 @@ const NewChemicalType = ({
       })
       .catch((error) => console.error(error));
   }, []);
+
   useEffect(() => {
     fetch(`/api/storage_classes`)
       .then((response) => response.json())
@@ -446,6 +412,7 @@ const NewChemicalType = ({
       })
       .catch((error) => console.error(error));
   };
+
   return (
     <div>
       <div>
@@ -454,9 +421,7 @@ const NewChemicalType = ({
           type="text"
           className="form-control"
           value={chemicalName}
-          onChange={(e) => {
-            setChemicalName(e.target.value);
-          }}
+          onChange={(e) => setChemicalName(e.target.value)}
         />
         <label className="form-label">Chemical Formula/Common Name</label>
         <input
@@ -464,9 +429,7 @@ const NewChemicalType = ({
           className="form-control"
           placeholder=""
           value={chemicalFormula}
-          onChange={(e) => {
-            setChemicalFormula(e.target.value);
-          }}
+          onChange={(e) => setChemicalFormula(e.target.value)}
         />
         <label className="form-label">Storage Class</label>
         <select
@@ -481,7 +444,9 @@ const NewChemicalType = ({
           }
         >
           {storageClasses.map((storageClass) => (
-            <option value={storageClass.id}>{storageClass.name}</option>
+            <option key={storageClass.id} value={storageClass.id}>
+              {storageClass.name}
+            </option>
           ))}
         </select>
       </div>
@@ -499,7 +464,9 @@ const NewChemicalType = ({
         }
       >
         {manufacturers.map((manufacturer) => (
-          <option value={manufacturer.id}>{manufacturer.name}</option>
+          <option key={manufacturer.id} value={manufacturer.id}>
+            {manufacturer.name}
+          </option>
         ))}
       </select>
       <label className="form-label">Product Number</label>
@@ -536,8 +503,8 @@ const NewChemicalType = ({
 };
 
 const ManufacturerInput = ({
-  selectedManufacturer,
   setSelectedManufacturer,
+  selectedManufacturer,
 }) => {
   const [manufacturers, setManufacturers] = useState([]);
   useEffect(() => {
@@ -564,7 +531,9 @@ const ManufacturerInput = ({
         }
       >
         {manufacturers.map((manufacturer) => (
-          <option value={manufacturer.id}>{manufacturer.name}</option>
+          <option key={manufacturer.id} value={manufacturer.id}>
+            {manufacturer.name}
+          </option>
         ))}
       </select>
     </div>
