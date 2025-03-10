@@ -3,11 +3,14 @@ import React, { useState, useEffect } from "react";
 export const AddChemicalModal = ({ show, handleClose }) => {
   const [chemicalID, setChemicalID] = useState(0);
   const [productNumber, setProductNumber] = useState("");
+  const [chemicalName, setChemicalName] = useState("");
+
   const [chemicalLookupMethod, setChemicalLookupMethod] =
     useState("product_number");
 
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedSubLocation, setSelectedSubLocation] = useState("");
   const [stickerNumber, setStickerNumber] = useState(0);
 
   useEffect(() => {
@@ -17,11 +20,26 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       .catch((error) => console.error(error));
   }, []);
 
-  function addChemical() {
-    //TODO: Implement me!
+  function addBottle() {
+    fetch("/api/chemicals", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chemical_id: chemicalID,
+        location_id: selectedLocation.id,
+        sub_location_id: selectedSubLocation.id,
+        sticker_number: stickerNumber,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        handleClose();
+      })
+      .catch((error) => console.error(error));
   }
-  console.log(chemicalLookupMethod);
-  console.log(chemicalID);
 
   if (chemicalLookupMethod == "product_number" && !chemicalID) {
     return (
@@ -60,6 +78,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
               <ChemicalNameInput
                 setChemicalID={setChemicalID}
                 setChemicalLookupMethod={setChemicalLookupMethod}
+                chemicalName={chemicalName}
+                setChemicalName={setChemicalName}
               />
             </div>
           </div>
@@ -81,8 +101,11 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                 name. Enter the details below
               </p>
               <NewChemicalType
+                productNumber={productNumber}
                 setChemicalID={setChemicalID}
                 setChemicalLookupMethod={setChemicalLookupMethod}
+                chemicalName={chemicalName}
+                setChemicalName={setChemicalName}
               />
             </div>
           </div>
@@ -145,7 +168,18 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                 ))}
               </select>
               <label className="form-label">Sub-Location</label>
-              <select className="form-select">
+              <select
+                className="form-select"
+                onChange={(e) =>
+                  setSelectedSubLocation(
+                    selectedLocation.sub_locations.find(
+                      (sub_location) =>
+                        sub_location.sub_location_id ===
+                        parseInt(e.target.value)
+                    )
+                  )
+                }
+              >
                 {selectedLocation &&
                   selectedLocation.sub_locations &&
                   selectedLocation.sub_locations.map((sub_location) => (
@@ -172,7 +206,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={addChemical}
+              onClick={addBottle}
             >
               Save Chemical
             </button>
@@ -232,8 +266,12 @@ const ProductNumberInput = ({
   );
 };
 
-const ChemicalNameInput = ({ setChemicalID, setChemicalLookupMethod }) => {
-  const [chemicalName, setChemicalName] = useState("");
+const ChemicalNameInput = ({
+  chemicalName,
+  setChemicalName,
+  setChemicalID,
+  setChemicalLookupMethod,
+}) => {
   const [searchResults, setSearchResults] = useState([]);
 
   function searchByName() {
@@ -305,31 +343,49 @@ const NewChemicalType = ({
   productNumber,
   setProductNumber,
   setChemicalID,
+  chemicalName,
+  setChemicalName,
+  setChemicalLookupMethod,
 }) => {
-  const [chemicalName, setChemicalName] = useState("");
   const [chemicalFormula, setChemicalFormula] = useState("");
-  const [storageClass, setStorageClass] = useState("");
+  const [storageClasses, setStorageClasses] = useState([]);
+  const [selectedStorageClass, setSelectedStorageClass] = useState(
+    storageClasses[0]
+  );
   const [manufacturers, setManufacturers] = useState([]);
-  const [selectedManufacturer, setSelectedManufacturer] = useState("");
+  const [selectedManufacturer, setSelectedManufacturer] = useState(
+    manufacturers[0]
+  );
 
   useEffect(() => {
     fetch(`/api/manufacturers`)
       .then((response) => response.json())
-      .then((data) => setManufacturers(data))
+      .then((data) => {
+        setManufacturers(data);
+        setSelectedManufacturer(data[0]);
+      })
+      .catch((error) => console.error(error));
+  }, []);
+  useEffect(() => {
+    fetch(`/api/storage_classes`)
+      .then((response) => response.json())
+      .then((data) => {
+        setStorageClasses(data);
+        setSelectedStorageClass(data[0]);
+      })
       .catch((error) => console.error(error));
   }, []);
 
   const createNewChemical = () => {
-    // TODO: Implement me!
-    /*
     const data = {
       product_number: productNumber,
       chemical_name: chemicalName,
       chemical_formula: chemicalFormula,
-      storage_class: storageClass,
-      manufacturer_id: selectedManufacturer,
+      storage_class_id: selectedStorageClass.id,
+      manufacturer_id: selectedManufacturer.id,
     };
-    fetch("", {
+    console.log(data);
+    fetch("/api/add_chemical", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -341,8 +397,9 @@ const NewChemicalType = ({
         setChemicalID(data.chemical_id);
       })
       .catch((error) => console.error(error));
-  */
   };
+  console.log("Storage class");
+  console.log(selectedStorageClass);
   return (
     <div>
       <div>
@@ -366,15 +423,21 @@ const NewChemicalType = ({
           }}
         />
         <label className="form-label">Storage Class</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Corr White"
-          value={storageClass}
-          onChange={(e) => {
-            setStorageClass(e.target.value);
-          }}
-        />
+        <select
+          className="form-select"
+          value={selectedStorageClass?.id}
+          onChange={(e) =>
+            setSelectedStorageClass(
+              storageClasses.find(
+                (storageClass) => storageClass.id === parseInt(e.target.value)
+              )
+            )
+          }
+        >
+          {storageClasses.map((storageClass) => (
+            <option value={storageClass.id}>{storageClass.name}</option>
+          ))}
+        </select>
       </div>
 
       <label className="form-label">Manufacturer Name</label>
@@ -401,8 +464,27 @@ const NewChemicalType = ({
         value={productNumber}
         onChange={(e) => setProductNumber(e.target.value)}
       />
-      <label className="form-label">Material Safety Data Sheet</label>
-      <input type="text" className="form-control" placeholder="MSDS Link" />
+      <div className="modal-footer">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          onClick={() => {
+            setChemicalLookupMethod("chemical_name");
+            setChemicalID(0);
+          }}
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={createNewChemical}
+        >
+          Create
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
-
 from models import (
     Chemical,
     Inventory,
@@ -15,34 +15,97 @@ from database import db
 chemicals = Blueprint("chemicals", __name__)
 
 
+@chemicals.route("/api/add_bottle", methods=["POST"])
+def add_bottle():
+    sticker_number = request.json.get("sticker_number")
+    chemical_id = request.json.get("chemical_id")
+    sub_location_id = request.json.get("sub_location_id")
+    location_id = request.json.get("location_id")
+
+    inventory = Inventory(
+        Sticker_Number=sticker_number,
+        Chemical_ID=chemical_id,
+        Sub_Location_ID=sub_location_id,
+        Location_ID=location_id,
+        Is_Dead=False,
+    )
+    db.session.add(inventory)
+    db.session.commit()
+    return {
+        "message": "Bottle added successfully",
+        "inventory_id": inventory.Inventory_ID,
+    }
+
+
 @chemicals.route("/api/add_chemical", methods=["POST"])
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
-    storage_class = request.json.get("storage_class")
-    order_more = request.json.get("order_more")
-    order_description = request.json.get("order_description")
-    who_requested = request.json.get("who_requested")
-    date_requested = request.json.get("date_requested")
-    who_ordered = request.json.get("who_ordered")
-    date_ordered = request.json.get("date_ordered")
-    minimum_on_hand = request.json.get("minimum_on_hand")
+    product_number = request.json.get("product_number")
+    storage_class_id = request.json.get("storage_class_id")
+    manufacturer_id = request.json.get("manufacturer_id")
+
+    manufacturer = (
+        db.session.query(Manufacturer)
+        .filter_by(Manufacturer_ID=manufacturer_id)
+        .first()
+    )
+    storage_class = (
+        db.session.query(Storage_Class)
+        .filter(Storage_Class.Storage_Class_ID == storage_class_id)
+        .first()
+    )
+    # order_more = request.json.get("order_more")
+    # order_description = request.json.get("order_description")
+    # who_requested = request.json.get("who_requested")
+    # date_requested = request.json.get("date_requested")
+    # who_ordered = request.json.get("who_ordered")
+    date_ordered = datetime.now()
+
+    # minimum_on_hand = request.json.get("minimum_on_hand")
 
     chemical = Chemical(
         Chemical_Name=chemical_name,
+        Alphabetical_Name=chemical_name,
         Chemical_Formula=chemical_formula,
         Storage_Class_ID=storage_class,
-        Order_More=order_more,
-        Order_Description=order_description,
-        Who_Requested=who_requested,
-        When_Requested=date_requested,
-        Who_Ordered=who_ordered,
-        When_Ordered=date_ordered,
-        Minimum_On_Hand=minimum_on_hand,
+        # Manufacturer=manufacturer,
+        Storage_Class=storage_class,
+        # When_Ordered=date_ordered,
+        # Order_More=order_more,
+        # Order_Description=order_description,
+        # Who_Requested=who_requested,
+        # When_Requested=date_requested,
+        # Who_Ordered=who_ordered,
+        # When_Ordered=date_ordered,
+        # Minimum_On_Hand=minimum_on_hand,
     )
+    chemical_manufacturer = Chemical_Manufacturer(
+        Chemical=chemical, Manufacturer=manufacturer, Product_Number=product_number
+    )
+    chemical.Storage_Class = storage_class
     db.session.add(chemical)
+    db.session.add(chemical_manufacturer)
     db.session.commit()
-    return {"message": "Chemical added successfully"}
+    return {
+        "message": "Chemical added successfully",
+        "chemical_id": chemical.Chemical_ID,
+    }
+
+
+@chemicals.route("/api/storage_classes", methods=["GET"])
+def get_storage_classes():
+    """
+    API to get storage classes from the database.
+    :return: A list of storage classes
+    """
+    storage_classes = db.session.query(Storage_Class).all()
+    return jsonify(
+        [
+            {"name": sc.Storage_Class_Name, "id": sc.Storage_Class_ID}
+            for sc in storage_classes
+        ]
+    )
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
@@ -145,6 +208,8 @@ def product_number_lookup():
     :return: Details for the chemical with the given product number.
     """
     product_number = request.args.get("product_number")
+    if product_number == "":
+        return jsonify({}), 404
     query_result = (
         db.session.query(Chemical_Manufacturer)
         .filter(Chemical_Manufacturer.Product_Number == product_number)
