@@ -27,43 +27,174 @@ const ModalWrapper = ({ show, handleClose, header, children, footer }) => (
   </div>
 );
 
-export const AddChemicalModal = ({ show, handleClose }) => {
-  const [chemicalID, setChemicalID] = useState(0);
-  const [selectedManufacturer, setSelectedManufacturer] = useState({});
+// --- New Components for Server Data ---
 
-  const [productNumber, setProductNumber] = useState("");
-  const [chemicalName, setChemicalName] = useState("");
-
-  const [chemicalLookupMethod, setChemicalLookupMethod] =
-    useState("product_number");
-
+// LocationSelector fetches locations and manages both location and sub-location selection.
+const LocationSelector = ({ onChange }) => {
   const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedSubLocation, setSelectedSubLocation] = useState("");
-  const [stickerNumber, setStickerNumber] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedSubLocation, setSelectedSubLocation] = useState(null);
 
   useEffect(() => {
     fetch(`/api/locations`)
       .then((response) => response.json())
       .then((data) => {
         setLocations(data);
-        setSelectedLocation(data[0]);
-        setSelectedSubLocation(data[0].sub_locations[0]);
+        const initialLocation = data[0];
+        const initialSubLocation = data[0].sub_locations[0];
+        setSelectedLocation(initialLocation);
+        setSelectedSubLocation(initialSubLocation);
+        onChange && onChange(initialLocation, initialSubLocation);
       })
       .catch((error) => console.error(error));
-  }, []);
+  }, [onChange]);
+
+  const handleLocationChange = (e) => {
+    const locationId = parseInt(e.target.value);
+    const location = locations.find((loc) => loc.location_id === locationId);
+    setSelectedLocation(location);
+    const newSubLocation = location.sub_locations[0];
+    setSelectedSubLocation(newSubLocation);
+    onChange && onChange(location, newSubLocation);
+  };
+
+  const handleSubLocationChange = (e) => {
+    const subLocationId = parseInt(e.target.value);
+    const subLocation = selectedLocation.sub_locations.find(
+      (sub) => sub.sub_location_id === subLocationId
+    );
+    setSelectedSubLocation(subLocation);
+    onChange && onChange(selectedLocation, subLocation);
+  };
+
+  return (
+    <div className="grouped-section">
+      <label className="form-label">Location</label>
+      <select
+        className="form-select"
+        value={selectedLocation ? selectedLocation.location_id : ""}
+        onChange={handleLocationChange}
+      >
+        {locations.map((location) => (
+          <option key={location.location_id} value={location.location_id}>
+            {location.building} {location.room}
+          </option>
+        ))}
+      </select>
+      <label className="form-label">Sub-Location</label>
+      <select
+        className="form-select"
+        value={selectedSubLocation ? selectedSubLocation.sub_location_id : ""}
+        onChange={handleSubLocationChange}
+      >
+        {selectedLocation &&
+          selectedLocation.sub_locations.map((sub_location) => (
+            <option
+              key={sub_location.sub_location_id}
+              value={sub_location.sub_location_id}
+            >
+              {sub_location.sub_location_name}
+            </option>
+          ))}
+      </select>
+    </div>
+  );
+};
+
+// ManufacturerSelector fetches the list of manufacturers and renders a select field.
+const ManufacturerSelector = ({ value, onChange }) => {
+  const [manufacturers, setManufacturers] = useState([]);
+  useEffect(() => {
+    fetch(`/api/manufacturers`)
+      .then((response) => response.json())
+      .then((data) => {
+        setManufacturers(data);
+        if (!value && data.length > 0) {
+          onChange(data[0]);
+        }
+      })
+      .catch((error) => console.error(error));
+  }, [value, onChange]);
+
+  return (
+    <div>
+      <label className="form-label">Manufacturer Name</label>
+      <select
+        className="form-select"
+        value={value?.id || ""}
+        onChange={(e) =>
+          onChange(manufacturers.find((m) => m.id === parseInt(e.target.value)))
+        }
+      >
+        {manufacturers.map((manufacturer) => (
+          <option key={manufacturer.id} value={manufacturer.id}>
+            {manufacturer.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+// StorageClassSelector fetches storage classes and renders a select field.
+const StorageClassSelector = ({ value, onChange }) => {
+  const [storageClasses, setStorageClasses] = useState([]);
+  useEffect(() => {
+    fetch(`/api/storage_classes`)
+      .then((response) => response.json())
+      .then((data) => {
+        setStorageClasses(data);
+        if (!value && data.length > 0) {
+          onChange(data[0]);
+        }
+      })
+      .catch((error) => console.error(error));
+  }, [value, onChange]);
+
+  return (
+    <div>
+      <label className="form-label">Storage Class</label>
+      <select
+        className="form-select"
+        value={value?.id || ""}
+        onChange={(e) =>
+          onChange(
+            storageClasses.find((s) => s.id === parseInt(e.target.value))
+          )
+        }
+      >
+        {storageClasses.map((storageClass) => (
+          <option key={storageClass.id} value={storageClass.id}>
+            {storageClass.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+// --- Main Modal and Other Inputs ---
+
+export const AddChemicalModal = ({ show, handleClose }) => {
+  const [chemicalID, setChemicalID] = useState(0);
+  const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+  const [productNumber, setProductNumber] = useState("");
+  const [chemicalName, setChemicalName] = useState("");
+  const [chemicalLookupMethod, setChemicalLookupMethod] =
+    useState("product_number");
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedSubLocation, setSelectedSubLocation] = useState(null);
+  const [stickerNumber, setStickerNumber] = useState(0);
 
   function addBottle() {
     fetch("/api/add_bottle", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chemical_id: chemicalID,
-        manufacturer_id: selectedManufacturer.id,
-        location_id: selectedLocation.id,
-        sub_location_id: selectedSubLocation.sub_location_id,
+        manufacturer_id: selectedManufacturer?.id,
+        location_id: selectedLocation?.location_id,
+        sub_location_id: selectedSubLocation?.sub_location_id,
         sticker_number: stickerNumber,
         product_number: productNumber,
       }),
@@ -76,10 +207,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       .catch((error) => console.error(error));
   }
 
-  console.log(chemicalLookupMethod);
-  console.log(chemicalID);
+  console.log(chemicalLookupMethod, chemicalID);
 
-  // Branches for different chemical lookup methods
   if (chemicalLookupMethod === "product_number" && !chemicalID) {
     return (
       <ModalWrapper show={show} handleClose={handleClose}>
@@ -117,7 +246,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       <ModalWrapper show={show} handleClose={handleClose}>
         <p>
           Looks like we couldn't find your chemical by product number or name.
-          Enter the details below
+          Enter the details below:
         </p>
         <NewChemicalType
           productNumber={productNumber}
@@ -145,12 +274,15 @@ export const AddChemicalModal = ({ show, handleClose }) => {
     return (
       <ModalWrapper show={show} handleClose={handleClose} footer={footer}>
         <p>We found your chemical, but we don't know which manufacturer</p>
-        <ManufacturerInput setSelectedManufacturer={setSelectedManufacturer} />
+        <ManufacturerSelector
+          value={selectedManufacturer}
+          onChange={setSelectedManufacturer}
+        />
       </ModalWrapper>
     );
   }
 
-  // Default modal for adding bottle details
+  // Default modal for adding bottle details.
   const header = (
     <h1 className="modal-title fs-5" id="addChemicalLabel">
       Add Chemical
@@ -161,8 +293,6 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       <button
         type="button"
         className="btn btn-secondary"
-        data-bs-dismiss="modal"
-        aria-label="Close"
         onClick={() => {
           setChemicalLookupMethod("product_number");
           setChemicalID(0);
@@ -192,49 +322,12 @@ export const AddChemicalModal = ({ show, handleClose }) => {
           onChange={(e) => setStickerNumber(parseInt(e.target.value))}
         />
       </div>
-
-      <div className="grouped-section">
-        <label className="form-label">Location</label>
-        <select
-          className="form-select"
-          onChange={(e) =>
-            setSelectedLocation(
-              locations.find(
-                (location) => location.location_id === parseInt(e.target.value)
-              )
-            )
-          }
-        >
-          {locations.map((location) => (
-            <option key={location.location_id} value={location.location_id}>
-              {location.building} {location.room}
-            </option>
-          ))}
-        </select>
-        <label className="form-label">Sub-Location</label>
-        <select
-          className="form-select"
-          onChange={(e) =>
-            setSelectedSubLocation(
-              selectedLocation.sub_locations.find(
-                (sub_location) =>
-                  sub_location.sub_location_id === parseInt(e.target.value)
-              )
-            )
-          }
-        >
-          {selectedLocation &&
-            selectedLocation.sub_locations &&
-            selectedLocation.sub_locations.map((sub_location) => (
-              <option
-                key={sub_location.sub_location_id}
-                value={sub_location.sub_location_id}
-              >
-                {sub_location.sub_location_name}
-              </option>
-            ))}
-        </select>
-      </div>
+      <LocationSelector
+        onChange={(loc, subLoc) => {
+          setSelectedLocation(loc);
+          setSelectedSubLocation(subLoc);
+        }}
+      />
     </ModalWrapper>
   );
 };
@@ -270,7 +363,6 @@ const ProductNumberInput = ({
       <input
         type="text"
         className="form-control"
-        placeholder=""
         value={productNumber}
         onInput={(e) => setProductNumber(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && lookupProductNumber()}
@@ -321,7 +413,6 @@ const ChemicalNameInput = ({
         list="chemicalResultsList"
         type="text"
         className="form-control"
-        placeholder=""
         value={chemicalName}
         onInput={(e) => {
           setChemicalName(e.target.value);
@@ -331,7 +422,7 @@ const ChemicalNameInput = ({
       />
       <datalist id="chemicalResultsList">
         {searchResults.map((result, index) => (
-          <option key={index}>{result.chemical_name}</option>
+          <option key={index} value={result.chemical_name} />
         ))}
       </datalist>
       <button
@@ -366,50 +457,24 @@ const NewChemicalType = ({
   setChemicalLookupMethod,
 }) => {
   const [chemicalFormula, setChemicalFormula] = useState("");
-  const [storageClasses, setStorageClasses] = useState([]);
   const [selectedStorageClass, setSelectedStorageClass] = useState(null);
-  const [manufacturers, setManufacturers] = useState([]);
-
-  useEffect(() => {
-    fetch(`/api/manufacturers`)
-      .then((response) => response.json())
-      .then((data) => {
-        setManufacturers(data);
-        setSelectedManufacturer(data[0]);
-      })
-      .catch((error) => console.error(error));
-  }, []);
-
-  useEffect(() => {
-    fetch(`/api/storage_classes`)
-      .then((response) => response.json())
-      .then((data) => {
-        setStorageClasses(data);
-        setSelectedStorageClass(data[0]);
-      })
-      .catch((error) => console.error(error));
-  }, []);
 
   const createNewChemical = () => {
     const data = {
       product_number: productNumber,
       chemical_name: chemicalName,
       chemical_formula: chemicalFormula,
-      storage_class_id: selectedStorageClass.id,
-      manufacturer_id: selectedManufacturer.id,
+      storage_class_id: selectedStorageClass?.id,
+      manufacturer_id: selectedManufacturer?.id,
     };
     console.log(data);
     fetch("/api/add_chemical", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
       .then((response) => response.json())
-      .then((data) => {
-        setChemicalID(data.chemical_id);
-      })
+      .then((data) => setChemicalID(data.chemical_id))
       .catch((error) => console.error(error));
   };
 
@@ -427,48 +492,18 @@ const NewChemicalType = ({
         <input
           type="text"
           className="form-control"
-          placeholder=""
           value={chemicalFormula}
           onChange={(e) => setChemicalFormula(e.target.value)}
         />
-        <label className="form-label">Storage Class</label>
-        <select
-          className="form-select"
-          value={selectedStorageClass?.id}
-          onChange={(e) =>
-            setSelectedStorageClass(
-              storageClasses.find(
-                (storageClass) => storageClass.id === parseInt(e.target.value)
-              )
-            )
-          }
-        >
-          {storageClasses.map((storageClass) => (
-            <option key={storageClass.id} value={storageClass.id}>
-              {storageClass.name}
-            </option>
-          ))}
-        </select>
+        <StorageClassSelector
+          value={selectedStorageClass}
+          onChange={setSelectedStorageClass}
+        />
       </div>
-
-      <label className="form-label">Manufacturer Name</label>
-      <select
-        className="form-select"
-        value={selectedManufacturer?.id}
-        onChange={(e) =>
-          setSelectedManufacturer(
-            manufacturers.find(
-              (manufacturer) => manufacturer.id === parseInt(e.target.value)
-            )
-          )
-        }
-      >
-        {manufacturers.map((manufacturer) => (
-          <option key={manufacturer.id} value={manufacturer.id}>
-            {manufacturer.name}
-          </option>
-        ))}
-      </select>
+      <ManufacturerSelector
+        value={selectedManufacturer}
+        onChange={setSelectedManufacturer}
+      />
       <label className="form-label">Product Number</label>
       <input
         type="text"
@@ -481,8 +516,6 @@ const NewChemicalType = ({
         <button
           type="button"
           className="btn btn-secondary"
-          data-bs-dismiss="modal"
-          aria-label="Close"
           onClick={() => {
             setChemicalLookupMethod("chemical_name");
             setChemicalID(0);
@@ -498,44 +531,6 @@ const NewChemicalType = ({
           Create
         </button>
       </div>
-    </div>
-  );
-};
-
-const ManufacturerInput = ({
-  setSelectedManufacturer,
-  selectedManufacturer,
-}) => {
-  const [manufacturers, setManufacturers] = useState([]);
-  useEffect(() => {
-    fetch(`/api/manufacturers`)
-      .then((response) => response.json())
-      .then((data) => {
-        setManufacturers(data);
-        setSelectedManufacturer(data[0]);
-      })
-      .catch((error) => console.error(error));
-  }, []);
-  return (
-    <div>
-      <label className="form-label">Manufacturer Name</label>
-      <select
-        className="form-select"
-        value={selectedManufacturer?.id}
-        onChange={(e) =>
-          setSelectedManufacturer(
-            manufacturers.find(
-              (manufacturer) => manufacturer.id === parseInt(e.target.value)
-            )
-          )
-        }
-      >
-        {manufacturers.map((manufacturer) => (
-          <option key={manufacturer.id} value={manufacturer.id}>
-            {manufacturer.name}
-          </option>
-        ))}
-      </select>
     </div>
   );
 };
