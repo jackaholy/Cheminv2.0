@@ -19,14 +19,32 @@ chemicals = Blueprint("chemicals", __name__)
 def add_bottle():
     sticker_number = request.json.get("sticker_number")
     chemical_id = request.json.get("chemical_id")
-    sub_location_id = request.json.get("sub_location_id")
+    manufacturer_id = request.json.get("manufacturer_id")
     location_id = request.json.get("location_id")
+    sub_location_id = request.json.get("sub_location_id")
+    product_number = request.json.get("product_number")
+    chemical_manufacturer = (
+        db.session.query(Chemical_Manufacturer)
+        .filter(
+            Chemical_Manufacturer.Chemical_ID == chemical_id,
+            Chemical_Manufacturer.Manufacturer_ID == manufacturer_id,
+        )
+        .first()
+    )
+    if not chemical_manufacturer:
+        chemical_manufacturer = Chemical_Manufacturer(
+            Chemical_ID=chemical_id,
+            Manufacturer_ID=manufacturer_id,
+            Product_Number=product_number,
+        )
+        db.session.add(chemical_manufacturer)
+        db.session.commit()
 
     inventory = Inventory(
         Sticker_Number=sticker_number,
-        Chemical_ID=chemical_id,
+        Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
         Sub_Location_ID=sub_location_id,
-        Location_ID=location_id,
+        Last_Updated=datetime.now(),
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -218,7 +236,14 @@ def product_number_lookup():
     print(query_result)
     if not query_result:
         return jsonify({}), 404
-    chemicals_data = {"chemical_id": query_result.Chemical.Chemical_ID}
+    chemicals_data = {
+        "chemical_id": query_result.Chemical.Chemical_ID,
+        "manufacturer": {
+            "name": query_result.Manufacturer.Manufacturer_Name,
+            "id": query_result.Manufacturer.Manufacturer_ID,
+        },
+        "product_number": query_result.Product_Number,
+    }
     return jsonify(chemicals_data)
 
 
@@ -231,20 +256,13 @@ def chemical_name_lookup():
     chemical_name = request.args.get("chemical_name")
     query_result = (
         db.session.query(
+            Chemical.Chemical_ID,
             Chemical.Chemical_Name,
             Chemical.Chemical_Formula,
             Storage_Class.Storage_Class_Name,
         )
         .join(
-            Chemical_Manufacturer,
-            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
-        )
-        .join(
             Storage_Class, Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID
-        )
-        .join(
-            Manufacturer,
-            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
         )
         .filter(Chemical.Chemical_Name == chemical_name)
         .first()
@@ -252,9 +270,10 @@ def chemical_name_lookup():
     if not query_result:
         return jsonify({}), 404
     chemicals_data = {
-        "chemical_name": query_result[0],
-        "chemical_formula": query_result[1],
-        "storage_class": query_result[2],
+        "chemical_id": query_result[0],
+        "chemical_name": query_result[1],
+        "chemical_formula": query_result[2],
+        "storage_class": query_result[3],
     }
     return jsonify(chemicals_data)
 

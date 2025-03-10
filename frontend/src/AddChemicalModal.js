@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 export const AddChemicalModal = ({ show, handleClose }) => {
   const [chemicalID, setChemicalID] = useState(0);
+  const [selectedManufacturer, setSelectedManufacturer] = useState({});
+
   const [productNumber, setProductNumber] = useState("");
   const [chemicalName, setChemicalName] = useState("");
 
@@ -16,21 +18,27 @@ export const AddChemicalModal = ({ show, handleClose }) => {
   useEffect(() => {
     fetch(`/api/locations`)
       .then((response) => response.json())
-      .then((data) => setLocations(data))
+      .then((data) => {
+        setLocations(data);
+        setSelectedLocation(data[0]);
+        setSelectedSubLocation(data[0].sub_locations[0]);
+      })
       .catch((error) => console.error(error));
   }, []);
 
   function addBottle() {
-    fetch("/api/chemicals", {
+    fetch("/api/add_bottle", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         chemical_id: chemicalID,
+        manufacturer_id: selectedManufacturer.id,
         location_id: selectedLocation.id,
-        sub_location_id: selectedSubLocation.id,
+        sub_location_id: selectedSubLocation.sub_location_id,
         sticker_number: stickerNumber,
+        product_number: productNumber,
       }),
     })
       .then((response) => response.json())
@@ -40,7 +48,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       })
       .catch((error) => console.error(error));
   }
-
+  console.log(chemicalLookupMethod);
+  console.log(chemicalID);
   if (chemicalLookupMethod == "product_number" && !chemicalID) {
     return (
       <div
@@ -52,6 +61,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
             <div className="modal-body">
               <ProductNumberInput
                 setChemicalID={setChemicalID}
+                selectedManufacturer={selectedManufacturer}
+                setSelectedManufacturer={setSelectedManufacturer}
                 productNumber={productNumber}
                 setProductNumber={setProductNumber}
                 setChemicalLookupMethod={setChemicalLookupMethod}
@@ -103,6 +114,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
               <NewChemicalType
                 productNumber={productNumber}
                 setChemicalID={setChemicalID}
+                selectedManufacturer={selectedManufacturer}
+                setSelectedManufacturer={setSelectedManufacturer}
                 setChemicalLookupMethod={setChemicalLookupMethod}
                 chemicalName={chemicalName}
                 setChemicalName={setChemicalName}
@@ -113,7 +126,39 @@ export const AddChemicalModal = ({ show, handleClose }) => {
       </div>
     );
   }
-
+  if (chemicalLookupMethod === "chemical_name" && chemicalID) {
+    return (
+      <div
+        className={`modal fade ${show ? "show d-block" : "d-none"}`}
+        tabIndex="-1"
+      >
+        <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-body">
+              <p>
+                We found your chemical, but we don't know which manufacturer
+              </p>
+              <ManufacturerInput
+                productNumber={productNumber}
+                setSelectedManufacturer={setSelectedManufacturer}
+              />
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={() => {
+                  setChemicalLookupMethod("chemical_found");
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className={`modal fade ${show ? "show d-block" : "d-none"}`}
@@ -142,7 +187,7 @@ export const AddChemicalModal = ({ show, handleClose }) => {
                 className="form-control"
                 value={stickerNumber}
                 onChange={(e) => {
-                  setStickerNumber(e.target.value);
+                  setStickerNumber(parseInt(e.target.value));
                 }}
               />
             </div>
@@ -219,6 +264,8 @@ export const AddChemicalModal = ({ show, handleClose }) => {
 
 const ProductNumberInput = ({
   setChemicalID,
+  selectedManufacturer,
+  setSelectedManufacturer,
   productNumber,
   setProductNumber,
   setChemicalLookupMethod,
@@ -235,6 +282,7 @@ const ProductNumberInput = ({
           return;
         }
         setChemicalID(data.chemical_id);
+        setSelectedManufacturer(data.manufacturer);
       })
       .catch((error) => console.error(error));
   };
@@ -269,6 +317,7 @@ const ProductNumberInput = ({
 const ChemicalNameInput = ({
   chemicalName,
   setChemicalName,
+  setSelectedManufacturer,
   setChemicalID,
   setChemicalLookupMethod,
 }) => {
@@ -343,6 +392,8 @@ const NewChemicalType = ({
   productNumber,
   setProductNumber,
   setChemicalID,
+  selectedManufacturer,
+  setSelectedManufacturer,
   chemicalName,
   setChemicalName,
   setChemicalLookupMethod,
@@ -353,9 +404,6 @@ const NewChemicalType = ({
     storageClasses[0]
   );
   const [manufacturers, setManufacturers] = useState([]);
-  const [selectedManufacturer, setSelectedManufacturer] = useState(
-    manufacturers[0]
-  );
 
   useEffect(() => {
     fetch(`/api/manufacturers`)
@@ -398,8 +446,6 @@ const NewChemicalType = ({
       })
       .catch((error) => console.error(error));
   };
-  console.log("Storage class");
-  console.log(selectedStorageClass);
   return (
     <div>
       <div>
@@ -485,6 +531,42 @@ const NewChemicalType = ({
           Create
         </button>
       </div>
+    </div>
+  );
+};
+
+const ManufacturerInput = ({
+  selectedManufacturer,
+  setSelectedManufacturer,
+}) => {
+  const [manufacturers, setManufacturers] = useState([]);
+  useEffect(() => {
+    fetch(`/api/manufacturers`)
+      .then((response) => response.json())
+      .then((data) => {
+        setManufacturers(data);
+        setSelectedManufacturer(data[0]);
+      })
+      .catch((error) => console.error(error));
+  }, []);
+  return (
+    <div>
+      <label className="form-label">Manufacturer Name</label>
+      <select
+        className="form-select"
+        value={selectedManufacturer?.id}
+        onChange={(e) =>
+          setSelectedManufacturer(
+            manufacturers.find(
+              (manufacturer) => manufacturer.id === parseInt(e.target.value)
+            )
+          )
+        }
+      >
+        {manufacturers.map((manufacturer) => (
+          <option value={manufacturer.id}>{manufacturer.name}</option>
+        ))}
+      </select>
     </div>
   );
 };
