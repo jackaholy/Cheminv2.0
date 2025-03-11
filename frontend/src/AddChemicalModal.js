@@ -122,6 +122,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   const [chemicalName, setChemicalName] = useState("");
   // Steps: "product_number", "chemical_name", "manufacturer", "new_chemical", "bottle_details"
   const [step, setStep] = useState("product_number");
+  const [animationDirection, setAnimationDirection] = useState("forward");
   const [stickerNumber, setStickerNumber] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
@@ -153,16 +154,31 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
 
   // Common navigation functions.
   const handleBack = () => {
+    setAnimationDirection("backward");
     if (step === "product_number") {
       handleClose();
     } else if (step === "chemical_name") {
       setStep("product_number");
     } else if (step === "manufacturer") {
-      setStep("chemical_name");
+      setStep("product_number");
     } else if (step === "new_chemical") {
       setStep("chemical_name");
     } else if (step === "bottle_details") {
       setStep("manufacturer");
+    }
+  };
+  const handleNext = () => {
+    setAnimationDirection("forward");
+    if (step === "product_number") {
+      lookupProductNumber();
+    } else if (step === "chemical_name") {
+      lookupChemicalName();
+    } else if (step === "manufacturer") {
+      setStep("bottle_details");
+    } else if (step === "new_chemical") {
+      addChemical();
+    } else if (step === "bottle_details") {
+      addBottle();
     }
   };
 
@@ -240,20 +256,6 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       .catch(console.error);
   };
 
-  const handleNext = () => {
-    if (step === "product_number") {
-      lookupProductNumber();
-    } else if (step === "chemical_name") {
-      lookupChemicalName();
-    } else if (step === "manufacturer") {
-      setStep("bottle_details");
-    } else if (step === "new_chemical") {
-      addChemical();
-    } else if (step === "bottle_details") {
-      addBottle();
-    }
-  };
-
   // Render body based on current step.
   const renderBody = () => {
     if (step === "product_number") {
@@ -266,16 +268,22 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       );
     } else if (step === "chemical_name") {
       return (
-        <ChemicalNameInput
-          chemicalName={chemicalName}
-          setChemicalName={setChemicalName}
-          onEnter={handleNext}
-        />
+        <div>
+          <i>
+            We couldn't find {productNumber}. Try searching for a chemical name
+            instead?
+          </i>
+          <ChemicalNameInput
+            chemicalName={chemicalName}
+            setChemicalName={setChemicalName}
+            onEnter={handleNext}
+          />
+        </div>
       );
     } else if (step === "manufacturer") {
       return (
         <>
-          <p>We found your chemical, but we don't know which manufacturer.</p>
+          <i>We found your chemical, but we don't know which manufacturer.</i>
           <ManufacturerSelector
             value={selectedManufacturer}
             onChange={setSelectedManufacturer}
@@ -284,17 +292,20 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       );
     } else if (step === "new_chemical") {
       return (
-        <NewChemicalType
-          productNumber={productNumber}
-          chemicalName={chemicalName}
-          setChemicalName={setChemicalName}
-          selectedManufacturer={selectedManufacturer}
-          setSelectedManufacturer={setSelectedManufacturer}
-          newChemicalFormula={newChemicalFormula}
-          setNewChemicalFormula={setNewChemicalFormula}
-          newStorageClass={newStorageClass}
-          setNewStorageClass={setNewStorageClass}
-        />
+        <>
+          <i>We couldn't find that chemical. Create it below</i>
+          <NewChemicalType
+            productNumber={productNumber}
+            chemicalName={chemicalName}
+            setChemicalName={setChemicalName}
+            selectedManufacturer={selectedManufacturer}
+            setSelectedManufacturer={setSelectedManufacturer}
+            newChemicalFormula={newChemicalFormula}
+            setNewChemicalFormula={setNewChemicalFormula}
+            newStorageClass={newStorageClass}
+            setNewStorageClass={setNewStorageClass}
+          />
+        </>
       );
     } else if (step === "bottle_details") {
       return (
@@ -332,7 +343,11 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: "100%", scale: 0.95 }}
+            initial={{
+              opacity: 0,
+              x: animationDirection === "forward" ? "100%" : "-100%",
+              scale: 0.95,
+            }}
             animate={{
               opacity: 1,
               x: 0,
@@ -340,9 +355,9 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
             }}
             exit={{
               opacity: 0,
-              x: "-20%", // Short slide instead of full 100%
+              x: animationDirection === "forward" ? "-20%" : "20%", // Adjust exit based on direction
               scale: 0.95,
-              transition: { duration: 0.2 }, // Faster exit
+              transition: { duration: 0.2 },
             }}
             transition={{
               type: "tween",
@@ -351,7 +366,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
             }}
             style={{
               width: "100%",
-              originX: 0, // Anchor transform to left edge
+              originX: 0,
             }}
             layout="position"
           >
