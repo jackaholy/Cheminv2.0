@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LocationSelector } from "./LocationSelector";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { StorageClassSelector } from "./StorageClassSelector";
+import Modal from "react-bootstrap/Modal";
 
 // --- Step components (render only the inputs) ---
 const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
@@ -128,6 +130,8 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   const [newChemicalFormula, setNewChemicalFormula] = useState("");
   const [newStorageClass, setNewStorageClass] = useState(null);
 
+  const stepRef = useRef(null);
+
   // Reset all state when the modal closes.
   const resetState = () => {
     setChemicalID(0);
@@ -199,6 +203,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       })
       .catch(console.error);
   };
+
   const lookupChemicalName = () => {
     fetch(`/api/chemicals/chemical_name_lookup?chemical_name=${chemicalName}`)
       .then((response) => response.json())
@@ -212,6 +217,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       })
       .catch(console.error);
   };
+
   const addChemical = () => {
     // Directly create the new chemical using lifted state.
     const payload = {
@@ -233,6 +239,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       })
       .catch(console.error);
   };
+
   const handleNext = () => {
     if (step === "product_number") {
       lookupProductNumber();
@@ -298,7 +305,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
               type="number"
               className="form-control"
               value={stickerNumber}
-              onChange={(e) => setStickerNumber(parseInt(e.target.value))}
+              onChange={(e) => setStickerNumber(parseInt(e.target.value, 10))}
             />
           </div>
           <LocationSelector
@@ -312,49 +319,58 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
     }
   };
 
-  // Footer with consistent spacing and green "Next" button.
-  const renderFooter = () => (
-    <div className="modal-footer">
-      <button
-        type="button"
-        className="btn btn-secondary me-2"
-        onClick={handleBack}
-      >
-        Back
-      </button>
-      <button type="button" className="btn btn-success" onClick={handleNext}>
-        {step === "bottle_details" ? "Save Chemical" : "Next"}
-      </button>
-    </div>
-  );
-
-  // Header always shows title and close (x) button.
-  const renderHeader = () => (
-    <div className="modal-header">
-      <h1 className="modal-title fs-5" id="addChemicalLabel">
-        Add Chemical
-      </h1>
-      <button
-        type="button"
-        className="btn-close"
-        aria-label="Close"
-        onClick={handleClose}
-      ></button>
-    </div>
-  );
-
   return (
-    <div
-      className={`modal fade ${show ? "show d-block" : "d-none"}`}
-      tabIndex="-1"
-    >
-      <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div className="modal-content">
-          {renderHeader()}
-          <div className="modal-body">{renderBody()}</div>
-          {renderFooter()}
-        </div>
-      </div>
-    </div>
+    <Modal show={show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>Add Chemical</Modal.Title>
+      </Modal.Header>
+      <Modal.Body
+        style={{
+          overflow: "hidden", // Crucial for containment
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: "100%", scale: 0.95 }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+              x: "-20%", // Short slide instead of full 100%
+              scale: 0.95,
+              transition: { duration: 0.2 }, // Faster exit
+            }}
+            transition={{
+              type: "tween",
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+            style={{
+              width: "100%",
+              originX: 0, // Anchor transform to left edge
+            }}
+            layout="position"
+          >
+            {renderBody()}
+          </motion.div>
+        </AnimatePresence>
+      </Modal.Body>
+      <Modal.Footer>
+        <button
+          type="button"
+          className="btn btn-secondary me-2"
+          onClick={handleBack}
+        >
+          Back
+        </button>
+        <button type="button" className="btn btn-success" onClick={handleNext}>
+          {step === "bottle_details" ? "Save Chemical" : "Next"}
+        </button>
+      </Modal.Footer>
+    </Modal>
   );
 };
