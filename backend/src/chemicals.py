@@ -6,7 +6,9 @@ from models import (
     Inventory,
     Chemical_Manufacturer,
     Storage_Class,
-    Manufacturer, Location, Sub_Location,
+    Manufacturer,
+    Location,
+    Sub_Location,
 )
 from database import db
 
@@ -59,7 +61,8 @@ def get_chemicals():
             Inventory.Inventory_ID.label("inventory_id"),
             Inventory.Sticker_Number.label("sticker"),
             Sub_Location.Sub_Location_Name.label("sub_location"),
-            Location.Location_ID.label("location_id"),
+            Location.Room.label("location_room"),
+            Location.Building.label("location_building"),
             Manufacturer.Manufacturer_Name.label("manufacturer"),
             Chemical_Manufacturer.Product_Number.label("product_number"),
         )
@@ -69,7 +72,8 @@ def get_chemicals():
         )
         .outerjoin(
             Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID == Inventory.Chemical_Manufacturer_ID,
+            Chemical_Manufacturer.Chemical_Manufacturer_ID
+            == Inventory.Chemical_Manufacturer_ID,
         )
         .outerjoin(
             Storage_Class,
@@ -92,7 +96,8 @@ def get_chemicals():
             Inventory.Inventory_ID,
             Storage_Class.Storage_Class_Name,
             Sub_Location.Sub_Location_Name,
-            Location.Location_ID,
+            Location.Room,
+            Location.Building,
             Manufacturer.Manufacturer_Name,
             Chemical_Manufacturer.Product_Number,
         )
@@ -112,17 +117,22 @@ def get_chemicals():
                 "storage_class": chem.Storage_Class_Name,
                 "inventory": [],
             }
-
         # Append inventory information to the correct chemical entry
-        chemical_dict[chem.Chemical_ID]["inventory"].append({
-            "sticker": chem.sticker,
-            "product_number": chem.product_number,
-            "sub_location": chem.sub_location,
-            "location": chem.location_id,
-            "manufacturer": chem.manufacturer,
-        })
+        chemical_dict[chem.Chemical_ID]["inventory"].append(
+            {
+                "sticker": chem.sticker,
+                "product_number": chem.product_number,
+                "sub_location": chem.sub_location,
+                "location": (chem.location_building or "")
+                + " "
+                + (chem.location_room or ""),
+                "manufacturer": chem.manufacturer,
+            }
+        )
 
-        chemical_dict[chem.Chemical_ID]["quantity"] = len(chemical_dict[chem.Chemical_ID]["inventory"])
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(
+            chemical_dict[chem.Chemical_ID]["inventory"]
+        )
 
     # Converting the dictionary into a list of chemicals
     chemical_list = list(chemical_dict.values())
