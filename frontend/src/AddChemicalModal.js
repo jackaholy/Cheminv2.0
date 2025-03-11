@@ -4,6 +4,7 @@ import { LocationSelector } from "./LocationSelector";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { StorageClassSelector } from "./StorageClassSelector";
 import Modal from "react-bootstrap/Modal";
+import Select from "react-select";
 
 // --- Step components (render only the inputs) ---
 const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
@@ -24,10 +25,10 @@ const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
   </div>
 );
 
-const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
+const ChemicalNameInput = ({ chemicalName, setChemicalName }) => {
   const [searchResults, setSearchResults] = useState([]);
-  const searchByName = () => {
-    fetch(`/api/search?query=${chemicalName}&synonyms=false`)
+  const searchByName = (query = chemicalName) => {
+    fetch(`/api/search?query=${query}&synonyms=false`)
       .then((response) => response.json())
       .then(setSearchResults)
       .catch(console.error);
@@ -36,6 +37,25 @@ const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
   return (
     <div>
       <label className="form-label">Chemical Name</label>
+      {/*<Select
+        value={{
+          value: chemicalName,
+          label: chemicalName,
+        }}
+        options={searchResults.map((result) => ({
+          value: result.chemical_name,
+          label: result.chemical_name,
+        }))}
+        onChange={(newValue) => {
+          setChemicalName(newValue.value);
+          searchByName();
+        }}
+        menuPortalTarget={document.body}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        onInputChange={(inputValue) => {
+          searchByName(inputValue);
+        }}
+      />*/}
       <input
         list="chemicalResultsList"
         type="text"
@@ -130,8 +150,6 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   // New state variables for new chemical details.
   const [newChemicalFormula, setNewChemicalFormula] = useState("");
   const [newStorageClass, setNewStorageClass] = useState(null);
-
-  const stepRef = useRef(null);
 
   // Reset all state when the modal closes.
   const resetState = () => {

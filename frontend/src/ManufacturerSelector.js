@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import CreatableSelect from "react-select/creatable";
 export const ManufacturerSelector = ({ value, onChange }) => {
   const [manufacturers, setManufacturers] = useState([]);
   useEffect(() => {
@@ -11,24 +12,50 @@ export const ManufacturerSelector = ({ value, onChange }) => {
         }
       })
       .catch(console.error);
-  }, [value, onChange]);
-
+  }, []);
+  const [isLoading, setIsLoading] = useState(false);
+  const handleCreate = (inputValue) => {
+    setIsLoading(true);
+    fetch("/api/add_manufacturer", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: inputValue }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setIsLoading(false);
+        setManufacturers((prev) => [
+          ...prev,
+          { value: data.id, label: data.name },
+        ]);
+        onChange({ id: data.id, name: data.name });
+      });
+  };
   return (
     <div>
       <label className="form-label">Manufacturer Name</label>
-      <select
-        className="form-select"
-        value={value?.id || ""}
-        onChange={(e) =>
-          onChange(manufacturers.find((m) => m.id === parseInt(e.target.value)))
-        }
-      >
-        {manufacturers.map((m) => (
-          <option key={m.id} value={m.id}>
-            {m.name}
-          </option>
-        ))}
-      </select>
+      <CreatableSelect
+        isClearable
+        isDisabled={isLoading}
+        isLoading={isLoading}
+        options={manufacturers.map((m) => ({
+          value: m.id,
+          label: m.name,
+        }))}
+        value={value?.id ? { value: value.id, label: value.name } : null}
+        menuPortalTarget={document.body}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        onChange={(value) => {
+          if (!value) {
+            onChange(null);
+            return;
+          }
+          onChange({ id: value.value, name: value.label });
+        }}
+        onCreateOption={handleCreate}
+      />
     </div>
   );
 };
