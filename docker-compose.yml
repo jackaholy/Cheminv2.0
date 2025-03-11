@@ -26,6 +26,8 @@ services:
       - ./frontend:/app
 
   mysql:
+    ports:
+      - 3307:3306
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_USER=${MYSQL_USER}
