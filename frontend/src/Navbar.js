@@ -18,7 +18,7 @@ export const Navbar = ({ handleShowAddChemicalModal }) => {
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <a
-                className="nav-link active"
+                className="btn btn-success ms-2 active"
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
