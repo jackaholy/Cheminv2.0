@@ -25,7 +25,7 @@ const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
   </div>
 );
 
-const ChemicalNameInput = ({ chemicalName, setChemicalName }) => {
+const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchByName = (query = chemicalName) => {
     fetch(`/api/search?query=${query}&synonyms=false`)
