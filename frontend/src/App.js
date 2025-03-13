@@ -160,6 +160,10 @@ const App = () => {
     return () => clearTimeout(handler);
   }, [query]);
 
+  useEffect(() => {
+    document.title = "Cheminv2.0";
+  }, []);
+
   return (
     <div className="tw-bg-gray-100 pb-3">
       <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal} />
