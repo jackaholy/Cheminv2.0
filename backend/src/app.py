@@ -41,7 +41,6 @@ def create_app(config=ProdConfig):
     def health():
         return "OK"
 
-
     @app.route("/")
     # Important: The auth redirect must
     # occur in the browser, not a fetch request.
@@ -51,12 +50,12 @@ def create_app(config=ProdConfig):
     def index():
         return render_template("index.html")
 
-
     app.register_blueprint(chemicals)
     app.register_blueprint(locations)
     app.register_blueprint(search)
     app.register_blueprint(users)
     return app
+
 
 if __name__ == "__main__":
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
