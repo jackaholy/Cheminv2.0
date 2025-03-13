@@ -4,15 +4,25 @@ import requests
 from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
 from database import db
-from sqlalchemy import or_
-from models import Chemical, Chemical_Manufacturer, Inventory
+from sqlalchemy import or_, func
+from models import (
+    Chemical,
+    Chemical_Manufacturer,
+    Inventory,
+    Storage_Class,
+    Sub_Location,
+    Location,
+    Manufacturer,
+)
 
 search = Blueprint("search", __name__)
 logger = logging.getLogger(__name__)
 
 
 def calculate_similarity(query, entry):
-    match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
+    query = query.lower().replace(" ", "")
+    entry = entry.lower().replace(" ", "")
+    match = SequenceMatcher(None, query, entry).find_longest_match()
     similarity = (
         # Prioritize strings that contain all or most of the query
         match.size,
@@ -69,48 +79,106 @@ def search_route():
         if len(search_term) > 3 or search_term == query
     ]
 
-    matching_chemicals = []
-    for search_term in search_terms:
-        matches = (
-            db.session.query(Chemical)
-            .options(
-                # Load the information needed to calculate quantity right away
-                # for better performance
-                joinedload(Chemical.Chemical_Manufacturers).joinedload(
-                    Chemical_Manufacturer.Inventory
-                )
-            )
-            .filter(
-                or_(
-                    Chemical.Chemical_Name.like("%" + search_term + "%"),
-                    Chemical.Alphabetical_Name.like("%" + search_term + "%"),
-                    Chemical.Chemical_Formula == search_term,
-                    Chemical.Chemical_Manufacturers.any(
-                        Chemical_Manufacturer.Inventory.any(
-                            Inventory.Sticker_Number == search_term
-                        )
-                    ),
-                )
-            )
-            .all()
+    matching_chemicals = (
+        db.session.query(
+            Chemical.Chemical_ID,
+            Chemical.Chemical_Name,
+            Chemical.Chemical_Formula,
+            Storage_Class.Storage_Class_Name,
+            func.count(Inventory.Inventory_ID).label("quantity"),
+            Inventory.Inventory_ID.label("inventory_id"),
+            Inventory.Sticker_Number.label("sticker"),
+            Sub_Location.Sub_Location_Name.label("sub_location"),
+            Location.Room.label("location_room"),
+            Location.Building.label("location_building"),
+            Manufacturer.Manufacturer_Name.label("manufacturer"),
+            Chemical_Manufacturer.Product_Number.label("product_number"),
         )
-        matching_chemicals.extend(matches)
-    matching_chemicals = list(set(matching_chemicals))
+        .outerjoin(
+            Chemical_Manufacturer,
+            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
+        )
+        .outerjoin(
+            Inventory,
+            Chemical_Manufacturer.Chemical_Manufacturer_ID
+            == Inventory.Chemical_Manufacturer_ID,
+        )
+        .outerjoin(
+            Storage_Class,
+            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
+        )
+        .outerjoin(
+            Sub_Location,
+            Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID,
+        )
+        .outerjoin(
+            Location,
+            Sub_Location.Location_ID == Location.Location_ID,
+        )
+        .outerjoin(
+            Manufacturer,
+            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
+        )
+        .filter(
+            or_(
+                func.replace(Chemical.Chemical_Name, " ", "").ilike(
+                    f"%{st.replace(" ", "")}%"
+                )
+                for st in search_terms
+            )
+            | or_(
+                func.replace(Chemical.Alphabetical_Name, " ", "").ilike(
+                    f"%{st.replace(" ", "")}%"
+                )
+                for st in search_terms
+            )
+            | or_(Chemical.Chemical_Formula == st for st in search_terms)
+            | Chemical.Chemical_Manufacturers.any(
+                Chemical_Manufacturer.Inventory.any(
+                    Inventory.Sticker_Number.in_(search_terms)
+                )
+            )
+        )
+        .group_by(
+            Chemical.Chemical_ID,
+            Inventory.Inventory_ID,
+            Storage_Class.Storage_Class_Name,
+            Sub_Location.Sub_Location_Name,
+            Location.Room,
+            Location.Building,
+            Manufacturer.Manufacturer_Name,
+            Chemical_Manufacturer.Product_Number,
+        )
+        .all()
+    )
+    chemical_dict = {}
 
-    logger.info(f"Found {len(matching_chemicals)} matches for {query}")
-    response_entries = [
-        {
-            "chemical_name": chemical.Chemical_Name,
-            "formula": chemical.Chemical_Formula,
-            "id": chemical.Chemical_ID,
-            "quantity": sum(
-                len(manufacturer.Inventory)
-                for manufacturer in chemical.Chemical_Manufacturers
-            ),
-        }
-        for chemical in matching_chemicals
-    ]
-    response_entries.sort(
+    for chem in matching_chemicals:
+        if chem.Chemical_ID not in chemical_dict:
+            chemical_dict[chem.Chemical_ID] = {
+                "id": chem.Chemical_ID,
+                "chemical_name": chem.Chemical_Name,
+                "formula": chem.Chemical_Formula,
+                "storage_class": chem.Storage_Class_Name,
+                "inventory": [],
+            }
+        chemical_dict[chem.Chemical_ID]["inventory"].append(
+            {
+                "sticker": chem.sticker,
+                "product_number": chem.product_number,
+                "sub_location": chem.sub_location,
+                "location": (chem.location_building or "")
+                + " "
+                + (chem.location_room or ""),
+                "manufacturer": chem.manufacturer,
+            }
+        )
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(
+            chemical_dict[chem.Chemical_ID]["inventory"]
+        )
+
+    chemical_list = list(chemical_dict.values())
+    chemical_list.sort(
         key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
     )
-    return response_entries
+    return chemical_list
