@@ -6,7 +6,9 @@ from models import (
     Inventory,
     Chemical_Manufacturer,
     Storage_Class,
-    Manufacturer, Location, Sub_Location,
+    Manufacturer,
+    Location,
+    Sub_Location,
 )
 from database import db
 
@@ -14,6 +16,7 @@ chemicals = Blueprint("chemicals", __name__)
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
+@oidc.require_login
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
@@ -44,6 +47,7 @@ def add_chemical():
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.
@@ -69,7 +73,8 @@ def get_chemicals():
         )
         .outerjoin(
             Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID == Inventory.Chemical_Manufacturer_ID,
+            Chemical_Manufacturer.Chemical_Manufacturer_ID
+            == Inventory.Chemical_Manufacturer_ID,
         )
         .outerjoin(
             Storage_Class,
@@ -114,15 +119,19 @@ def get_chemicals():
             }
 
         # Append inventory information to the correct chemical entry
-        chemical_dict[chem.Chemical_ID]["inventory"].append({
-            "sticker": chem.sticker,
-            "product_number": chem.product_number,
-            "sub_location": chem.sub_location,
-            "location": chem.location_id,
-            "manufacturer": chem.manufacturer,
-        })
+        chemical_dict[chem.Chemical_ID]["inventory"].append(
+            {
+                "sticker": chem.sticker,
+                "product_number": chem.product_number,
+                "sub_location": chem.sub_location,
+                "location": chem.location_id,
+                "manufacturer": chem.manufacturer,
+            }
+        )
 
-        chemical_dict[chem.Chemical_ID]["quantity"] = len(chemical_dict[chem.Chemical_ID]["inventory"])
+        chemical_dict[chem.Chemical_ID]["quantity"] = len(
+            chemical_dict[chem.Chemical_ID]["inventory"]
+        )
 
     # Converting the dictionary into a list of chemicals
     chemical_list = list(chemical_dict.values())
@@ -131,6 +140,7 @@ def get_chemicals():
 
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
+@oidc.require_login
 def product_number_lookup():
     """
     API to get chemical details based on the product number.
@@ -171,6 +181,7 @@ def product_number_lookup():
 
 
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
+@oidc.require_login
 def mark_dead():
     """
     API to mark a chemical as dead.

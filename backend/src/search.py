@@ -4,6 +4,7 @@ import requests
 from flask import Blueprint, request
 from sqlalchemy.orm import joinedload
 from database import db
+from oidc import oidc
 from sqlalchemy import or_
 from models import Chemical, Chemical_Manufacturer, Inventory
 
@@ -40,9 +41,9 @@ def get_synonyms(query):
             logger.debug(f"- {substance['Synonym']}")
             synonyms.extend(substance["Synonym"])
     return synonyms
-
-
-@search.route("/api/search", methods=["GET"])
+    
+@search.route('/api/search', methods=['GET'])
+@oidc.require_login
 def search_route():
     query = request.args.get("query")
     synonym_search_enabled = request.args.get("synonyms") == "true"

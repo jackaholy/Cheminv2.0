@@ -3,7 +3,9 @@ export const Navbar = ({ handleShowAddChemicalModal }) => {
   const [user, setUser] = useState({});
 
   useEffect(() => {
-    fetch("/api/user")
+    fetch("/api/user", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((error) => console.error(error));

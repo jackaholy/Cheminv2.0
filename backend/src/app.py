@@ -4,9 +4,8 @@ import logging
 
 import waitress
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, render_template
 from flask_cors import CORS
-from flask_oidc import OpenIDConnect
 
 from config import ProdConfig, TestingConfig, DevConfig
 from chemicals import chemicals
@@ -14,6 +13,7 @@ from locations import locations
 from search import search
 from users import users
 from database import db, init_db
+from oidc import init_oidc, oidc
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,24 +24,38 @@ load_dotenv()
 
 def create_app(config=ProdConfig):
     logger.info("Starting application")
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        static_url_path="",
+        static_folder="../frontend/build",
+        template_folder="../frontend/build",
+    )
     app.config.from_object(config)
     init_db(app)
-
+    init_oidc(app)
     # app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
-    oidc = OpenIDConnect(app)
     cors = CORS(app)
 
     @app.route("/api/health")
     def health():
         return "OK"
 
+    @app.route("/")
+    # Important: The auth redirect must
+    # occur in the browser, not a fetch request.
+    # The apis need to be protected, but can't actually
+    # redirect to the login page.
+    @oidc.require_login
+    def index():
+        return render_template("index.html")
+
     app.register_blueprint(chemicals)
     app.register_blueprint(locations)
     app.register_blueprint(search)
     app.register_blueprint(users)
     return app
+
 
 if __name__ == "__main__":
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
