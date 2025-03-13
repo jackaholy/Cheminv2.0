@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_similarity(query, entry):
-    match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
+    match = SequenceMatcher(
+        None, query.lower().replace(" ", ""), entry.lower().replace(" ", "")
+    ).find_longest_match()
     similarity = (
         # Prioritize strings that contain all or most of the query
         match.size,
@@ -118,15 +120,28 @@ def search_route():
             Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
         )
         .filter(
-            or_(Chemical.Chemical_Name.like("%" + st + "%") for st in search_terms)
-            | or_(
-                Chemical.Alphabetical_Name.like("%" + st + "%") for st in search_terms
-            )
-            | or_(Chemical.Chemical_Formula == st for st in search_terms)
-            | Chemical.Chemical_Manufacturers.any(
-                Chemical_Manufacturer.Inventory.any(
-                    Inventory.Sticker_Number.in_(search_terms)
-                )
+            or_(
+                or_(
+                    func.replace(Chemical.Chemical_Name, " ", "").ilike(
+                        f"%{st.replace(' ', '')}%"
+                    )
+                    for st in search_terms
+                ),
+                or_(
+                    func.replace(Chemical.Alphabetical_Name, " ", "").ilike(
+                        f"%{st.replace(' ', '')}%"
+                    )
+                    for st in search_terms
+                ),
+                or_(
+                    Chemical.Chemical_Formula == st
+                    for st in search_terms  # formulas may not need space stripping
+                ),
+                Chemical.Chemical_Manufacturers.any(
+                    Chemical_Manufacturer.Inventory.any(
+                        Inventory.Sticker_Number.in_(search_terms)
+                    )
+                ),
             )
         )
         .group_by(
