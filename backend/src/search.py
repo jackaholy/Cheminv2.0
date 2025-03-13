@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_similarity(query, entry):
-    match = SequenceMatcher(None, query.lower(), entry.lower()).find_longest_match()
+    query = query.lower().replace(" ", "")
+    entry = entry.lower().replace(" ", "")
+    match = SequenceMatcher(None, query, entry).find_longest_match()
     similarity = (
         # Prioritize strings that contain all or most of the query
         match.size,
@@ -118,9 +120,17 @@ def search_route():
             Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
         )
         .filter(
-            or_(Chemical.Chemical_Name.like("%" + st + "%") for st in search_terms)
+            or_(
+                func.replace(Chemical.Chemical_Name, " ", "").ilike(
+                    f"%{st.replace(" ", "")}%"
+                )
+                for st in search_terms
+            )
             | or_(
-                Chemical.Alphabetical_Name.like("%" + st + "%") for st in search_terms
+                func.replace(Chemical.Alphabetical_Name, " ", "").ilike(
+                    f"%{st.replace(" ", "")}%"
+                )
+                for st in search_terms
             )
             | or_(Chemical.Chemical_Formula == st for st in search_terms)
             | Chemical.Chemical_Manufacturers.any(
