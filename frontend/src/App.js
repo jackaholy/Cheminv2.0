@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 import { ManageUsersModal } from "./ManageUsersModal";
 import { Sidebar } from "./Sidebar";
@@ -69,8 +69,6 @@ const App = () => {
     fetch("/api/get_chemicals")
       .then((response) => response.json())
       .then((data) => {
-        // console.log("Fetched chemicals:", data);
-        console.log("Get chemicals setting results:", data);
         setResults(data);
       })
       .catch((error) => console.error(error));
@@ -116,8 +114,6 @@ const App = () => {
     fetch("/api/get_chemicals")
       .then((response) => response.json())
       .then((data) => {
-        // console.log("Fetched chemicals:", data);
-        console.log("Get chemicals setting results:", data);
         setResults(data);
       })
       .catch((error) => console.error(error));
