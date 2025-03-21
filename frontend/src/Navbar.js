@@ -48,7 +48,7 @@ export const Navbar = ({ handleShowAddChemicalModal }) => {
                 aria-labelledby="navbarDropdown"
               >
                 <li className="dropdown-item">You have {user.access} access</li>
-                {user.access === "admin" ? (
+                {user.access === "Full Access" ? (
                   <li>
                     <a
                       className="dropdown-item"

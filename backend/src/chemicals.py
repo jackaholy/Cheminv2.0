@@ -1,8 +1,9 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
+from oidc import oidc
 
-from backend.src.permission_requirements import require_editor
+from permission_requirements import require_editor
 from models import (
     Chemical,
     Inventory,
