@@ -1,6 +1,9 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
+from oidc import oidc
+
+from permission_requirements import require_editor
 from models import (
     Chemical,
     Inventory,
@@ -16,6 +19,8 @@ chemicals = Blueprint("chemicals", __name__)
 
 
 @chemicals.route("/api/add_bottle", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_bottle():
     sticker_number = request.json.get("sticker_number")
     chemical_id = request.json.get("chemical_id")
@@ -56,6 +61,8 @@ def add_bottle():
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
@@ -127,6 +134,7 @@ def get_storage_classes():
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.
@@ -222,6 +230,7 @@ def get_chemicals():
 
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
+@oidc.require_login
 def product_number_lookup():
     """
     API to get chemical details based on the product number.
@@ -282,6 +291,7 @@ def chemical_name_lookup():
 
 
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
+@oidc.require_login
 def mark_dead():
     """
     API to mark a chemical as dead.

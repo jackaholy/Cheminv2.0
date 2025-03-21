@@ -5,7 +5,7 @@ export const LocationSelector = ({ onChange }) => {
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
 
   useEffect(() => {
-    fetch(`/api/locations`)
+    fetch(`/api/locations`, { credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         setLocations(data);

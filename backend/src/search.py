@@ -14,6 +14,7 @@ from models import (
     Location,
     Manufacturer,
 )
+from oidc import oidc
 
 search = Blueprint("search", __name__)
 logger = logging.getLogger(__name__)
@@ -51,8 +52,8 @@ def get_synonyms(query):
             synonyms.extend(substance["Synonym"])
     return synonyms
 
-
-@search.route("/api/search", methods=["GET"])
+@search.route('/api/search', methods=['GET'])
+@oidc.require_login
 def search_route():
     query = request.args.get("query")
     synonym_search_enabled = request.args.get("synonyms") == "true"
