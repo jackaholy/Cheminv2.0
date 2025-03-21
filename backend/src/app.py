@@ -10,6 +10,7 @@ from flask_cors import CORS
 from config import ProdConfig, TestingConfig, DevConfig
 from chemicals import chemicals
 from locations import locations
+from manufacturers import manufacturers
 from search import search
 from users import users
 from database import db, init_db
@@ -52,6 +53,7 @@ def create_app(config=ProdConfig):
 
     app.register_blueprint(chemicals)
     app.register_blueprint(locations)
+    app.register_blueprint(manufacturers)
     app.register_blueprint(search)
     app.register_blueprint(users)
     return app

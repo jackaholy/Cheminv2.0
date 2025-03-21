@@ -29,13 +29,18 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link active" data-bs-toggle="modal" data-bs-target="#addChemical"
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#addChemical"
                                         href="#addChemical">Add Chemical</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Link</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#inventoryModal"
+                                        href="#inventoryModal" href="inventoryModal">Inventory</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">MSDS Log</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dropdown</a>
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manage Database</a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Manufacturer List</a></li>
+                        <li><a class="dropdown-item" href="#">Location List</a></li>
+                        <li><a class="dropdown-item" href="#">Sub Location List</a></li>
+                        <li><a class="dropdown-item" href="#">Delete Elements</a></li>
                     </ul>
                 </li>
             </ul>
@@ -333,6 +338,51 @@
         </div>
     </div>
 </div>
+
+<!--   Attempting a Proper Modal   -->
+<!-- Quick Inventory Modal -->
+<div class="modal fade" id="inventoryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="inventoryModalLabel">Quick Inventory</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="grouped-section">
+                    <label class="form-label">Location</label>
+                    <select class="form-select">
+                        <option selected>Pick a Location</option>
+                        <option value="FC 111">FC 111</option>
+                        <option value="FC 114">FC 114</option>
+                        <option value="FC 115">FC 115</option>
+                    </select>
+
+                    <label class="form-label">Sub Location</label>
+                    <select class="form-select">
+                        <option selected>Pick a Location</option>
+                        <option value="FC 111">Acid Cabinet</option>
+                        <option value="FC 114">Corr White</option>
+                        <option value="FC 115">Flam Red</option>
+                    </select>
+
+                    <label class="form-label">Sticker Number</label>
+                    <input type="text" class="form-control" placeholder="Type here...">
+
+                    <button type="button" class="btn btn-secondary">Search</button>
+                    <button type="button" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary">Complete Sub Location</button>
+                <button type="button" class="btn btn-secondary">Complete Room</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Finish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

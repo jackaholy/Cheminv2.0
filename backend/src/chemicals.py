@@ -1,6 +1,8 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
 
+from backend.src.permission_requirements import require_editor
 from models import (
     Chemical,
     Inventory,
@@ -15,35 +17,119 @@ from database import db
 chemicals = Blueprint("chemicals", __name__)
 
 
+@chemicals.route("/api/add_bottle", methods=["POST"])
+@oidc.require_login
+@require_editor
+def add_bottle():
+    sticker_number = request.json.get("sticker_number")
+    chemical_id = request.json.get("chemical_id")
+    manufacturer_id = request.json.get("manufacturer_id")
+    location_id = request.json.get("location_id")
+    sub_location_id = request.json.get("sub_location_id")
+    product_number = request.json.get("product_number")
+    chemical_manufacturer = (
+        db.session.query(Chemical_Manufacturer)
+        .filter(
+            Chemical_Manufacturer.Chemical_ID == chemical_id,
+            Chemical_Manufacturer.Manufacturer_ID == manufacturer_id,
+        )
+        .first()
+    )
+    if not chemical_manufacturer:
+        chemical_manufacturer = Chemical_Manufacturer(
+            Chemical_ID=chemical_id,
+            Manufacturer_ID=manufacturer_id,
+            Product_Number=product_number,
+        )
+        db.session.add(chemical_manufacturer)
+        db.session.commit()
+
+    inventory = Inventory(
+        Sticker_Number=sticker_number,
+        Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
+        Sub_Location_ID=sub_location_id,
+        Last_Updated=datetime.now(),
+        Is_Dead=False,
+    )
+    db.session.add(inventory)
+    db.session.commit()
+    return {
+        "message": "Bottle added successfully",
+        "inventory_id": inventory.Inventory_ID,
+    }
+
+
 @chemicals.route("/api/add_chemical", methods=["POST"])
 @oidc.require_login
+@require_editor
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
-    storage_class = request.json.get("storage_class")
-    order_more = request.json.get("order_more")
-    order_description = request.json.get("order_description")
-    who_requested = request.json.get("who_requested")
-    date_requested = request.json.get("date_requested")
-    who_ordered = request.json.get("who_ordered")
-    date_ordered = request.json.get("date_ordered")
-    minimum_on_hand = request.json.get("minimum_on_hand")
+    product_number = request.json.get("product_number")
+    storage_class_id = request.json.get("storage_class_id")
+    manufacturer_id = request.json.get("manufacturer_id")
+
+    manufacturer = (
+        db.session.query(Manufacturer)
+        .filter_by(Manufacturer_ID=manufacturer_id)
+        .first()
+    )
+    storage_class = (
+        db.session.query(Storage_Class)
+        .filter(Storage_Class.Storage_Class_ID == storage_class_id)
+        .first()
+    )
+    # order_more = request.json.get("order_more")
+    # order_description = request.json.get("order_description")
+    # who_requested = request.json.get("who_requested")
+    # date_requested = request.json.get("date_requested")
+    # who_ordered = request.json.get("who_ordered")
+    date_ordered = datetime.now()
+
+    # minimum_on_hand = request.json.get("minimum_on_hand")
 
     chemical = Chemical(
         Chemical_Name=chemical_name,
+        Alphabetical_Name=chemical_name,
         Chemical_Formula=chemical_formula,
         Storage_Class_ID=storage_class,
-        Order_More=order_more,
-        Order_Description=order_description,
-        Who_Requested=who_requested,
-        When_Requested=date_requested,
-        Who_Ordered=who_ordered,
-        When_Ordered=date_ordered,
-        Minimum_On_Hand=minimum_on_hand,
+        # Manufacturer=manufacturer,
+        Storage_Class=storage_class,
+        # When_Ordered=date_ordered,
+        # Order_More=order_more,
+        # Order_Description=order_description,
+        # Who_Requested=who_requested,
+        # When_Requested=date_requested,
+        # Who_Ordered=who_ordered,
+        # When_Ordered=date_ordered,
+        # Minimum_On_Hand=minimum_on_hand,
     )
+    chemical_manufacturer = Chemical_Manufacturer(
+        Chemical=chemical, Manufacturer=manufacturer, Product_Number=product_number
+    )
+    chemical.Storage_Class = storage_class
     db.session.add(chemical)
+    db.session.add(chemical_manufacturer)
     db.session.commit()
-    return {"message": "Chemical added successfully"}
+    return {
+        "message": "Chemical added successfully",
+        "chemical_id": chemical.Chemical_ID,
+    }
+
+
+@chemicals.route("/api/storage_classes", methods=["GET"])
+def get_storage_classes():
+    """
+    API to get storage classes from the database.
+    :return: A list of storage classes
+    """
+    storage_classes = db.session.query(Storage_Class).all()
+    return jsonify(
+        [
+            {"name": sc.Storage_Class_Name, "id": sc.Storage_Class_ID}
+            for sc in storage_classes
+        ]
+    )
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
@@ -63,7 +149,8 @@ def get_chemicals():
             Inventory.Inventory_ID.label("inventory_id"),
             Inventory.Sticker_Number.label("sticker"),
             Sub_Location.Sub_Location_Name.label("sub_location"),
-            Location.Location_ID.label("location_id"),
+            Location.Room.label("location_room"),
+            Location.Building.label("location_building"),
             Manufacturer.Manufacturer_Name.label("manufacturer"),
             Chemical_Manufacturer.Product_Number.label("product_number"),
         )
@@ -97,7 +184,8 @@ def get_chemicals():
             Inventory.Inventory_ID,
             Storage_Class.Storage_Class_Name,
             Sub_Location.Sub_Location_Name,
-            Location.Location_ID,
+            Location.Room,
+            Location.Building,
             Manufacturer.Manufacturer_Name,
             Chemical_Manufacturer.Product_Number,
         )
@@ -117,14 +205,15 @@ def get_chemicals():
                 "storage_class": chem.Storage_Class_Name,
                 "inventory": [],
             }
-
         # Append inventory information to the correct chemical entry
         chemical_dict[chem.Chemical_ID]["inventory"].append(
             {
                 "sticker": chem.sticker,
                 "product_number": chem.product_number,
                 "sub_location": chem.sub_location,
-                "location": chem.location_id,
+                "location": (chem.location_building or "")
+                + " "
+                + (chem.location_room or ""),
                 "manufacturer": chem.manufacturer,
             }
         )
@@ -148,34 +237,54 @@ def product_number_lookup():
     :return: Details for the chemical with the given product number.
     """
     product_number = request.args.get("product_number")
+    if product_number == "":
+        return jsonify({}), 404
+    query_result = (
+        db.session.query(Chemical_Manufacturer)
+        .filter(Chemical_Manufacturer.Product_Number == product_number)
+        .first()
+    )
+    print(query_result)
+    if not query_result:
+        return jsonify({}), 404
+    chemicals_data = {
+        "chemical_id": query_result.Chemical.Chemical_ID,
+        "manufacturer": {
+            "name": query_result.Manufacturer.Manufacturer_Name,
+            "id": query_result.Manufacturer.Manufacturer_ID,
+        },
+        "product_number": query_result.Product_Number,
+    }
+    return jsonify(chemicals_data)
+
+
+@chemicals.route("/api/chemicals/chemical_name_lookup", methods=["GET"])
+def chemical_name_lookup():
+    """
+    API to get chemical details based on the chemical name.
+    :return: Details for the chemical with the given chemical name.
+    """
+    chemical_name = request.args.get("chemical_name")
     query_result = (
         db.session.query(
+            Chemical.Chemical_ID,
             Chemical.Chemical_Name,
             Chemical.Chemical_Formula,
             Storage_Class.Storage_Class_Name,
-            Manufacturer.Manufacturer_Name,
-            Chemical_Manufacturer.Product_Number,
-        )
-        .join(
-            Chemical_Manufacturer,
-            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
         )
         .join(
             Storage_Class, Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID
         )
-        .join(
-            Manufacturer,
-            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
-        )
-        .filter(Chemical_Manufacturer.Product_Number == product_number)
+        .filter(Chemical.Chemical_Name == chemical_name)
         .first()
     )
+    if not query_result:
+        return jsonify({}), 404
     chemicals_data = {
-        "chemical_name": query_result[0],
-        "chemical_formula": query_result[1],
-        "storage_class": query_result[2],
-        "manufacturer": query_result[3],
-        "product_number": query_result[4],
+        "chemical_id": query_result[0],
+        "chemical_name": query_result[1],
+        "chemical_formula": query_result[2],
+        "storage_class": query_result[3],
     }
     return jsonify(chemicals_data)
 
