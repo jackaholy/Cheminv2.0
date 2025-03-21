@@ -19,16 +19,18 @@ export const Navbar = ({ handleShowAddChemicalModal }) => {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <a
-                className="btn btn-success ms-2 active"
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleShowAddChemicalModal();
-                }}
-              >
-                Add Chemical
-              </a>
+              {user.access == "Editor" || user.access == "Full Access" ? (
+                <a
+                  className="btn btn-success ms-2 active"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleShowAddChemicalModal();
+                  }}
+                >
+                  Add Chemical
+                </a>
+              ) : null}
             </li>
           </ul>
           <ul className="navbar-nav mb-2 mb-lg-0">
