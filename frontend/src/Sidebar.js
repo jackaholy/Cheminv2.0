@@ -7,7 +7,7 @@ export const Sidebar = ({
   setSearching,
   setResults,
 }) => {
-  const [selectedRoom, setSelectedRoom] = useState(0);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedManufacturers, setSelectedManufacturers] = useState([]);
   const [locations, setRooms] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
@@ -44,9 +44,13 @@ export const Sidebar = ({
       return;
     }
     setSearching(true);
-    fetch(
-      `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}&room=${selectedRoom}`
-    )
+    let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
+
+    if (selectedRoom && selectedRoom !== "none") {
+      url += `&room=${selectedRoom}`;
+    }
+
+    fetch(url)
       .then((response) => response.json())
       .then((data) => {
         console.log("Search setting results:", data);
@@ -96,7 +100,7 @@ export const Sidebar = ({
               type="radio"
               name="room"
               className="tw-mr-2"
-              onChange={() => setSelectedRoom(0)}
+              onChange={() => setSelectedRoom(null)}
             />
             Any
           </label>
