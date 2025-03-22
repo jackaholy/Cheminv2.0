@@ -1,10 +1,10 @@
 import logging
 from difflib import SequenceMatcher
 import requests
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import joinedload
 from database import db
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, and_
 from models import (
     Chemical,
     Chemical_Manufacturer,
@@ -54,31 +54,74 @@ def get_synonyms(query):
 
 @search.route("/api/search", methods=["GET"])
 def search_route():
-    query = request.args.get("query")
-    synonym_search_enabled = request.args.get("synonyms") == "true"
-    if not query:
-        return []
+    # Get parameters from request
+    query = request.args.get("query", "")
+    room = request.args.get("room", None)
+    manufacturers_param = request.args.get("manufacturers", "")
+    synonym_search_enabled = request.args.get("synonyms", "false").lower() == "true"
 
-    query.replace("/", "")
-    query.replace("%2F", "")
-    query.replace("%2f", "")
+    # Split manufacturer IDs (if provided) and trim whitespace
+    manufacturer_ids = [m.strip() for m in manufacturers_param.split(",") if m.strip()]
+
+    # If no filtering criteria provided, return an empty list
+    if not query and not room and not manufacturer_ids:
+        return jsonify([])
+
+    # Clean up the query string by removing certain characters
+    query = query.replace("/", "").replace("%2F", "").replace("%2f", "")
+
+    # Start with the primary query and add synonyms if enabled
     search_terms = [query]
-
     if synonym_search_enabled:
         search_terms.extend(get_synonyms(query))
 
     # Deduplicate search terms
     search_terms = list(set(search_terms))
 
-    # Element symbols (like FE, H, etc.) match all kinds of things in the database, so we try to filter them out
-    search_terms = [
-        search_term
-        for search_term in search_terms
-        # Try to filter out element symbols
-        # (for synonyms, allow the user to search directly)
-        if len(search_term) > 3 or search_term == query
-    ]
+    # Filter out possible element symbols (unless it's the original query)
+    search_terms = [term for term in search_terms if len(term) > 3 or term == query]
 
+    # Build filters for Chemical_Name, Alphabetical_Name, and Chemical_Formula
+    name_filter = or_(
+        *[
+            func.replace(Chemical.Chemical_Name, " ", "").ilike(
+                f"%{term.replace(' ', '')}%"
+            )
+            for term in search_terms
+        ]
+    )
+    alphabetical_filter = or_(
+        *[
+            func.replace(Chemical.Alphabetical_Name, " ", "").ilike(
+                f"%{term.replace(' ', '')}%"
+            )
+            for term in search_terms
+        ]
+    )
+    formula_filter = or_(*[Chemical.Chemical_Formula == term for term in search_terms])
+
+    # Filter on sticker numbers (via related inventory records)
+    sticker_filter = Chemical.Chemical_Manufacturers.any(
+        Chemical_Manufacturer.Inventory.any(Inventory.Sticker_Number.in_(search_terms))
+    )
+
+    # Combine the search term filters into one using OR
+    search_filter = or_(
+        name_filter, alphabetical_filter, formula_filter, sticker_filter
+    )
+
+    # Create a list of filters that will be combined with AND
+    filters = [search_filter]
+
+    # Filter by room name (comparing against Location.Room)
+    if room:
+        filters.append(Location.Location_ID == room)
+
+    # Filter by manufacturer IDs if provided
+    if manufacturer_ids:
+        filters.append(Manufacturer.Manufacturer_ID.in_(manufacturer_ids))
+
+    # Execute the query with appropriate joins and grouping
     matching_chemicals = (
         db.session.query(
             Chemical.Chemical_ID,
@@ -119,26 +162,7 @@ def search_route():
             Manufacturer,
             Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
         )
-        .filter(
-            or_(
-                func.replace(Chemical.Chemical_Name, " ", "").ilike(
-                    f"%{st.replace(" ", "")}%"
-                )
-                for st in search_terms
-            )
-            | or_(
-                func.replace(Chemical.Alphabetical_Name, " ", "").ilike(
-                    f"%{st.replace(" ", "")}%"
-                )
-                for st in search_terms
-            )
-            | or_(Chemical.Chemical_Formula == st for st in search_terms)
-            | Chemical.Chemical_Manufacturers.any(
-                Chemical_Manufacturer.Inventory.any(
-                    Inventory.Sticker_Number.in_(search_terms)
-                )
-            )
-        )
+        .filter(and_(*filters))
         .group_by(
             Chemical.Chemical_ID,
             Inventory.Inventory_ID,
@@ -151,8 +175,9 @@ def search_route():
         )
         .all()
     )
-    chemical_dict = {}
 
+    # Build a dictionary keyed by Chemical_ID to aggregate inventory entries
+    chemical_dict = {}
     for chem in matching_chemicals:
         if chem.Chemical_ID not in chemical_dict:
             chemical_dict[chem.Chemical_ID] = {
@@ -167,9 +192,7 @@ def search_route():
                 "sticker": chem.sticker,
                 "product_number": chem.product_number,
                 "sub_location": chem.sub_location,
-                "location": (chem.location_building or "")
-                + " "
-                + (chem.location_room or ""),
+                "location": f"{chem.location_building or ''} {chem.location_room or ''}".strip(),
                 "manufacturer": chem.manufacturer,
             }
         )
@@ -177,8 +200,10 @@ def search_route():
             chemical_dict[chem.Chemical_ID]["inventory"]
         )
 
+    # Convert the aggregated chemicals into a list and sort them by similarity to the query
     chemical_list = list(chemical_dict.values())
     chemical_list.sort(
         key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
     )
-    return chemical_list
+
+    return jsonify(chemical_list)
