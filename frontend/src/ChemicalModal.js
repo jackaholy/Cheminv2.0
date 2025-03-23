@@ -36,14 +36,13 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
     )
       .then((response) => response.blob())
       .then((blob) => {
-        console.log(blob);
         setChemicalImage(URL.createObjectURL(blob));
       })
       .catch((error) => console.error(error));
   }, [chemical]);
 
   if (!chemical) return null; // Don't render if no chemical is selected
-  console.log(chemicalImage);
+
   return (
     <Modal show={show} onHide={handleModalClose} centered size="lg">
       <Modal.Header closeButton>
