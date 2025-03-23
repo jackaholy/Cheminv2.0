@@ -9,8 +9,41 @@ export const Sidebar = ({
 }) => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+
+  const [roomFilterText, setRoomFilterText] = useState("");
   const [locations, setRooms] = useState([]);
+  const [filteredLocations, setFilteredLocations] = useState([]);
+
+  const [manufacturerFilterText, setManufacturerFilterText] = useState("");
   const [manufacturers, setManufacturers] = useState([]);
+  const [filteredManufacturers, setFilteredManufacturers] = useState([]);
+
+  useEffect(() => {
+    if (manufacturerFilterText != "") {
+      console.log(manufacturers);
+      setFilteredManufacturers(
+        manufacturers.filter((man) =>
+          man.name.toLowerCase().includes(manufacturerFilterText.toLowerCase())
+        )
+      );
+      return;
+    }
+    setFilteredManufacturers(manufacturers);
+  }, [manufacturerFilterText, manufacturers]);
+
+  useEffect(() => {
+    if (roomFilterText != "") {
+      setFilteredLocations(
+        locations.filter((loc) =>
+          `${loc.building} ${loc.room}`
+            .toLowerCase()
+            .includes(roomFilterText.toLowerCase())
+        )
+      );
+      return;
+    }
+    setFilteredLocations(locations);
+  }, [roomFilterText, locations]);
 
   useEffect(() => {
     fetch("/api/locations", { credentials: "include" })
@@ -25,9 +58,11 @@ export const Sidebar = ({
       .then((data) => setManufacturers(data))
       .catch((error) => console.error(error));
   }, []);
+
   useEffect(() => {
     handleSearch(query);
   }, [selectedManufacturers, selectedRoom]);
+
   const toggleManufacturer = (man) => {
     setSelectedManufacturers((prev) =>
       prev.includes(man) ? prev.filter((m) => m !== man) : [...prev, man]
@@ -53,7 +88,6 @@ export const Sidebar = ({
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Search setting results:", data);
         setResults(data);
         setSearching(false);
       })
@@ -68,7 +102,6 @@ export const Sidebar = ({
 
     return () => clearTimeout(handler);
   }, [query]);
-
   return (
     <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
       <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
@@ -94,6 +127,12 @@ export const Sidebar = ({
       </div>
       <div className="tw-mt-4">
         <div className="tw-font-semibold">Room Location</div>
+        <input
+          className="form-control"
+          placeholder="Filter rooms"
+          value={roomFilterText}
+          onChange={(e) => setRoomFilterText(e.target.value)}
+        />
         <div className="tw-mt-2 tw-space-y-1">
           <label key={0} className="tw-flex tw-items-center">
             <input
@@ -104,7 +143,7 @@ export const Sidebar = ({
             />
             Any
           </label>
-          {locations.map((location, index) => (
+          {filteredLocations.map((location, index) => (
             <label key={index} className="tw-flex tw-items-center">
               <input
                 type="radio"
@@ -120,8 +159,14 @@ export const Sidebar = ({
       </div>
       <div className="tw-mt-4">
         <div className="tw-font-semibold">Manufacturers</div>
+        <input
+          className="form-control"
+          placeholder="Filter rooms"
+          value={manufacturerFilterText}
+          onChange={(e) => setManufacturerFilterText(e.target.value)}
+        />
         <div className="tw-mt-2 tw-space-y-1">
-          {manufacturers.map((man, index) => (
+          {filteredManufacturers.map((man, index) => (
             <label key={index} className="tw-flex tw-items-center">
               <input
                 type="checkbox"
