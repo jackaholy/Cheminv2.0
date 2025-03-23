@@ -161,7 +161,7 @@ export const Sidebar = ({
         <div className="tw-font-semibold">Manufacturers</div>
         <input
           className="form-control"
-          placeholder="Filter rooms"
+          placeholder="Filter manufacturers"
           value={manufacturerFilterText}
           onChange={(e) => setManufacturerFilterText(e.target.value)}
         />
