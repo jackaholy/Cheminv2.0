@@ -8,6 +8,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
   };
   const [chemicalDescription, setChemicalDescription] = useState("");
   useEffect(() => {
+    if (!chemical) return;
     fetch(
       `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${chemical?.chemical_name}/description/json`
     )
@@ -29,19 +30,19 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
   }, [chemical]);
   const [chemicalImage, setChemicalImage] = useState("");
   useEffect(() => {
+    if (!chemical) return;
     fetch(
       `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${chemical?.chemical_name}/PNG`
     )
       .then((response) => response.blob())
       .then((blob) => {
-        console.log(blob);
         setChemicalImage(URL.createObjectURL(blob));
       })
       .catch((error) => console.error(error));
   }, [chemical]);
 
   if (!chemical) return null; // Don't render if no chemical is selected
-  console.log(chemicalImage);
+
   return (
     <Modal show={show} onHide={handleModalClose} centered size="lg">
       <Modal.Header closeButton>

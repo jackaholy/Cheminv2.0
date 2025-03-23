@@ -1,13 +1,25 @@
 from flask import Blueprint, request, jsonify
 from database import db
-from models import Manufacturer
+from models import Manufacturer, Chemical_Manufacturer, Inventory
 
 manufacturers = Blueprint("manufacturers", __name__)
 
 
 @manufacturers.route("/api/manufacturers", methods=["GET"])
 def get_manufacturers():
-    manufacturer_list = db.session.query(Manufacturer).all()
+    active = request.args.get("active", "true").lower() == "true"
+    query = db.session.query(Manufacturer)
+
+    if active:
+        query = query.filter(
+            Manufacturer.Manufacturer_ID.in_(
+                db.session.query(Chemical_Manufacturer.Manufacturer_ID)
+                .join(Inventory)
+                .distinct()
+            )
+        )
+
+    manufacturer_list = query.all()
     return sorted(
         [
             {

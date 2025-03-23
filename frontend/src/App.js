@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import "./style.css";
 import { ManageUsersModal } from "./ManageUsersModal";
 import { Sidebar } from "./Sidebar";
@@ -11,20 +11,20 @@ const App = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [rooms, setRooms] = useState([]);
 
   const [selectedChemical, setSelectedChemical] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
 
-  const handleShowModal = (chem) => {
+  const handleShowChemicalModal = (chem) => {
     setSelectedChemical(chem);
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseChemicalModal = () => {
     setShowModal(false);
+    setSelectedChemical(null);
   };
 
   const handleShowAddChemicalModal = () => {
@@ -33,7 +33,7 @@ const App = () => {
 
   const handleCloseAddChemicalModal = () => {
     setShowAddChemicalModal(false);
-  };
+  };=
 
   function handleSearch(query, synonyms = false) {
     if (query === "") {
@@ -117,6 +117,7 @@ const App = () => {
       .catch((error) => console.error(error));
   }
 
+
   /**
    * Get the quantity of a specific chemical.
    */
@@ -132,59 +133,41 @@ const App = () => {
   }
 
   useEffect(() => {
-    getChemicals(); // Fetch chemicals on component mount
-    getLocations();
-  }, []);
-
-  const manufacturers = ["Acros", "Matrix", "TCI", "BDH"];
-  const chemicals = [
-    "Acetic Acid",
-    "Acetone",
-    "Aluminum Nitrate",
-    "Aluminum Oxide",
-    "Ammonium Chloride",
-    "Ammonium Hydroxide",
-    "Ascorbic Acid",
-    "Benzene",
-  ];
-  const debounceDelay = 75;
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      handleSearch(query);
-    }, debounceDelay);
-
-    return () => clearTimeout(handler);
-  }, [query]);
-
-  useEffect(() => {
+    getChemicals();
     document.title = "Cheminv2.0";
   }, []);
+
+  useEffect(() => {
+    if (query === "") {
+      getChemicals();
+    }
+  }, [query]);
 
   return (
     <div className="tw-bg-gray-100 pb-3">
       <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal} />
       <div className="tw-flex tw-mt-4">
         <Sidebar
-          chemicals={chemicals}
-          rooms={rooms}
-          manufacturers={manufacturers}
           query={query}
           setQuery={setQuery}
-          handleSearch={handleSearch}
+          getChemicals={getChemicals}
+          setSearching={setSearching}
+          setResults={setResults}
         />
         <MainContent
           chemicalsData={results}
           loading={searching}
           query={query}
           handleSearch={handleSearch}
-          handleShowModal={handleShowModal}
+          handleShowModal={handleShowChemicalModal}
+
         />
         <ManageUsersModal />
       </div>
       <ChemicalModal
         chemical={selectedChemical}
         show={showModal}
-        handleClose={handleCloseModal}
+        handleClose={handleCloseChemicalModal}
       />
       <AddChemicalModal
         show={showAddChemicalModal}

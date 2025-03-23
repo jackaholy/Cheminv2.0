@@ -218,7 +218,6 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         handleClose();
       })
       .catch(console.error);
