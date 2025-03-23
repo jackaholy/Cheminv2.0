@@ -18,13 +18,14 @@ const App = () => {
 
   const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
 
-  const handleShowModal = (chem) => {
+  const handleShowChemicalModal = (chem) => {
     setSelectedChemical(chem);
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseChemicalModal = () => {
     setShowModal(false);
+    setSelectedChemical(null);
   };
 
   const handleShowAddChemicalModal = () => {
@@ -165,14 +166,14 @@ const App = () => {
           loading={searching}
           query={query}
           handleSearch={handleSearch}
-          handleShowModal={handleShowModal}
+          handleShowModal={handleShowChemicalModal}
         />
         <ManageUsersModal />
       </div>
       <ChemicalModal
         chemical={selectedChemical}
         show={showModal}
-        handleClose={handleCloseModal}
+        handleClose={handleCloseChemicalModal}
       />
       <AddChemicalModal
         show={showAddChemicalModal}
