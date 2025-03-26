@@ -53,7 +53,7 @@ const App = () => {
       url += `&room=${selectedRoom}`;
     }
 
-    fetch(url, {credentials:"include"})
+    fetch(url, { credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         setResults(data);
@@ -93,6 +93,11 @@ const App = () => {
         <Sidebar
           query={query}
           setQuery={setQuery}
+          handleSearch={handleSearch}
+          setSelectedManufacturers={setSelectedManufacturers}
+          selectedManufacturers={selectedManufacturers}
+          selectedRoom={selectedRoom}
+          setSelectedRoom={setSelectedRoom}
           getChemicals={getChemicals}
           setSearching={setSearching}
           setResults={setResults}
@@ -103,7 +108,6 @@ const App = () => {
           query={query}
           handleSearch={handleSearch}
           handleShowModal={handleShowChemicalModal}
-
         />
         <ManageUsersModal />
       </div>
