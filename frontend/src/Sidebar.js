@@ -3,13 +3,12 @@ import { useState, useEffect, use } from "react";
 export const Sidebar = ({
   query,
   setQuery,
-  getChemicals,
-  setSearching,
-  setResults,
+  handleSearch,
+  selectedManufacturers,
+  setSelectedManufacturers,
+  selectedRoom,
+  setSelectedRoom,
 }) => {
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [selectedManufacturers, setSelectedManufacturers] = useState([]);
-
   const [roomFilterText, setRoomFilterText] = useState("");
   const [locations, setRooms] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -68,31 +67,6 @@ export const Sidebar = ({
       prev.includes(man) ? prev.filter((m) => m !== man) : [...prev, man]
     );
   };
-
-  function handleSearch(query, synonyms = false) {
-    if (
-      query === "" &&
-      selectedManufacturers.length === 0 &&
-      selectedRoom === 0
-    ) {
-      getChemicals();
-      return;
-    }
-    setSearching(true);
-    let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
-
-    if (selectedRoom && selectedRoom !== "none") {
-      url += `&room=${selectedRoom}`;
-    }
-
-    fetch(url)
-      .then((response) => response.json())
-      .then((data) => {
-        setResults(data);
-        setSearching(false);
-      })
-      .catch((error) => console.error(error));
-  }
 
   const debounceDelay = 75;
   useEffect(() => {
@@ -161,7 +135,7 @@ export const Sidebar = ({
         <div className="tw-font-semibold">Manufacturers</div>
         <input
           className="form-control"
-          placeholder="Filter rooms"
+          placeholder="Filter manufacturers"
           value={manufacturerFilterText}
           onChange={(e) => setManufacturerFilterText(e.target.value)}
         />

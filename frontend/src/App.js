@@ -12,6 +12,9 @@ const App = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+
   const [selectedChemical, setSelectedChemical] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -33,91 +36,31 @@ const App = () => {
 
   const handleCloseAddChemicalModal = () => {
     setShowAddChemicalModal(false);
-  };=
-
+  };
   function handleSearch(query, synonyms = false) {
-    if (query === "") {
+    if (
+      query === "" &&
+      selectedManufacturers.length === 0 &&
+      selectedRoom === 0
+    ) {
       getChemicals();
       return;
     }
     setSearching(true);
-    fetch(`/api/search?query=${query}&synonyms=${synonyms}`, {
-      credentials: "include",
-    })
+    let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
+
+    if (selectedRoom && selectedRoom !== "none") {
+      url += `&room=${selectedRoom}`;
+    }
+
+    fetch(url, {credentials:"include"})
       .then((response) => response.json())
       .then((data) => {
-        console.log("Search setting results:", data);
         setResults(data);
         setSearching(false);
       })
       .catch((error) => console.error(error));
   }
-
-  useEffect(() => {
-    fetch("/api/locations", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) =>
-        setRooms(
-          data.map((location) => location.building + " " + location.room)
-        )
-      )
-      .catch((error) => console.error(error));
-  }, []);
-
-  /**
-   * Get the quantity of a specific chemical.
-   */
-  function getQuantity() {
-    fetch("/api/get_chemicals", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setResults(data);
-      })
-      .catch((error) => console.error(error));
-  }
-
-  useEffect(() => {
-    getQuantity(); // Fetch chemicals on component mount
-  }, []);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      handleSearch(query);
-    }, debounceDelay);
-
-    return () => clearTimeout(handler);
-  }, [query]);
-  /*const handleSearch = async (event) => {
-        event.preventDefault();
-        setSearching(true);
-        const formData = new FormData(event.target);
-        const query = formData.get("query");
-        const response = await fetch(`/api/search?query=${query}&synonyms=false`, {
-      credentials: "include",
-    }));
-        const data = await response.json();
-        setResults(data);
-        setSearching(false);
-      };*/
-
-  function getLocations() {
-    fetch("/api/locations", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) =>
-        setRooms(
-          data.map((location) => location.building + " " + location.room)
-        )
-      )
-      .catch((error) => console.error(error));
-  }
-
-
   /**
    * Get the quantity of a specific chemical.
    */
