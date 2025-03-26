@@ -28,6 +28,9 @@ def add_bottle():
     location_id = request.json.get("location_id")
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -50,6 +53,7 @@ def add_bottle():
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
+        Who_updated=current_username,
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -69,6 +73,9 @@ def add_chemical():
     product_number = request.json.get("product_number")
     storage_class_id = request.json.get("storage_class_id")
     manufacturer_id = request.json.get("manufacturer_id")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+    user = db.session.query(User).filter_by(User_Name=current_username).first()
 
     manufacturer = (
         db.session.query(Manufacturer)
@@ -101,7 +108,7 @@ def add_chemical():
         # Order_Description=order_description,
         # Who_Requested=who_requested,
         # When_Requested=date_requested,
-        # Who_Ordered=who_ordered,
+        # Who_Ordered=u,
         # When_Ordered=date_ordered,
         # Minimum_On_Hand=minimum_on_hand,
     )
