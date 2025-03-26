@@ -72,6 +72,7 @@ class Chemical(Base):
                             if chem_man.Manufacturer
                             else None
                         ),
+                        "dead": inv.Is_Dead,
                     }
                 )
         return {
@@ -81,7 +82,7 @@ class Chemical(Base):
             "storage_class": (
                 self.Storage_Class.Storage_Class_Name if self.Storage_Class else None
             ),
-            "inventory": inventory_list,
+            "inventory": sorted(inventory_list, key=lambda x: x["dead"]),
             "quantity": len(inventory_list),
         }
 
