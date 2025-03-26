@@ -12,6 +12,9 @@ const App = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedManufacturers, setSelectedManufacturers] = useState([]);
+
   const [selectedChemical, setSelectedChemical] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -34,7 +37,30 @@ const App = () => {
   const handleCloseAddChemicalModal = () => {
     setShowAddChemicalModal(false);
   };
+  function handleSearch(query, synonyms = false) {
+    if (
+      query === "" &&
+      selectedManufacturers.length === 0 &&
+      selectedRoom === 0
+    ) {
+      getChemicals();
+      return;
+    }
+    setSearching(true);
+    let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
 
+    if (selectedRoom && selectedRoom !== "none") {
+      url += `&room=${selectedRoom}`;
+    }
+
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        setResults(data);
+        setSearching(false);
+      })
+      .catch((error) => console.error(error));
+  }
   /**
    * Get the quantity of a specific chemical.
    */
@@ -65,9 +91,11 @@ const App = () => {
         <Sidebar
           query={query}
           setQuery={setQuery}
-          getChemicals={getChemicals}
-          setSearching={setSearching}
-          setResults={setResults}
+          handleSearch={handleSearch}
+          selectedRoom={selectedRoom}
+          setSelectedRoom={setSelectedRoom}
+          selectedManufacturers={selectedManufacturers}
+          setSelectedManufacturers={setSelectedManufacturers}
         />
         <MainContent
           chemicalsData={results}
@@ -75,7 +103,6 @@ const App = () => {
           query={query}
           handleSearch={handleSearch}
           handleShowModal={handleShowChemicalModal}
-
         />
         <ManageUsersModal />
       </div>
