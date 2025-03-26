@@ -72,17 +72,10 @@ const App = () => {
       })
       .catch((error) => console.error(error));
   }
-
   useEffect(() => {
     getChemicals();
     document.title = "Cheminv2.0";
   }, []);
-
-  useEffect(() => {
-    if (query === "") {
-      getChemicals();
-    }
-  }, [query]);
 
   return (
     <div className="tw-bg-gray-100 pb-3">

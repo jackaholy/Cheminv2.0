@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from database import db
 from models import Inventory
 from sqlalchemy.orm import joinedload
@@ -17,6 +17,8 @@ def export_inventory_csv():
     writer = csv.writer(output)
 
     # Add a header row
+
+    # Write the header row first
     writer.writerow(
         [
             "Sticker Number",
@@ -39,45 +41,56 @@ def export_inventory_csv():
             "Dead?",
         ]
     )
-    inventory_items = (
-        db.session.query(Inventory)
-        .options(
-            joinedload(Inventory.chemical),
-            joinedload(Inventory.location),
-            joinedload(Inventory.sublocation),
-            joinedload(Inventory.storage_class),
-            joinedload(Inventory.updated_by),  # Corrected attribute name
-            joinedload(Inventory.manufacturer),
-        )
-        .all()
-    )
+
+    inventory_items = db.session.query(Inventory).all()
 
     # Write each row to the CSV file
     for item in inventory_items:
+        # Get the Chemical_Manufacturer record
+        chem_mfg = item.Chemical_Manufacturer
+        # Get the Chemical record via the join table
+        chem = chem_mfg.Chemical
+
+        # Build a location string from the related Sub_Location and Location (if available)
+        location = ""
+        if item.Sub_Location and item.Sub_Location.Location:
+            loc = item.Sub_Location.Location
+            location = f"{loc.Building} {loc.Room}"
+
+        # Combine the chemical formula and name.
+        if chem.Chemical_Formula:
+            chem_formula_common = f"{chem.Chemical_Formula} ({chem.Chemical_Name})"
+        else:
+            chem_formula_common = chem.Chemical_Name
+
         writer.writerow(
             [
-                item.sticker_number,
-                item.chemical.name if item.chemical else "",
-                item.location.name if item.location else "",
-                item.sublocation.name if item.sublocation else "",
-                item.msds,
-                item.comment,
-                item.storage_class.name if item.storage_class else "",
-                item.alphabetized_by,
-                item.chemical.formula_common_name if item.chemical else "",
-                item.last_updated,
-                item.updated_by.username if item.updated_by else "",
-                item.quantity,
-                item.min_quantity,
-                item.manufacturer.name if item.manufacturer else "",
-                item.product_number,
-                item.chemical.cas_number if item.chemical else "",
-                item.barcode,
-                item.dead,
+                item.Sticker_Number,
+                chem.Chemical_Name,
+                location,
+                item.Sub_Location.Sub_Location_Name if item.Sub_Location else None,
+                chem_mfg.MSDS,  # MSDS from the Chemical_Manufacturer join record
+                item.Comment
+                or chem_mfg.Comment,  # Prefer the inventory comment, fallback to the join comment
+                chem.Storage_Class.Storage_Class_Name if chem.Storage_Class else None,
+                chem.Alphabetical_Name,
+                chem_formula_common,
+                item.Last_Updated,
+                item.Who_Updated,
+                item.Quantity,
+                chem.Minimum_On_Hand,
+                (
+                    chem_mfg.Manufacturer.Manufacturer_Name
+                    if chem_mfg.Manufacturer
+                    else None
+                ),
+                chem_mfg.Product_Number,
+                chem_mfg.CAS_Number,
+                chem_mfg.Barcode,
+                item.Is_Dead,
             ]
         )
 
-    # Ensure the output stream's pointer is at the beginning.
     output.seek(0)
 
     # Create the response object with the correct headers for a CSV download.

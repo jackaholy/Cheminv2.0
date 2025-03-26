@@ -167,7 +167,6 @@ def product_number_lookup():
         .filter(Chemical_Manufacturer.Product_Number == product_number)
         .first()
     )
-    print(query_result)
     if not query_result:
         return jsonify({}), 404
     chemicals_data = {
