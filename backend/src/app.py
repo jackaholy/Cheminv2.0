@@ -14,6 +14,7 @@ from locations import locations
 from manufacturers import manufacturers
 from search import search
 from users import users
+from csv_export import csv_export
 from database import db, init_db
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,9 @@ def create_app(config=ProdConfig):
     app.register_blueprint(manufacturers)
     app.register_blueprint(search)
     app.register_blueprint(users)
+    app.register_blueprint(csv_export)
     return app
+
 
 if __name__ == "__main__":
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
