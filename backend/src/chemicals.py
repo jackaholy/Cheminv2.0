@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
+import re
 from models import (
     Chemical,
     Inventory,
@@ -149,6 +150,11 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
+
+    chemical_list = sorted(
+        chemical_list,
+        key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+    )
     return jsonify(chemical_list)
 
 
