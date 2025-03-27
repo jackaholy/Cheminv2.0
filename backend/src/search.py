@@ -124,85 +124,23 @@ def search_route():
 
     # Execute the query with appropriate joins and grouping
     matching_chemicals = (
-        db.session.query(
-            Chemical.Chemical_ID,
-            Chemical.Chemical_Name,
-            Chemical.Chemical_Formula,
-            Storage_Class.Storage_Class_Name,
-            func.count(Inventory.Inventory_ID).label("quantity"),
-            Inventory.Inventory_ID.label("inventory_id"),
-            Inventory.Sticker_Number.label("sticker"),
-            Sub_Location.Sub_Location_Name.label("sub_location"),
-            Location.Room.label("location_room"),
-            Location.Building.label("location_building"),
-            Manufacturer.Manufacturer_Name.label("manufacturer"),
-            Chemical_Manufacturer.Product_Number.label("product_number"),
-        )
-        .outerjoin(
-            Chemical_Manufacturer,
-            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
-        )
-        .outerjoin(
-            Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID
-            == Inventory.Chemical_Manufacturer_ID,
-        )
-        .outerjoin(
-            Storage_Class,
-            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
-        )
-        .outerjoin(
-            Sub_Location,
-            Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID,
-        )
-        .outerjoin(
-            Location,
-            Sub_Location.Location_ID == Location.Location_ID,
-        )
-        .outerjoin(
-            Manufacturer,
-            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
+        db.session.query(Chemical)
+        .options(
+            joinedload(Chemical.Storage_Class),
+            joinedload(Chemical.Chemical_Manufacturers)
+            .joinedload(Chemical_Manufacturer.Inventory)
+            .joinedload(Inventory.Sub_Location)
+            .joinedload(Sub_Location.Location),
+            joinedload(Chemical.Chemical_Manufacturers).joinedload(
+                Chemical_Manufacturer.Manufacturer
+            ),
         )
         .filter(and_(*filters))
-        .group_by(
-            Chemical.Chemical_ID,
-            Inventory.Inventory_ID,
-            Storage_Class.Storage_Class_Name,
-            Sub_Location.Sub_Location_Name,
-            Location.Room,
-            Location.Building,
-            Manufacturer.Manufacturer_Name,
-            Chemical_Manufacturer.Product_Number,
-        )
         .all()
     )
 
-    # Build a dictionary keyed by Chemical_ID to aggregate inventory entries
-    chemical_dict = {}
-    for chem in matching_chemicals:
-        if chem.Chemical_ID not in chemical_dict:
-            chemical_dict[chem.Chemical_ID] = {
-                "id": chem.Chemical_ID,
-                "chemical_name": chem.Chemical_Name,
-                "formula": chem.Chemical_Formula,
-                "storage_class": chem.Storage_Class_Name,
-                "inventory": [],
-            }
-        chemical_dict[chem.Chemical_ID]["inventory"].append(
-            {
-                "sticker": chem.sticker,
-                "product_number": chem.product_number,
-                "sub_location": chem.sub_location,
-                "location": f"{chem.location_building or ''} {chem.location_room or ''}".strip(),
-                "manufacturer": chem.manufacturer,
-            }
-        )
-        chemical_dict[chem.Chemical_ID]["quantity"] = len(
-            chemical_dict[chem.Chemical_ID]["inventory"]
-        )
+    chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    # Convert the aggregated chemicals into a list and sort them by similarity to the query
-    chemical_list = list(chemical_dict.values())
     chemical_list.sort(
         key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
     )

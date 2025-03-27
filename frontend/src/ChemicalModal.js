@@ -50,7 +50,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
       </Modal.Header>
       <Modal.Body>
         <div className="container">
-          <div className="row">
+          <div className="row ">
             {chemicalImage && (
               <div className="col-md-4">
                 <img
@@ -84,7 +84,12 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
           </thead>
           <tbody>
             {chemical.inventory?.map((item, index) => (
-              <tr key={index}>
+              <tr
+                key={index}
+                className={
+                  "" + item["dead"] == "true" ? "tw-italic tw-line-through" : ""
+                }
+              >
                 <th scope="row">{item.sticker}</th>
                 <td>{item.product_number}</td>
                 <td>{item.location}</td>

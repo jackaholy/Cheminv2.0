@@ -6,6 +6,16 @@ export const MainContent = ({
   handleShowModal,
 }) => (
   <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
+    <div className="tw-flex tw-justify-between">
+      <a
+        href="/api/export_inventory_csv"
+        className="btn btn-primary d-block ms-auto tw-mb-4"
+      >
+        {/* This doesn't work, but will once auth is merged */}
+        {/* It's pretty ugly right not too. */}
+        Download CSV
+      </a>
+    </div>
     <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
       <div>Quantity</div>
       <div>Chemical</div>
