@@ -165,7 +165,7 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
-
+    chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
     chemical_list = sorted(
         chemical_list,
         key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
