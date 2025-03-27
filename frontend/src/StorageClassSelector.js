@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 export const StorageClassSelector = ({ value, onChange }) => {
   const [storageClasses, setStorageClasses] = useState([]);
   useEffect(() => {
-    fetch(`/api/storage_classes`)
+    fetch(`/api/storage_classes`, { credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         setStorageClasses(data);

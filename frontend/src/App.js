@@ -53,7 +53,7 @@ const App = () => {
       url += `&room=${selectedRoom}`;
     }
 
-    fetch(url)
+    fetch(url, { credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         setResults(data);
@@ -65,7 +65,9 @@ const App = () => {
    * Get the quantity of a specific chemical.
    */
   function getChemicals() {
-    fetch("/api/get_chemicals")
+    fetch("/api/get_chemicals", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         setResults(data);
@@ -85,10 +87,13 @@ const App = () => {
           query={query}
           setQuery={setQuery}
           handleSearch={handleSearch}
+          setSelectedManufacturers={setSelectedManufacturers}
+          selectedManufacturers={selectedManufacturers}
           selectedRoom={selectedRoom}
           setSelectedRoom={setSelectedRoom}
-          selectedManufacturers={selectedManufacturers}
-          setSelectedManufacturers={setSelectedManufacturers}
+          getChemicals={getChemicals}
+          setSearching={setSearching}
+          setResults={setResults}
         />
         <MainContent
           chemicalsData={results}

@@ -240,3 +240,29 @@ class Unit(Base):
     )
     # ...and by Inventory.Unit_ID.
     Inventory = relationship("Inventory", back_populates="Unit")
+
+class Permissions(Base):
+    __tablename__ = 'Permissions'
+    
+    Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
+    Permissions_Name = Column(String(20), nullable=False)
+    Permissions_Description = Column(String(20), nullable=False)
+    
+    # Relationship to User
+    users = relationship("User", back_populates="permissions")
+class User(Base):
+    __tablename__ = 'User'
+    
+    User_ID = Column(Integer, primary_key=True, autoincrement=True)
+    User_Name = Column(String(30), nullable=False, unique=True)
+    Permissions_ID = Column(
+        Integer, 
+        ForeignKey('Permissions.Permissions_ID'), 
+        nullable=False, 
+        index=True
+    )
+    Is_Active = Column(Boolean, nullable=False, default=True)
+    User_Password = Column(String(256), nullable=False)
+    
+    # Relationship to Permissions
+    permissions = relationship("Permissions", back_populates="users")

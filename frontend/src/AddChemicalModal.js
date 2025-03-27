@@ -28,7 +28,9 @@ const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
 const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
   const [searchResults, setSearchResults] = useState([]);
   const searchByName = (query = chemicalName) => {
-    fetch(`/api/search?query=${query}&synonyms=false`)
+    fetch(`/api/search?query=${query}&synonyms=false`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then(setSearchResults)
       .catch(console.error);
@@ -203,6 +205,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   const addBottle = () => {
     fetch("/api/add_bottle", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chemical_id: chemicalID,
@@ -222,7 +225,8 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
 
   const lookupProductNumber = () => {
     fetch(
-      `/api/chemicals/product_number_lookup?product_number=${productNumber}`
+      `/api/chemicals/product_number_lookup?product_number=${productNumber}`,
+      { credentials: "include" }
     )
       .then((response) => response.json())
       .then((data) => {
@@ -238,7 +242,9 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   };
 
   const lookupChemicalName = () => {
-    fetch(`/api/chemicals/chemical_name_lookup?chemical_name=${chemicalName}`)
+    fetch(`/api/chemicals/chemical_name_lookup?chemical_name=${chemicalName}`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         if (Object.keys(data).length === 0) {
@@ -262,6 +268,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
     };
     fetch("/api/add_chemical", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })

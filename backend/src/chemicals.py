@@ -1,8 +1,11 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
+from oidc import oidc
+from permission_requirements import require_editor
 from sqlalchemy.orm import joinedload
 import re
+
 from models import (
     Chemical,
     Inventory,
@@ -18,6 +21,8 @@ chemicals = Blueprint("chemicals", __name__)
 
 
 @chemicals.route("/api/add_bottle", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_bottle():
     sticker_number = request.json.get("sticker_number")
     chemical_id = request.json.get("chemical_id")
@@ -25,6 +30,9 @@ def add_bottle():
     location_id = request.json.get("location_id")
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -47,6 +55,7 @@ def add_bottle():
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
+        Who_updated=current_username,
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -58,12 +67,17 @@ def add_bottle():
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
     product_number = request.json.get("product_number")
     storage_class_id = request.json.get("storage_class_id")
     manufacturer_id = request.json.get("manufacturer_id")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+    user = db.session.query(User).filter_by(User_Name=current_username).first()
 
     manufacturer = (
         db.session.query(Manufacturer)
@@ -96,7 +110,7 @@ def add_chemical():
         # Order_Description=order_description,
         # Who_Requested=who_requested,
         # When_Requested=date_requested,
-        # Who_Ordered=who_ordered,
+        # Who_Ordered=u,
         # When_Ordered=date_ordered,
         # Minimum_On_Hand=minimum_on_hand,
     )
@@ -129,6 +143,7 @@ def get_storage_classes():
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.
@@ -159,6 +174,7 @@ def get_chemicals():
 
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
+@oidc.require_login
 def product_number_lookup():
     """
     API to get chemical details based on the product number.
@@ -218,6 +234,7 @@ def chemical_name_lookup():
 
 
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
+@oidc.require_login
 def mark_dead():
     """
     API to mark a chemical as dead.
