@@ -47,6 +47,45 @@ class Chemical(Base):
     def __eq__(self, other):
         return self.Chemical_ID == other.Chemical_ID
 
+    def to_dict(self):
+        # Build the inventory list by iterating over each manufacturer record
+        # and its associated inventory rows.
+        inventory_list = []
+        for chem_man in self.Chemical_Manufacturers:
+            for inv in chem_man.Inventory:
+                # Build location string if Sub_Location and Location exist.
+                location = ""
+                if inv.Sub_Location and inv.Sub_Location.Location:
+                    location = f"{inv.Sub_Location.Location.Building} {inv.Sub_Location.Location.Room}"
+                inventory_list.append(
+                    {
+                        "sticker": inv.Sticker_Number,
+                        "product_number": chem_man.Product_Number,
+                        "sub_location": (
+                            inv.Sub_Location.Sub_Location_Name
+                            if inv.Sub_Location
+                            else None
+                        ),
+                        "location": location,
+                        "manufacturer": (
+                            chem_man.Manufacturer.Manufacturer_Name
+                            if chem_man.Manufacturer
+                            else None
+                        ),
+                        "dead": inv.Is_Dead,
+                    }
+                )
+        return {
+            "id": self.Chemical_ID,
+            "chemical_name": self.Chemical_Name,
+            "formula": self.Chemical_Formula,
+            "storage_class": (
+                self.Storage_Class.Storage_Class_Name if self.Storage_Class else None
+            ),
+            "inventory": sorted(inventory_list, key=lambda x: x["dead"]),
+            "quantity": len(inventory_list),
+        }
+
 
 class Chemical_Manufacturer(Base):
     """
@@ -201,3 +240,29 @@ class Unit(Base):
     )
     # ...and by Inventory.Unit_ID.
     Inventory = relationship("Inventory", back_populates="Unit")
+
+class Permissions(Base):
+    __tablename__ = 'Permissions'
+    
+    Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
+    Permissions_Name = Column(String(20), nullable=False)
+    Permissions_Description = Column(String(20), nullable=False)
+    
+    # Relationship to User
+    users = relationship("User", back_populates="permissions")
+class User(Base):
+    __tablename__ = 'User'
+    
+    User_ID = Column(Integer, primary_key=True, autoincrement=True)
+    User_Name = Column(String(30), nullable=False, unique=True)
+    Permissions_ID = Column(
+        Integer, 
+        ForeignKey('Permissions.Permissions_ID'), 
+        nullable=False, 
+        index=True
+    )
+    Is_Active = Column(Boolean, nullable=False, default=True)
+    User_Password = Column(String(256), nullable=False)
+    
+    # Relationship to Permissions
+    permissions = relationship("Permissions", back_populates="users")

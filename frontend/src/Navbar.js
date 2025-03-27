@@ -6,7 +6,9 @@ export const Navbar = ({
   const [user, setUser] = useState({});
 
   useEffect(() => {
-    fetch("/api/user")
+    fetch("/api/user", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((error) => console.error(error));
@@ -80,6 +82,45 @@ export const Navbar = ({
             ) : (
               <></>
             )}
+          </ul>
+           <ul className="navbar-nav mb-2 mb-lg-0">
+            <li className="nav-item dropdown">
+              <a
+                className="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Hi {user.name}
+              </a>
+              <ul
+                className="dropdown-menu dropdown-menu-end"
+                aria-labelledby="navbarDropdown"
+              >
+                <li className="dropdown-item">You have {user.access} access</li>
+                {user.access === "Full Access" ? (
+                  <li>
+                    <a
+                      className="dropdown-item"
+                      data-bs-toggle="modal"
+                      data-bs-target="#manageUsersModal"
+                    >
+                      Manage access
+                    </a>
+                  </li>
+                ) : null}
+                <li>
+                  <hr className="dropdown-divider" />
+                </li>
+                <li>
+                  <a className="dropdown-item" href="#">
+                    Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
           </ul>
         </div>
       </div>

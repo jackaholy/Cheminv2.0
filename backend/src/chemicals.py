@@ -1,6 +1,11 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
+from oidc import oidc
+from permission_requirements import require_editor
+from sqlalchemy.orm import joinedload
+import re
+
 from models import (
     Chemical,
     Inventory,
@@ -16,6 +21,8 @@ chemicals = Blueprint("chemicals", __name__)
 
 
 @chemicals.route("/api/add_bottle", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_bottle():
     sticker_number = request.json.get("sticker_number")
     chemical_id = request.json.get("chemical_id")
@@ -23,6 +30,9 @@ def add_bottle():
     location_id = request.json.get("location_id")
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -45,6 +55,7 @@ def add_bottle():
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
+        Who_updated=current_username,
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -56,12 +67,17 @@ def add_bottle():
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
+@oidc.require_login
+@require_editor
 def add_chemical():
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
     product_number = request.json.get("product_number")
     storage_class_id = request.json.get("storage_class_id")
     manufacturer_id = request.json.get("manufacturer_id")
+
+    current_username = session["oidc_auth_profile"].get("preferred_username")
+    user = db.session.query(User).filter_by(User_Name=current_username).first()
 
     manufacturer = (
         db.session.query(Manufacturer)
@@ -94,7 +110,7 @@ def add_chemical():
         # Order_Description=order_description,
         # Who_Requested=who_requested,
         # When_Requested=date_requested,
-        # Who_Ordered=who_ordered,
+        # Who_Ordered=u,
         # When_Ordered=date_ordered,
         # Minimum_On_Hand=minimum_on_hand,
     )
@@ -127,101 +143,38 @@ def get_storage_classes():
 
 
 @chemicals.route("/api/get_chemicals", methods=["GET"])
+@oidc.require_login
 def get_chemicals():
     """
     API to get chemical details from the database.
     :return: A list of chemicals
     """
-    chemicals_data = (
-        db.session.query(
-            Chemical.Chemical_ID,
-            Chemical.Chemical_Name,
-            Chemical.Chemical_Formula,
-            Storage_Class.Storage_Class_Name,
-            func.count(Inventory.Inventory_ID).label("quantity"),
-            Inventory.Inventory_ID.label("inventory_id"),
-            Inventory.Sticker_Number.label("sticker"),
-            Sub_Location.Sub_Location_Name.label("sub_location"),
-            Location.Room.label("location_room"),
-            Location.Building.label("location_building"),
-            Manufacturer.Manufacturer_Name.label("manufacturer"),
-            Chemical_Manufacturer.Product_Number.label("product_number"),
-        )
-        .outerjoin(
-            Chemical_Manufacturer,
-            Chemical.Chemical_ID == Chemical_Manufacturer.Chemical_ID,
-        )
-        .outerjoin(
-            Inventory,
-            Chemical_Manufacturer.Chemical_Manufacturer_ID
-            == Inventory.Chemical_Manufacturer_ID,
-        )
-        .outerjoin(
-            Storage_Class,
-            Chemical.Storage_Class_ID == Storage_Class.Storage_Class_ID,
-        )
-        .outerjoin(
-            Sub_Location,
-            Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID,
-        )
-        .outerjoin(
-            Location,
-            Sub_Location.Location_ID == Location.Location_ID,
-        )
-        .outerjoin(
-            Manufacturer,
-            Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID,
-        )
-        .group_by(
-            Chemical.Chemical_ID,
-            Inventory.Inventory_ID,
-            Storage_Class.Storage_Class_Name,
-            Sub_Location.Sub_Location_Name,
-            Location.Room,
-            Location.Building,
-            Manufacturer.Manufacturer_Name,
-            Chemical_Manufacturer.Product_Number,
+    chemicals = (
+        db.session.query(Chemical)
+        .options(
+            joinedload(Chemical.Storage_Class),
+            joinedload(Chemical.Chemical_Manufacturers)
+            .joinedload(Chemical_Manufacturer.Inventory)
+            .joinedload(Inventory.Sub_Location)
+            .joinedload(Sub_Location.Location),
+            joinedload(Chemical.Chemical_Manufacturers).joinedload(
+                Chemical_Manufacturer.Manufacturer
+            ),
         )
         .all()
     )
 
-    # Organizing the fetched data into a dictionary of chemicals
-    chemical_dict = {}
+    chemical_list = [chem.to_dict() for chem in chemicals]
 
-    for chem in chemicals_data:
-        # Create a chemical entry if not already added
-        if chem.Chemical_ID not in chemical_dict:
-            chemical_dict[chem.Chemical_ID] = {
-                "id": chem.Chemical_ID,
-                "chemical_name": chem.Chemical_Name,
-                "formula": chem.Chemical_Formula,
-                "storage_class": chem.Storage_Class_Name,
-                "inventory": [],
-            }
-        # Append inventory information to the correct chemical entry
-        chemical_dict[chem.Chemical_ID]["inventory"].append(
-            {
-                "sticker": chem.sticker,
-                "product_number": chem.product_number,
-                "sub_location": chem.sub_location,
-                "location": (chem.location_building or "")
-                + " "
-                + (chem.location_room or ""),
-                "manufacturer": chem.manufacturer,
-            }
-        )
-
-        chemical_dict[chem.Chemical_ID]["quantity"] = len(
-            chemical_dict[chem.Chemical_ID]["inventory"]
-        )
-
-    # Converting the dictionary into a list of chemicals
-    chemical_list = list(chemical_dict.values())
-
+    chemical_list = sorted(
+        chemical_list,
+        key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+    )
     return jsonify(chemical_list)
 
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
+@oidc.require_login
 def product_number_lookup():
     """
     API to get chemical details based on the product number.
@@ -236,7 +189,6 @@ def product_number_lookup():
         .filter(Chemical_Manufacturer.Product_Number == product_number)
         .first()
     )
-    print(query_result)
     if not query_result:
         return jsonify({}), 404
     chemicals_data = {
@@ -282,6 +234,7 @@ def chemical_name_lookup():
 
 
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
+@oidc.require_login
 def mark_dead():
     """
     API to mark a chemical as dead.
