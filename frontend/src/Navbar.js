@@ -32,12 +32,20 @@ export const Navbar = ({
             {user.access === "Full Access" || user.access === "Editor" ? (
               <>
                 <li className="nav-item">
-                  <a className="nav-link" onClick={handleShowAddChemicalModal}>
+                  <a
+                    className="nav-link"
+                    href="#"
+                    onClick={handleShowAddChemicalModal}
+                  >
                     Add Chemical
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" onClick={handleShowInventoryModal}>
+                  <a
+                    className="nav-link"
+                    href="#"
+                    onClick={handleShowInventoryModal}
+                  >
                     Inventory
                   </a>
                 </li>
@@ -83,7 +91,7 @@ export const Navbar = ({
               <></>
             )}
           </ul>
-           <ul className="navbar-nav mb-2 mb-lg-0">
+          <ul className="navbar-nav mb-2 mb-lg-0">
             <li className="nav-item dropdown">
               <a
                 className="nav-link dropdown-toggle"
