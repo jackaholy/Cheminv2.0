@@ -11,8 +11,6 @@ export const MainContent = ({
         href="/api/export_inventory_csv"
         className="btn btn-primary d-block ms-auto tw-mb-4"
       >
-        {/* This doesn't work, but will once auth is merged */}
-        {/* It's pretty ugly right not too. */}
         Download CSV
       </a>
     </div>
