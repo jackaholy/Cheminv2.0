@@ -1,8 +1,8 @@
 import React from "react";
 import Modal from "react-bootstrap/Modal";
-export const InventoryModal = ({}) => {
+export const InventoryModal = ({ show, handleClose }) => {
   return (
-    <Modal show={show} onHide={handleModalClose} centered size="lg">
+    <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
         <Modal.Title>Inventory</Modal.Title>
       </Modal.Header>

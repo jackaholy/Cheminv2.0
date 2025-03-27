@@ -6,6 +6,7 @@ import { MainContent } from "./MainContent";
 import { Navbar } from "./Navbar";
 import { AddChemicalModal } from "./AddChemicalModal";
 import { ChemicalModal } from "./ChemicalModal";
+import { InventoryModal } from "./InventoryModal";
 
 const App = () => {
   const [query, setQuery] = useState("");
@@ -19,6 +20,7 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
 
   const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
 
   const handleShowChemicalModal = (chem) => {
     setSelectedChemical(chem);
@@ -86,7 +88,10 @@ const App = () => {
 
   return (
     <div className="tw-bg-gray-100 pb-3">
-      <Navbar handleShowAddChemicalModal={handleShowAddChemicalModal} />
+      <Navbar
+        handleShowAddChemicalModal={handleShowAddChemicalModal}
+        handleShowInventoryModal={() => setShowInventoryModal(true)}
+      />
       <div className="tw-flex tw-mt-4">
         <Sidebar
           query={query}
@@ -110,6 +115,12 @@ const App = () => {
         chemical={selectedChemical}
         show={showModal}
         handleClose={handleCloseChemicalModal}
+      />
+      <InventoryModal
+        show={showInventoryModal}
+        handleClose={() => {
+          setShowInventoryModal(false);
+        }}
       />
       <AddChemicalModal
         show={showAddChemicalModal}
