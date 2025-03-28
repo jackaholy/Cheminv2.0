@@ -13,6 +13,15 @@ def on_authorize(sender, token, return_to):
     visitor_permission = (
         db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
     )
+    # admin_permission = (
+    #    db.session.query(Permissions).filter_by(Permissions_Name="Full Access").first()
+    # )
+
+    # if db.session.query(User).count() == 0:
+    #    permission_level = admin_permission
+    # else:
+    #    permission_level = visitor_permission
+
     if (
         not db.session.query(User)
         .filter(User.User_Name == user_info["preferred_username"])
