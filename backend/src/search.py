@@ -52,7 +52,8 @@ def get_synonyms(query):
             synonyms.extend(substance["Synonym"])
     return synonyms
 
-@search.route('/api/search', methods=['GET'])
+
+@search.route("/api/search", methods=["GET"])
 @oidc.require_login
 def search_route():
     # Get parameters from request
@@ -141,6 +142,7 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
+    chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
     chemical_list.sort(
         key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
     )
