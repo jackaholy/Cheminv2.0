@@ -1,14 +1,24 @@
-# Cheminv 2.0 Backend
+# Installation and Deployment
 
-## Getting Started
+This tutorial is written for Ubuntu 22.04 LTS, but should work on most debian based systems.
+
+Start by cloning the repository:
+
+```bash
+git clone https://github.com/jackaholy/Cheminv2.0.git
+cd Cheminv2.0/
+```
 
 ### Docker Setup
 
+Make sure you have docker and docker-compose installed. You can install it using the docs here: https://docs.docker.com/engine/install/ubuntu/.
+
 ```bash
 # Set up the environment variables
-cp .env.example .env
-# Make sure to complete the .env file
+cp example.env .env
+```
 
+```bash
 # Start the database and backend server
 docker compose up --build -d
 
