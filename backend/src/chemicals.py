@@ -186,7 +186,7 @@ def product_number_lookup():
         return jsonify({}), 404
     query_result = (
         db.session.query(Chemical_Manufacturer)
-        .filter(Chemical_Manufacturer.Product_Number == product_number)
+        .filter(Chemical_Manufacturer.Product_Number.ilike(product_number))
         .first()
     )
     if not query_result:
