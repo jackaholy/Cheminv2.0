@@ -13,7 +13,7 @@ const App = () => {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
-  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(0);
   const [selectedManufacturers, setSelectedManufacturers] = useState([]);
 
   const [selectedChemical, setSelectedChemical] = useState(null);
@@ -40,6 +40,7 @@ const App = () => {
     setShowAddChemicalModal(false);
   };
   function handleSearch(query, synonyms = false) {
+    console.log(query, selectedManufacturers, selectedRoom);
     if (
       query === "" &&
       selectedManufacturers.length === 0 &&
