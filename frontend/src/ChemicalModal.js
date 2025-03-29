@@ -66,6 +66,9 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
                 <b>Storage Class:</b> {chemical.storage_class}
               </p>
               <p>
+                <b>Chemical Formula:</b> {chemical.formula}
+              </p>
+              <p>
                 {chemicalDescription && <b>Description: </b>}
                 {chemicalDescription}
               </p>
