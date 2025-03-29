@@ -59,6 +59,7 @@ class Chemical(Base):
                     location = f"{inv.Sub_Location.Location.Building} {inv.Sub_Location.Location.Room}"
                 inventory_list.append(
                     {
+                        "id": inv.Inventory_ID,
                         "sticker": inv.Sticker_Number,
                         "product_number": chem_man.Product_Number,
                         "sub_location": (
