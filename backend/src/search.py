@@ -1,4 +1,5 @@
 import logging
+import re
 from difflib import SequenceMatcher
 import requests
 from flask import Blueprint, request, jsonify
@@ -126,6 +127,11 @@ def search_route():
     # Execute the query with appropriate joins and grouping
     matching_chemicals = (
         db.session.query(Chemical)
+        .join(Chemical.Chemical_Manufacturers)
+        .join(Chemical_Manufacturer.Manufacturer)
+        .join(Chemical_Manufacturer.Inventory)
+        .join(Inventory.Sub_Location)
+        .join(Sub_Location.Location)
         .options(
             joinedload(Chemical.Storage_Class),
             joinedload(Chemical.Chemical_Manufacturers)
@@ -143,8 +149,12 @@ def search_route():
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
     chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
-    chemical_list.sort(
-        key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
-    )
-
+    if query:
+        chemical_list.sort(
+            key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
+        )
+    else:
+        chemical_list.sort(
+            key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower()
+        )
     return jsonify(chemical_list)
