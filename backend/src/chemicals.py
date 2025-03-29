@@ -14,6 +14,7 @@ from models import (
     Manufacturer,
     Location,
     Sub_Location,
+    User,
 )
 from database import db
 
