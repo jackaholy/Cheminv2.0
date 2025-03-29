@@ -257,7 +257,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         } else {
           setChemicalID(data.chemical_id);
           setSelectedManufacturer(data.manufacturer);
-          setStep("manufacturer");
+          setStep("bottle_details");
         }
       })
       .catch(console.error);
