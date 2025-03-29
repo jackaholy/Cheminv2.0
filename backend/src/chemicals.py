@@ -54,6 +54,7 @@ def add_bottle():
     inventory = Inventory(
         Sticker_Number=sticker_number,
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
+        Product_Number=product_number,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
         Who_Updated=current_username,
