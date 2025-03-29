@@ -66,6 +66,28 @@ def add_bottle():
     }
 
 
+@chemicals.route("/api/product-search", methods=["GET"])
+def product_search():
+    # Get the query parameter; default to an empty string if not provided.
+    query = request.args.get("query", "")
+
+    # If query is empty, return an empty list immediately.
+    if not query:
+        return jsonify([])
+
+    # Perform a case-insensitive search using the ilike operator.
+    results = (
+        db.session.query(Inventory)
+        .filter(Inventory.Product_Number.ilike(f"%{query}%"))
+        .all()
+    )
+
+    # Extract product numbers, making sure to only return non-null values.
+    product_numbers = [item.Product_Number for item in results if item.Product_Number]
+
+    return jsonify(product_numbers)
+
+
 @chemicals.route("/api/add_chemical", methods=["POST"])
 @oidc.require_login
 @require_editor
