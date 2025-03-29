@@ -14,6 +14,7 @@ from models import (
     Manufacturer,
     Location,
     Sub_Location,
+    User,
 )
 from database import db
 
@@ -53,9 +54,10 @@ def add_bottle():
     inventory = Inventory(
         Sticker_Number=sticker_number,
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
+        Product_Number=product_number,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
-        Who_updated=current_username,
+        Who_Updated=current_username,
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -64,6 +66,28 @@ def add_bottle():
         "message": "Bottle added successfully",
         "inventory_id": inventory.Inventory_ID,
     }
+
+
+@chemicals.route("/api/product-search", methods=["GET"])
+def product_search():
+    # Get the query parameter; default to an empty string if not provided.
+    query = request.args.get("query", "")
+
+    # If query is empty, return an empty list immediately.
+    if not query:
+        return jsonify([])
+
+    # Perform a case-insensitive search using the ilike operator.
+    results = (
+        db.session.query(Inventory)
+        .filter(Inventory.Product_Number.ilike(f"%{query}%"))
+        .all()
+    )
+
+    # Extract product numbers, making sure to only return non-null values.
+    product_numbers = [item.Product_Number for item in results if item.Product_Number]
+    product_numbers = list(set(product_numbers))
+    return jsonify(product_numbers)
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
@@ -186,7 +210,7 @@ def product_number_lookup():
         return jsonify({}), 404
     query_result = (
         db.session.query(Chemical_Manufacturer)
-        .filter(Chemical_Manufacturer.Product_Number == product_number)
+        .filter(Chemical_Manufacturer.Product_Number.ilike(product_number))
         .first()
     )
     if not query_result:

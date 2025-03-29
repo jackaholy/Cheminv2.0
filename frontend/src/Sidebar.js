@@ -113,7 +113,7 @@ export const Sidebar = ({
               type="radio"
               name="room"
               className="tw-mr-2"
-              onChange={() => setSelectedRoom(null)}
+              onChange={() => setSelectedRoom(0)}
             />
             Any
           </label>

@@ -1,29 +1,51 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LocationSelector } from "./LocationSelector";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { StorageClassSelector } from "./StorageClassSelector";
 import Modal from "react-bootstrap/Modal";
-import Select from "react-select";
 
 // --- Step components (render only the inputs) ---
-const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
-  <div>
-    <label className="form-label">Product Number</label>
-    <input
-      type="text"
-      className="form-control"
-      value={productNumber}
-      onInput={(e) => setProductNumber(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onEnter && onEnter();
-        }
-      }}
-    />
-  </div>
-);
+const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => {
+  const [searchResults, setSearchResults] = useState([]);
+
+  // Function to fetch suggestions for product numbers
+  const searchByProductNumber = (query = productNumber) => {
+    fetch(`/api/product-search?query=${query}`, { credentials: "include" })
+      .then((response) => response.json())
+      .then(setSearchResults)
+      .catch(console.error);
+  };
+  console.log(searchResults);
+
+  return (
+    <div>
+      <label className="form-label">Product Number</label>
+      <input
+        list="productNumbersList"
+        type="text"
+        className="form-control"
+        value={productNumber}
+        onInput={(e) => {
+          const value = e.target.value;
+          setProductNumber(value);
+          searchByProductNumber(value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onEnter && onEnter();
+          }
+        }}
+      />
+      <datalist id="productNumbersList">
+        {searchResults.map((result, index) => (
+          <option key={index} value={result} />
+        ))}
+      </datalist>
+    </div>
+  );
+};
 
 const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
   const [searchResults, setSearchResults] = useState([]);
@@ -235,7 +257,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         } else {
           setChemicalID(data.chemical_id);
           setSelectedManufacturer(data.manufacturer);
-          setStep("manufacturer");
+          setStep("bottle_details");
         }
       })
       .catch(console.error);
