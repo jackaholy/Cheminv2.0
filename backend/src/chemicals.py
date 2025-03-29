@@ -55,7 +55,7 @@ def add_bottle():
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
-        Who_updated=current_username,
+        Who_Updated=current_username,
         Is_Dead=False,
     )
     db.session.add(inventory)
@@ -84,7 +84,7 @@ def product_search():
 
     # Extract product numbers, making sure to only return non-null values.
     product_numbers = [item.Product_Number for item in results if item.Product_Number]
-
+    product_numbers = list(set(product_numbers))
     return jsonify(product_numbers)
 
 
