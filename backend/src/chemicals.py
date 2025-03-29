@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
+from msds import get_msds_url
 from sqlalchemy import func
 from oidc import oidc
 from permission_requirements import require_editor
@@ -31,9 +32,15 @@ def add_bottle():
     location_id = request.json.get("location_id")
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
+    msds = request.json.get("msds")
 
     current_username = session["oidc_auth_profile"].get("preferred_username")
-
+    print(msds)
+    if msds:
+        msds = get_msds_url()
+    else:
+        msds = None
+    print(msds)
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -59,6 +66,7 @@ def add_bottle():
         Last_Updated=datetime.now(),
         Who_Updated=current_username,
         Is_Dead=False,
+        MSDS=msds,
     )
     db.session.add(inventory)
     db.session.commit()

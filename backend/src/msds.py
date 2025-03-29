@@ -7,16 +7,20 @@ from database import db
 msds = Blueprint("msds", __name__)
 
 
-@msds.route("/api/get_msds_url", methods=["GET"])
-@oidc.require_login
-def msds_url():
+def get_msds_url():
     # Grab a random(ish) chemical and go to its MSDS link
     product = (
         db.session.query(Inventory)
         .filter(Inventory.MSDS != None, Inventory.MSDS != "")
         .first()
     )
-    return jsonify({"url": product.MSDS})
+    return product.MSDS
+
+
+@msds.route("/api/get_msds_url", methods=["GET"])
+@oidc.require_login
+def msds_url():
+    return jsonify({"url": get_msds_url()})
 
 
 @msds.route("/api/set_msds_url", methods=["POST"])
