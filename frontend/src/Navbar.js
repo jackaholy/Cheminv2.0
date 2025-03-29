@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 export const Navbar = ({
   handleShowAddChemicalModal,
   handleShowInventoryModal,
+  handleShowMissingMSDSModal,
 }) => {
   const [user, setUser] = useState({});
   const [msds, setMsds] = useState("");
@@ -68,8 +69,12 @@ export const Navbar = ({
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="#">
-                    MSDS Log
+                  <a
+                    className="nav-link"
+                    href="#"
+                    onClick={handleShowMissingMSDSModal}
+                  >
+                    Missing MSDS
                   </a>
                 </li>
                 <li className="nav-item dropdown">
