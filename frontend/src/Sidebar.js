@@ -19,7 +19,6 @@ export const Sidebar = ({
 
   useEffect(() => {
     if (manufacturerFilterText != "") {
-      console.log(manufacturers);
       setFilteredManufacturers(
         manufacturers.filter((man) =>
           man.name.toLowerCase().includes(manufacturerFilterText.toLowerCase())
