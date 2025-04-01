@@ -35,12 +35,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           <label className="form-label">Sticker Number</label>
           <input type="text" className="form-control" placeholder="Type here..." />
 
-          <button type="button" className="btn btn-secondary">
-            Search
-          </button>
-          <button type="button" className="btn btn-secondary">
-            Reset
-          </button>
         </div>
       </Modal.Body>
       <Modal.Footer>
