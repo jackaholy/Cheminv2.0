@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
-import { Alert, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { StatusMessage } from "./StatusMessage";
 export const ChemicalModal = ({ chemical, show, handleClose }) => {
   const handleModalClose = () => {
     setChemicalDescription("");
@@ -100,11 +101,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
             </div>
           </div>
         </div>
-        {statusMessage && (
-          <Alert variant="success" className="my-3">
-            {statusMessage}
-          </Alert>
-        )}
+        <StatusMessage statusMessage={statusMessage} color="success" />
         <table className="table mb-2">
           <thead>
             <tr>

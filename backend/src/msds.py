@@ -10,6 +10,7 @@ msds = Blueprint("msds", __name__)
 
 def get_msds_url():
     # Grab a random(ish) chemical and go to its MSDS link
+    # This is an inelegant hack, but it's easier than a database migration
     product = (
         db.session.query(Inventory)
         .filter(Inventory.MSDS != None, Inventory.MSDS != "")
@@ -36,6 +37,42 @@ def set_msds_url():
     return {"success": True}
 
 
+@msds.route("/api/add_msds", methods=["POST"])
+@oidc.require_login
+@require_editor
+def add_msds():
+    # Get the inventory item ID from the request
+    inventory_id = request.json.get("inventory_id")
+    # Get the MSDS URL from the request
+    msds_url = get_msds_url()
+
+    item = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID == inventory_id)
+        .first()
+    )
+    item.MSDS = msds_url
+    db.session.commit()
+    return {"success": True}
+
+
+@msds.route("/api/clear_msds", methods=["POST"])
+@oidc.require_login
+@require_editor
+def clear_msds():
+    # Get the inventory item ID from the request
+    inventory_id = request.json.get("inventory_id")
+
+    item = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID == inventory_id)
+        .first()
+    )
+    item.MSDS = None
+    db.session.commit()
+    return {"success": True}
+
+
 @msds.route("/api/get_missing_msds", methods=["GET"])
 @oidc.require_login
 @require_editor
@@ -44,6 +81,7 @@ def get_missing_msds():
     chemicals_without_msds = (
         db.session.query(
             Inventory.Sticker_Number,
+            Inventory.Inventory_ID,
             Chemical.Chemical_Name,
             Manufacturer.Manufacturer_Name,
             Chemical_Manufacturer.Product_Number,
@@ -70,6 +108,7 @@ def get_missing_msds():
                 "chemical_name": chemical.Chemical_Name,
                 "manufacturer_name": chemical.Manufacturer_Name,
                 "product_number": chemical.Product_Number,
+                "inventory_id": chemical.Inventory_ID,
             }
             for chemical in chemicals_without_msds
         ]
