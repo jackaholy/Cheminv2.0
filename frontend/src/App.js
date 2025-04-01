@@ -6,6 +6,7 @@ import { MainContent } from "./MainContent";
 import { Navbar } from "./Navbar";
 import { AddChemicalModal } from "./AddChemicalModal";
 import { ChemicalModal } from "./ChemicalModal";
+import { MissingMSDSModal } from "./MissingMSDSModal";
 import { InventoryModal } from "./InventoryModal";
 
 const App = () => {
@@ -21,10 +22,14 @@ const App = () => {
 
   const [showAddChemicalModal, setShowAddChemicalModal] = useState(false);
   const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [showMissingMSDS, setShowMissingMSDSModal] = useState(false);
 
   const handleShowChemicalModal = (chem) => {
     setSelectedChemical(chem);
     setShowModal(true);
+  };
+  const handleShowMissingMSDSModal = () => {
+    setShowMissingMSDSModal(true);
   };
 
   const handleCloseChemicalModal = () => {
@@ -87,6 +92,7 @@ const App = () => {
       <Navbar
         handleShowAddChemicalModal={handleShowAddChemicalModal}
         handleShowInventoryModal={() => setShowInventoryModal(true)}
+        handleShowMissingMSDSModal={handleShowMissingMSDSModal}
       />
       <div className="tw-flex tw-mt-4">
         <Sidebar
@@ -110,6 +116,12 @@ const App = () => {
         />
         <ManageUsersModal />
       </div>
+      <MissingMSDSModal
+        show={showMissingMSDS}
+        handleClose={() => {
+          setShowMissingMSDSModal(false);
+        }}
+      />
       <ChemicalModal
         chemical={selectedChemical}
         show={showModal}

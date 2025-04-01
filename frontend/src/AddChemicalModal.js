@@ -168,6 +168,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   const [step, setStep] = useState("product_number");
   const [animationDirection, setAnimationDirection] = useState("forward");
   const [stickerNumber, setStickerNumber] = useState(0);
+  const [msds, setMsds] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
 
@@ -236,6 +237,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         sub_location_id: selectedSubLocation?.sub_location_id,
         sticker_number: stickerNumber,
         product_number: productNumber,
+        msds: msds,
       }),
     })
       .then((response) => response.json())
@@ -364,6 +366,21 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
               value={stickerNumber}
               onChange={(e) => setStickerNumber(parseInt(e.target.value, 10))}
             />
+          </div>
+          <div className="grouped-section">
+            <label className="form-label">MSDS</label>
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                value={msds}
+                onChange={(e) => setMsds(e.target.checked)}
+                id="msds_check"
+              />
+              <label className="form-check-label" for="msds_check">
+                Safety data sheet added
+              </label>
+            </div>
           </div>
           <LocationSelector
             onChange={(loc, subLoc) => {
