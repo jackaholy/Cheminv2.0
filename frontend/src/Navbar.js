@@ -9,7 +9,13 @@ export const Navbar = ({
     fetch("/api/user", {
       credentials: "include",
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location.href = "/logout";
+          return;
+        }
+        return response.json();
+      })
       .then((data) => setUser(data))
       .catch((error) => console.error(error));
   }, []);
@@ -123,7 +129,7 @@ export const Navbar = ({
                   <hr className="dropdown-divider" />
                 </li>
                 <li>
-                  <a className="dropdown-item" href="#">
+                  <a className="dropdown-item" href="/logout">
                     Logout
                   </a>
                 </li>

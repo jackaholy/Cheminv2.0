@@ -46,7 +46,8 @@ after_authorize.connect(on_authorize)
 def get_current_user():
     current_username = session["oidc_auth_profile"].get("preferred_username")
     user = db.session.query(User).filter_by(User_Name=current_username).first()
-
+    if not user:
+        return jsonify({"error": "User not found"}), 401
     return jsonify(
         {
             "name": session["oidc_auth_profile"].get("name"),
