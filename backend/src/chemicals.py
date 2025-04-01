@@ -240,8 +240,8 @@ def mark_dead():
     API to mark a chemical as dead.
     :return: Message indicating the chemical has been marked as dead.
     """
-    chemical_id = request.json.get("chemical_id")
-    chemical = Chemical.query.get(chemical_id)
-    chemical.Is_Dead = True
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
