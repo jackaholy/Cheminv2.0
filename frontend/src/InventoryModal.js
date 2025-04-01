@@ -1,7 +1,22 @@
 import React, {useEffect, useState} from "react";
 import Modal from "react-bootstrap/Modal";
-export const InventoryModal = ({ show, handleClose }) => {
+import {LocationSelector} from "./LocationSelector";
+
+export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     const [rooms, setRooms] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [selectedSubLocation, setSelectedSubLocation] = useState(null);
+
+    // Reset all state when the modal closes.
+    const resetState = () => {
+        setSelectedLocation(null);
+        setSelectedSubLocation(null);
+    };
+
+    const handleClose = () => {
+        resetState();
+        parentHandleClose();
+    };
 
   useEffect(() => {
     fetch("/api/locations", { credentials: "include" })
@@ -31,10 +46,15 @@ export const InventoryModal = ({ show, handleClose }) => {
           <label className="form-label">Sub Location</label>
           <select className="form-select">
             <option selected>Pick a Location</option>
-            <option value="FC 111">Acid Cabinet</option>
-            <option value="FC 114">Corr White</option>
-            <option value="FC 115">Flam Red</option>
+
           </select>
+
+            <LocationSelector
+                onChange={(loc, subLoc) => {
+              setSelectedLocation(loc);
+              setSelectedSubLocation(subLoc);
+            }}
+          />
 
           <label className="form-label">Sticker Number</label>
           <input type="text" className="form-control" placeholder="Type here..." />
