@@ -4,8 +4,8 @@ import {LocationSelector} from "./LocationSelector";
 
 export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     const [rooms, setRooms] = useState([]);
-    const [selectedLocation, setSelectedLocation] = useState(null);
-    const [selectedSubLocation, setSelectedSubLocation] = useState(null);
+    const [setSelectedLocation] = useState(null);
+    const [setSelectedSubLocation] = useState(null);
 
     // Reset all state when the modal closes.
     const resetState = () => {
@@ -32,23 +32,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       </Modal.Header>
       <Modal.Body>
         <div className="grouped-section">
-          <label className="form-label">Location</label>
-          <select className="form-select">
-
-            <option selected>Pick a Location</option>
-                {rooms.map((room) => (
-              <option key={room.Location_ID} value={room.Location_ID}>
-                {room.building} {room.room}
-              </option>
-            ))}
-          </select>
-
-          <label className="form-label">Sub Location</label>
-          <select className="form-select">
-            <option selected>Pick a Location</option>
-
-          </select>
-
             <LocationSelector
                 onChange={(loc, subLoc) => {
               setSelectedLocation(loc);
