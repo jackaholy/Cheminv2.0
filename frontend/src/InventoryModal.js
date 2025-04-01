@@ -4,8 +4,8 @@ import {LocationSelector} from "./LocationSelector";
 
 export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     const [rooms, setRooms] = useState([]);
-    const [setSelectedLocation] = useState(null);
-    const [setSelectedSubLocation] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [selectedSubLocation, setSelectedSubLocation] = useState(null);
 
     // Reset all state when the modal closes.
     const resetState = () => {
@@ -17,13 +17,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         resetState();
         parentHandleClose();
     };
-
-  useEffect(() => {
-    fetch("/api/locations", { credentials: "include" })
-      .then((response) => response.json())
-      .then((data) => setRooms(data))
-      .catch((error) => console.error(error));
-  }, []);
 
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
