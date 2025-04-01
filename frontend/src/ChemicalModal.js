@@ -16,7 +16,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
     )
       .then((response) => response.json())
       .then((data) => {
-        // Easy hueristic for "best" description
+        // Easy heuristic for "best" description
         let longestDescription = "";
         for (const information of data["InformationList"]["Information"]) {
           if (
