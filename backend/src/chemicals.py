@@ -278,37 +278,40 @@ def mark_dead():
     db.session.commit()
     return {"message": "Chemical marked as dead"}
 
-
 @chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
 @oidc.require_login
-def fetch_chemicals_by_sublocation():
+def get_chemicals_by_sublocation():
     """
-    API to get chemicals based on a given sub-location.
-    :return: A list of chemicals found in the specified sub-location.
+    API to get chemicals by sublocation.
+    :return: A list of chemicals.
     """
-    sub_location_id = request.args.get("sub_location_id")
+    sub_location_id = request.args.get("sub_location_id", type=int)
+
     if not sub_location_id:
-        return jsonify({"error": "Sub-location ID is required"}), 400
+        return jsonify({"error": "sub_location_id is required"}), 400
 
-    chemicals = (
-        db.session.query(Inventory)
-        .join(Chemical_Manufacturer, Inventory.Chemical_Manufacturer_ID == Chemical_Manufacturer.Chemical_Manufacturer_ID)
-        .join(Chemical, Chemical_Manufacturer.Chemical_ID == Chemical.Chemical_ID)
-        .join(Manufacturer, Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID)
-        .join(Sub_Location, Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID)
-        .filter(Inventory.Sub_Location_ID == sub_location_id, Inventory.Is_Dead == False)
-        .all()
-    )
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = (
+            session.query(Chemical)
+            .join(Chemical.Chemical_Manufacturers)
+            .join(Chemical_Manufacturer.Inventory)
+            .filter(Inventory.Sub_Location_ID == sub_location_id)
+            .all()
+        )
 
-    chemical_list = [
-        {
-            "sticker_number": chem.Sticker_Number,
-            "product_number": chem.Product_Number,
-            "location": chem.Sub_Location.Location.Location_Name,
-            "sub_location": chem.Sub_Location.Sub_Location_Name,
-            "manufacturer": chem.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
-        }
-        for chem in chemicals
-    ]
+        # Iterate through each table from the database
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append({
+                        "name": chem.Chemical_Name,
+                        "product_number": manufacturer.Product_Number,
+                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                        "sticker_number": inventory.Sticker_Number
+                    })
 
     return jsonify(chemical_list)
