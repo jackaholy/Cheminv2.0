@@ -277,3 +277,38 @@ def mark_dead():
     bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
+
+
+@chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
+@oidc.require_login
+def fetch_chemicals_by_sublocation():
+    """
+    API to get chemicals based on a given sub-location.
+    :return: A list of chemicals found in the specified sub-location.
+    """
+    sub_location_id = request.args.get("sub_location_id")
+    if not sub_location_id:
+        return jsonify({"error": "Sub-location ID is required"}), 400
+
+    chemicals = (
+        db.session.query(Inventory)
+        .join(Chemical_Manufacturer, Inventory.Chemical_Manufacturer_ID == Chemical_Manufacturer.Chemical_Manufacturer_ID)
+        .join(Chemical, Chemical_Manufacturer.Chemical_ID == Chemical.Chemical_ID)
+        .join(Manufacturer, Chemical_Manufacturer.Manufacturer_ID == Manufacturer.Manufacturer_ID)
+        .join(Sub_Location, Inventory.Sub_Location_ID == Sub_Location.Sub_Location_ID)
+        .filter(Inventory.Sub_Location_ID == sub_location_id, Inventory.Is_Dead == False)
+        .all()
+    )
+
+    chemical_list = [
+        {
+            "sticker_number": chem.Sticker_Number,
+            "product_number": chem.Product_Number,
+            "location": chem.Sub_Location.Location.Location_Name,
+            "sub_location": chem.Sub_Location.Sub_Location_Name,
+            "manufacturer": chem.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
+        }
+        for chem in chemicals
+    ]
+
+    return jsonify(chemical_list)
