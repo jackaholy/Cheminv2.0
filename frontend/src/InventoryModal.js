@@ -29,19 +29,25 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         if (e.key === "Enter") {
             const currentTime = Date.now();
             const DOUBLE_ENTER_THRESHOLD = 500;
-            const stickerNumber = inputValue.trim();
+            const sticker_number = inputValue.trim();
+
             if (currentTime - lastEnterTimeRef.current <= DOUBLE_ENTER_THRESHOLD) {
-                if (!stickerNumber) return;
+                if (!sticker_number) return;
+
+                console.log("Entered Sticker Number:", sticker_number);
+                console.log("Available Chemicals:", chemicals);
 
                 // Check if the entered sticker number exists in the list
-                const matchingChemical = chemicals.find(chem => chem["sticker-number"] === stickerNumber);
-
+                const matchingChemical = chemicals.find(chem => chem.sticker_number === sticker_number);
+                console.log("Chemical: " + matchingChemical);
                 if (matchingChemical) {
                     // Remove from displayed list
-                    setChemicals(chemicals.filter(chem => chem["sticker-number"] !== stickerNumber));
+                    setChemicals(prevChemicals => prevChemicals.filter(chem => chem.sticker_number !== sticker_number));
 
                     // Add to entered set
-                    setEnteredChemicals(new Set([...enteredChemicals, stickerNumber]));
+                     setEnteredChemicals(prevEntered => new Set([...prevEntered, sticker_number]));
+                } else {
+                    console.log("No matching chemical found.");
                 }
 
                 // Clear input
@@ -55,8 +61,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     // Mark remaining chemicals as dead
     const handleCompleteSublocation = () => {
         const unenteredChemicals = chemicals
-            .filter(chem => !enteredChemicals.has(chem["sticker-number"]))
-            .map(chem => chem["sticker-number"]);
+            .filter(chem => !enteredChemicals.has(chem["sticker"]))
+            .map(chem => chem["sticker"]);
 
         fetch("/api/chemicals/mark_dead", {
             method: "POST",
@@ -76,8 +82,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             .then((data) => setChemicals(data));
     }, [selectedSubLocation]);
 
-    console.log(selectedSubLocation);
-    console.log(chemicals)
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
@@ -95,7 +99,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           <label className="form-label">Sticker Number</label>
           <input
               onKeyDown={handleKeyDown}
-              type="text"
+              type="number"
               className="form-control"
               placeholder="Enter sticker number then press Enter twice..."
               value={inputValue}
