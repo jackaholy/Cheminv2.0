@@ -94,7 +94,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         </div>
 
         <label className="form-label">
-            Located in {selectedSubLocation?.sub_location_name || "..."}
+            <b>Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u></b>
         </label>
         <div className="grouped-section">
           <table className="table mb-2">
