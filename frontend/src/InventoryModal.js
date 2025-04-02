@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import Modal from "react-bootstrap/Modal";
 import {LocationSelector} from "./LocationSelector";
 
@@ -8,6 +8,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     const [chemicals, setChemicals] = useState([]);
     const [enteredChemicals, setEnteredChemicals] = useState(new Set());
     const [inputValue, setInputValue] = useState("");
+    const lastEnterTimeRef = useRef(0);
 
     // if (!chemical) return null; // Don't render if no chemical is selected
     // Reset all state when the modal closes.
@@ -25,23 +26,29 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
     // Detect double space
     const handleKeyDown = (e) => {
-        if (e.key === " " && inputValue.endsWith(" ")) {
+        if (e.key === "Enter") {
+            const currentTime = Date.now();
+            const DOUBLE_ENTER_THRESHOLD = 500;
             const stickerNumber = inputValue.trim();
-            if (!stickerNumber) return;
+            if (currentTime - lastEnterTimeRef.current <= DOUBLE_ENTER_THRESHOLD) {
+                if (!stickerNumber) return;
 
-            // Check if the entered sticker number exists in the list
-            const matchingChemical = chemicals.find(chem => chem["sticker-number"] === stickerNumber);
+                // Check if the entered sticker number exists in the list
+                const matchingChemical = chemicals.find(chem => chem["sticker-number"] === stickerNumber);
 
-            if (matchingChemical) {
-                // Remove from displayed list
-                setChemicals(chemicals.filter(chem => chem["sticker-number"] !== stickerNumber));
+                if (matchingChemical) {
+                    // Remove from displayed list
+                    setChemicals(chemicals.filter(chem => chem["sticker-number"] !== stickerNumber));
 
-                // Add to entered set
-                setEnteredChemicals(new Set([...enteredChemicals, stickerNumber]));
+                    // Add to entered set
+                    setEnteredChemicals(new Set([...enteredChemicals, stickerNumber]));
+                }
+
+                // Clear input
+                setInputValue("");
             }
-
-            // Clear input
-            setInputValue("");
+            // Update the last time the user pressed Enter.
+            lastEnterTimeRef.current = currentTime;
         }
     };
 
@@ -59,8 +66,9 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           .then((data) => alert(data.message));
     };
 
-    // Fetch all chemicals in the sub-location when the component loads
+    // Fetch all chemicals in the sub-location
     useEffect(() => {
+        // Only load chemical data if a sublocation is given.
         if (!selectedSubLocation)
             return
         fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`, {})
@@ -85,12 +93,15 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           />
 
           <label className="form-label">Sticker Number</label>
-          <input onKeyDown={handleKeyDown} type="text" className="form-control" placeholder="Enter sticker number..." />
-            <br></br>
-            <div>
-        </div>
-
-
+          <input
+              onKeyDown={handleKeyDown}
+              type="text"
+              className="form-control"
+              placeholder="Enter sticker number then press Enter twice..."
+              value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+          />
+          <br></br>
         </div>
 
         <label className="form-label">
