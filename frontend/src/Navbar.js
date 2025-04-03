@@ -5,6 +5,9 @@ export const Navbar = ({
                            handleShowInventoryModal,
                            handleShowMissingMSDSModal,
                            handleShowManufacturerModal,
+                           handleShowSubLocationModal,
+                           handleShowLocationModal,
+                           handleShowStorageClassModal,
                        }) => {
     const [user, setUser] = useState({});
     const [msds, setMsds] = useState("");
@@ -105,23 +108,39 @@ export const Navbar = ({
                                             </a>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#" onClick={handleShowManufacturerModal}>
+                                            <a
+                                                className="dropdown-item"
+                                                href="#"
+                                                onClick={handleShowManufacturerModal}
+                                            >
                                                 Manufacturer List
                                             </a>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#">
+                                            <a
+                                                className="dropdown-item"
+                                                href="#"
+                                                onClick={handleShowLocationModal}
+                                            >
                                                 Location List
                                             </a>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#">
+                                            <a
+                                                className="dropdown-item"
+                                                href="#"
+                                                onClick={handleShowSubLocationModal}
+                                            >
                                                 Sub Location List
                                             </a>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#">
-                                                Delete Elements
+                                            <a
+                                                className="dropdown-item"
+                                                href="#"
+                                                onClick={handleShowStorageClassModal}
+                                            >
+                                                Storage Class List
                                             </a>
                                         </li>
                                     </ul>

@@ -9,7 +9,9 @@ import {ChemicalModal} from "./ChemicalModal";
 import {MissingMSDSModal} from "./MissingMSDSModal";
 import {InventoryModal} from "./InventoryModal";
 import ManufacturerModal from "./ManufacturerModal";
-
+import LocationModal from "./LocationModal";
+import SubLocationModal from "./SubLocationModal";
+import StorageClassModal from "./StorageClassModal";
 
 const App = () => {
     const [query, setQuery] = useState("");
@@ -27,16 +29,21 @@ const App = () => {
     const [showMissingMSDS, setShowMissingMSDSModal] = useState(false);
 
     const [showManufacturerModal, setShowManufacturerModal] = useState(false);
+    const [showLocationModal, setShowLocationModal] = useState(false);
+    const [showSubLocationModal, setShowSubLocationModal] = useState(false);
+    const [showStorageClassModal, setShowStorageClassModal] = useState(false);
 
-    const handleShowManufacturerModal = () => {
-        console.log("Opening Manufacturer Modal"); ///////////// Remove this eventually
-        setShowManufacturerModal(true);
-    };
+    const handleShowManufacturerModal = () => setShowManufacturerModal(true);
+    const handleCloseManufacturerModal = () => setShowManufacturerModal(false);
 
-    const handleCloseManufacturerModal = () => {
-        console.log("Closing Manufacturer Modal"); ///////////// Remove this eventually
-        setShowManufacturerModal(false);
-    };
+    const handleShowLocationModal = () => setShowLocationModal(true);
+    const handleCloseLocationModal = () => setShowLocationModal(false);
+
+    const handleShowSubLocationModal = () => setShowSubLocationModal(true);
+    const handleCloseSubLocationModal = () => setShowSubLocationModal(false);
+
+    const handleShowStorageClassModal = () => setShowStorageClassModal(true);
+    const handleCloseStorageClassModal = () => setShowStorageClassModal(false);
 
     const handleShowChemicalModal = (chem) => {
         setSelectedChemical(chem);
@@ -131,6 +138,9 @@ const App = () => {
                 handleShowInventoryModal={() => setShowInventoryModal(true)}
                 handleShowMissingMSDSModal={handleShowMissingMSDSModal}
                 handleShowManufacturerModal={handleShowManufacturerModal}
+                handleShowLocationModal={handleShowLocationModal}
+                handleShowSubLocationModal={handleShowSubLocationModal}
+                handleShowStorageClassModal={handleShowStorageClassModal}
             />
             <div className="tw-flex tw-mt-4">
                 <Sidebar
@@ -187,7 +197,18 @@ const App = () => {
                 show={showManufacturerModal}
                 handleClose={handleCloseManufacturerModal}
             />
-
+            <LocationModal
+                show={showLocationModal}
+                handleClose={handleCloseLocationModal}
+            />
+            <SubLocationModal
+                show={showSubLocationModal}
+                handleClose={handleCloseSubLocationModal}
+            />
+            <StorageClassModal
+                show={showStorageClassModal}
+                handleClose={handleCloseStorageClassModal}
+            />
         </div>
     );
 };
