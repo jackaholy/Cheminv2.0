@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { StatusMessage } from "./StatusMessage";
-export const ChemicalModal = ({ chemical, show, handleClose }) => {
+export const ChemicalModal = ({
+  chemical,
+  show,
+  handleClose,
+  refreshChemicals,
+}) => {
   const handleModalClose = () => {
     setChemicalDescription("");
     setChemicalImage("");
@@ -10,6 +15,18 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
   };
   const [chemicalDescription, setChemicalDescription] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusColor, setStatusColor] = useState("success");
+
+  const [user, setUser] = useState({});
+
+  useEffect(() => {
+    fetch("/api/user", {
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => setUser(data))
+      .catch((error) => console.error(error));
+  }, []);
   useEffect(() => {
     if (!chemical) return;
     fetch(
@@ -45,6 +62,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
   }, [chemical]);
 
   if (!chemical) return null; // Don't render if no chemical is selected
+
   async function markDead(item) {
     console.log("Marking chemical as dead:", item.id);
     try {
@@ -61,14 +79,47 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
       }
 
       const data = await response.json();
+      refreshChemicals();
       setStatusMessage(
-        `Marked bottle #${item.sticker} (${item.location}, ${item.sub_location}) as dead. Refresh to see changes.`
+        `Marked bottle #${item.sticker} (${item.location}, ${item.sub_location}) as dead`
       );
+      setStatusColor("warning");
       return data;
     } catch (error) {
       console.error("Error marking chemical as dead:", error);
+      setStatusMessage("Error marking chemical as dead");
+      setStatusColor("danger");
     }
   }
+  async function markAlive(item) {
+    console.log("Marking chemical as dead:", item.id);
+    try {
+      const response = await fetch("/api/chemicals/mark_alive", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ inventory_id: item.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      refreshChemicals();
+      setStatusMessage(
+        `Marked bottle #${item.sticker} (${item.location}, ${item.sub_location}) as alive`
+      );
+      setStatusColor("success");
+      return data;
+    } catch (error) {
+      console.error("Error marking chemical as dead:", error);
+      setStatusMessage("Error marking chemical as dead");
+      setStatusColor("danger");
+    }
+  }
+
   return (
     <Modal show={show} onHide={handleModalClose} centered size="lg">
       <Modal.Header closeButton>
@@ -101,7 +152,7 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
             </div>
           </div>
         </div>
-        <StatusMessage statusMessage={statusMessage} color="success" />
+        <StatusMessage statusMessage={statusMessage} color={statusColor} />
         <table className="table mb-2">
           <thead>
             <tr>
@@ -110,6 +161,9 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
               <th scope="col">Location</th>
               <th scope="col">Sub-Location</th>
               <th scope="col">Manufacturer</th>
+              {user.access == "Editor" || user.access == "Full Access" ? (
+                <th scope="col"></th>
+              ) : null}
               <th></th>
             </tr>
           </thead>
@@ -126,37 +180,67 @@ export const ChemicalModal = ({ chemical, show, handleClose }) => {
                 <td>{item.location}</td>
                 <td>{item.sub_location}</td>
                 <td>{item.manufacturer}</td>
-                <td>
-                  {item.dead ? null : (
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={
-                        <Tooltip id="button-tooltip-2">Mark as dead</Tooltip>
-                      }
-                    >
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        title="Mark as dead"
-                        onClick={() => {
-                          console.log(item);
-                          markDead(item);
-                        }}
+                {user.access == "Editor" || user.access == "Full Access" ? (
+                  <td>
+                    {item.dead ? (
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={
+                          <Tooltip id="button-tooltip-2">Mark as alive</Tooltip>
+                        }
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          fill="currentColor"
-                          className="bi bi-trash3"
-                          viewBox="0 0 16 16"
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          title="Mark as alive"
+                          onClick={() => {
+                            console.log(item);
+                            markAlive(item);
+                          }}
                         >
-                          <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
-                        </svg>
-                        <i className="bi bi-trash3"></i>
-                      </button>
-                    </OverlayTrigger>
-                  )}
-                </td>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            class="bi bi-clipboard-check-fill"
+                            viewBox="0 0 16 16"
+                          >
+                            <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z" />
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm6.854 7.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708.708" />
+                          </svg>
+                        </button>
+                      </OverlayTrigger>
+                    ) : (
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={
+                          <Tooltip id="button-tooltip-2">Mark as dead</Tooltip>
+                        }
+                      >
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          title="Mark as dead"
+                          onClick={() => {
+                            console.log(item);
+                            markDead(item);
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            class="bi bi-clipboard-x-fill"
+                            viewBox="0 0 16 16"
+                          >
+                            <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z" />
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm4 7.793 1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 1 1 .708-.708z" />
+                          </svg>
+                        </button>
+                      </OverlayTrigger>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

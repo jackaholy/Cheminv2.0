@@ -44,7 +44,7 @@ const App = () => {
   const handleCloseAddChemicalModal = () => {
     setShowAddChemicalModal(false);
   };
-  function handleSearch(query, synonyms = false) {
+  async function handleSearch(query, synonyms = false) {
     console.log(query, selectedManufacturers, selectedRoom);
     if (
       query === "" &&
@@ -56,32 +56,53 @@ const App = () => {
     }
     setSearching(true);
     let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
-
     if (selectedRoom && selectedRoom !== "none") {
       url += `&room=${selectedRoom}`;
     }
+    try {
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      setResults(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setSearching(false);
+    }
+  }
 
-    fetch(url, { credentials: "include" })
-      .then((response) => response.json())
-      .then((data) => {
-        setResults(data);
-        setSearching(false);
-      })
-      .catch((error) => console.error(error));
+  async function getChemicals() {
+    try {
+      const response = await fetch("/api/get_chemicals", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      setResults(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching chemicals:", error);
+    }
   }
-  /**
-   * Get the quantity of a specific chemical.
-   */
-  function getChemicals() {
-    fetch("/api/get_chemicals", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setResults(data);
-      })
-      .catch((error) => console.error(error));
-  }
+
+  const refreshChemicals = async () => {
+    if (
+      query === "" &&
+      selectedManufacturers.length === 0 &&
+      selectedRoom === 0
+    ) {
+      return await getChemicals();
+    } else {
+      // Refresh the current search results using the current query
+      return await handleSearch(query);
+    }
+  };
+
   useEffect(() => {
     getChemicals();
     document.title = "Cheminv2.0";
@@ -125,6 +146,14 @@ const App = () => {
       <ChemicalModal
         chemical={selectedChemical}
         show={showModal}
+        refreshChemicals={async () => {
+          const updatedData = await refreshChemicals();
+          const updatedChemical = updatedData.find(
+            (x) => x.id === selectedChemical.id
+          );
+          setSelectedChemical(updatedChemical);
+          handleShowChemicalModal(updatedChemical);
+        }}
         handleClose={handleCloseChemicalModal}
       />
       <InventoryModal
