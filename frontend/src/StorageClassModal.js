@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ManufacturerModal = () => {
+const StorageClassModal = () => {
     const [show, setShow] = useState(false);
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
@@ -8,12 +8,12 @@ const ManufacturerModal = () => {
 
     return (
         <>
-            {/* Manufacturer Modal */}
-            <div className={`modal fade ${show ? "show d-block" : ""}`} id="manufacturerModal" tabIndex="-1" aria-labelledby="manufacturerModalLabel" aria-hidden={!show}>
+            {/* Storage Class Modal */}
+            <div className={`modal fade ${show ? "show d-block" : ""}`} id="classModal" tabIndex="-1" aria-labelledby="classModalLabel" aria-hidden={!show}>
                 <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="manufacturerModalLabel">Manufacturers</h1>
+                            <h1 className="modal-title fs-5" id="classModalLabel">Storage Class</h1>
                             <button type="button" className="btn-close" onClick={() => setShow(false)} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
@@ -26,12 +26,12 @@ const ManufacturerModal = () => {
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th scope="col">Manufacturer Name</th>
+                                        <th scope="col">Storage Class Name</th>
                                         <th scope="col">Edit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {["Big Pharma", "Big Pharma", "Big Pharma"].map((name, index) => (
+                                    {["corr white", "flam red", "gen gray"].map((name, index) => (
                                         <tr key={index}>
                                             <td><input className="form-check-input" type="checkbox" /></td>
                                             <td>{name}</td>
@@ -44,25 +44,25 @@ const ManufacturerModal = () => {
                             </table>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-primary" onClick={() => setShowAdd(true)}>Add Manufacturer</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(true)}>Remove Manufacturer</button>
+                            <button type="button" className="btn btn-primary" onClick={() => setShowAdd(true)}>Add Storage Class</button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(true)}>Remove Storage Class</button>
                             <button type="button" className="btn btn-secondary" onClick={() => setShow(false)}>Close</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Add Manufacturer Modal */}
-            <div className={`modal fade ${showAdd ? "show d-block" : ""}`} id="addMan" aria-hidden={!showAdd}>
+            {/* Add Storage Class Modal */}
+            <div className={`modal fade ${showAdd ? "show d-block" : ""}`} id="addClass" aria-hidden={!showAdd}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="addManLabel">Add Manufacturer</h1>
+                            <h1 className="modal-title fs-5" id="addClassLabel">Add New Storage Class</h1>
                             <button type="button" className="btn-close" onClick={() => setShowAdd(false)} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
                             <div className="input-group mb-3">
-                                <span className="input-group-text">Manufacturer Name</span>
+                                <span className="input-group-text">Storage Class Name</span>
                                 <input type="text" className="form-control" placeholder="Name..." />
                             </div>
                         </div>
@@ -74,17 +74,17 @@ const ManufacturerModal = () => {
                 </div>
             </div>
 
-            {/* Edit Manufacturer Modal */}
-            <div className={`modal fade ${showEdit ? "show d-block" : ""}`} id="editMan" aria-hidden={!showEdit}>
+            {/* Edit Storage Class Modal */}
+            <div className={`modal fade ${showEdit ? "show d-block" : ""}`} id="editClass" aria-hidden={!showEdit}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="editManLabel">Edit Manufacturer</h1>
+                            <h1 className="modal-title fs-5" id="editClassLabel">Edit Storage Class</h1>
                             <button type="button" className="btn-close" onClick={() => setShowEdit(false)} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
                             <div className="input-group mb-3">
-                                <span className="input-group-text">Manufacturer Name</span>
+                                <span className="input-group-text">Storage Class Name</span>
                                 <input type="text" className="form-control" placeholder="Name..." />
                             </div>
                         </div>
@@ -96,16 +96,16 @@ const ManufacturerModal = () => {
                 </div>
             </div>
 
-            {/* Delete Manufacturer Modal */}
-            <div className={`modal fade ${showDelete ? "show d-block" : ""}`} id="deleteMan" aria-hidden={!showDelete}>
+            {/* Delete Storage Class Modal */}
+            <div className={`modal fade ${showDelete ? "show d-block" : ""}`} id="deleteClass" aria-hidden={!showDelete}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="deleteManLabel">Confirm Deletion</h1>
+                            <h1 className="modal-title fs-5" id="deleteClassLabel">Confirm Deletion</h1>
                             <button type="button" className="btn-close" onClick={() => setShowDelete(false)} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
-                            Are you sure you want to delete the selected manufacturers?
+                            Are you sure you want to delete the selected storage classes?
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-primary" onClick={() => setShowDelete(false)}>Yes</button>
@@ -116,9 +116,9 @@ const ManufacturerModal = () => {
             </div>
 
             {/* Button to open the main modal */}
-            <button className="btn btn-primary mt-3" onClick={() => setShow(true)}>Open Manufacturer Modal</button>
+            <button className="btn btn-primary mt-3" onClick={() => setShow(true)}>Open Storage Class Modal</button>
         </>
     );
 };
 
-export default ManufacturerModal;
+export default StorageClassModal;
