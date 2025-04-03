@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-const LocationModal = () => {
-    const [show, setShow] = useState(false);
+const LocationModal = (show, handleClose) => {
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
@@ -14,7 +13,7 @@ const LocationModal = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h1 className="modal-title fs-5" id="locationModalLabel">Locations</h1>
-                            <button type="button" className="btn-close" onClick={() => setShow(false)} aria-label="Close"></button>
+                            <button type="button" className="btn-close" onClick={handleClose} aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
                             <form className="d-flex">
@@ -62,7 +61,7 @@ const LocationModal = () => {
                         <div className="modal-footer">
                             <button type="button" className="btn btn-primary" onClick={() => setShowAdd(true)}>Add Location</button>
                             <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(true)}>Remove Location</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShow(false)}>Close</button>
+                            <button type="button" className="btn btn-secondary" onClick={handleClose}>Close</button>
                         </div>
                     </div>
                 </div>
@@ -131,8 +130,6 @@ const LocationModal = () => {
                 </div>
             </div>
 
-            {/* Button to open the main modal */}
-            <button className="btn btn-primary mt-3" onClick={() => setShow(true)}>Open Location Modal</button>
         </>
     );
 };
