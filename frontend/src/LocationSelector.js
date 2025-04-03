@@ -16,7 +16,7 @@ export const LocationSelector = ({ onChange }) => {
         onChange && onChange(initLoc, initSub);
       })
       .catch(console.error);
-  }, [onChange]);
+  }, []);
 
   const handleLocationChange = (e) => {
     const locationId = parseInt(e.target.value);

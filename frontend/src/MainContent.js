@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 export const MainContent = ({
   chemicalsData,
@@ -7,7 +7,7 @@ export const MainContent = ({
   handleSearch,
   handleShowModal,
 }) => {
-    const [user, setUser] = useState({});
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     fetch("/api/user", {
@@ -40,7 +40,7 @@ export const MainContent = ({
       <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
         <div>Quantity</div>
         <div>Chemical</div>
-        <div>Chemical Symbol</div>
+        <div>Chemical Formula</div>
       </div>
       <div className="tw-divide-y">
         {loading && chemicalsData.length === 0 ? (

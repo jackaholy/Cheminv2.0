@@ -2,17 +2,42 @@ import { useState, useEffect } from "react";
 export const Navbar = ({
   handleShowAddChemicalModal,
   handleShowInventoryModal,
+  handleShowMissingMSDSModal,
 }) => {
   const [user, setUser] = useState({});
-
+  const [msds, setMsds] = useState("");
   useEffect(() => {
     fetch("/api/user", {
       credentials: "include",
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          window.location.href = "/logout";
+          return;
+        }
+        return response.json();
+      })
       .then((data) => setUser(data))
       .catch((error) => console.error(error));
   }, []);
+  useEffect(() => {
+    fetch("/api/get_msds_url")
+      .then((response) => response.json())
+      .then((data) => setMsds(data["url"]))
+      .catch((error) => console.error(error));
+  }, []);
+  const updateMsds = () => {
+    const url = prompt("Enter the URL of the MSDS page");
+    if (url) {
+      fetch("/api/set_msds_url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: url }),
+      });
+    }
+  };
   return (
     <nav className="navbar navbar-expand-lg bg-light">
       <div className="container-fluid">
@@ -50,8 +75,12 @@ export const Navbar = ({
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="#">
-                    MSDS Log
+                  <a
+                    className="nav-link"
+                    href="#"
+                    onClick={handleShowMissingMSDSModal}
+                  >
+                    Missing MSDS
                   </a>
                 </li>
                 <li className="nav-item dropdown">
@@ -64,6 +93,15 @@ export const Navbar = ({
                     Manage Database
                   </a>
                   <ul className="dropdown-menu">
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="#"
+                        onClick={updateMsds}
+                      >
+                        Set MSDS URL
+                      </a>
+                    </li>
                     <li>
                       <a className="dropdown-item" href="#">
                         Manufacturer List
@@ -87,9 +125,12 @@ export const Navbar = ({
                   </ul>
                 </li>
               </>
-            ) : (
-              <></>
-            )}
+            ) : null}
+            <li className="nav-item">
+              <a className="nav-link" href={msds}>
+                Safety Datasheets
+              </a>
+            </li>
           </ul>
           <ul className="navbar-nav mb-2 mb-lg-0">
             <li className="nav-item dropdown">
@@ -123,7 +164,7 @@ export const Navbar = ({
                   <hr className="dropdown-divider" />
                 </li>
                 <li>
-                  <a className="dropdown-item" href="#">
+                  <a className="dropdown-item" href="/logout">
                     Logout
                   </a>
                 </li>

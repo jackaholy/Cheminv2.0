@@ -13,6 +13,15 @@ def on_authorize(sender, token, return_to):
     visitor_permission = (
         db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
     )
+    # admin_permission = (
+    #    db.session.query(Permissions).filter_by(Permissions_Name="Full Access").first()
+    # )
+
+    # if db.session.query(User).count() == 0:
+    #    permission_level = admin_permission
+    # else:
+    #    permission_level = visitor_permission
+
     if (
         not db.session.query(User)
         .filter(User.User_Name == user_info["preferred_username"])
@@ -37,7 +46,8 @@ after_authorize.connect(on_authorize)
 def get_current_user():
     current_username = session["oidc_auth_profile"].get("preferred_username")
     user = db.session.query(User).filter_by(User_Name=current_username).first()
-
+    if not user:
+        return jsonify({"error": "User not found"}), 401
     return jsonify(
         {
             "name": session["oidc_auth_profile"].get("name"),

@@ -14,6 +14,7 @@ from manufacturers import manufacturers
 from search import search
 from users import users
 from csv_export import csv_export
+from msds import msds
 from database import db, init_db
 from oidc import init_oidc, oidc
 
@@ -58,6 +59,7 @@ def create_app(config=ProdConfig):
     app.register_blueprint(search)
     app.register_blueprint(users)
     app.register_blueprint(csv_export)
+    app.register_blueprint(msds)
     return app
 
 

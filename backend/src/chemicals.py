@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
+from msds import get_msds_url
 from sqlalchemy import func
 from oidc import oidc
 from permission_requirements import require_editor
@@ -14,6 +15,7 @@ from models import (
     Manufacturer,
     Location,
     Sub_Location,
+    User,
 )
 from database import db
 
@@ -30,9 +32,15 @@ def add_bottle():
     location_id = request.json.get("location_id")
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
+    msds = request.json.get("msds")
 
     current_username = session["oidc_auth_profile"].get("preferred_username")
-
+    print(msds)
+    if msds:
+        msds = get_msds_url()
+    else:
+        msds = None
+    print(msds)
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -53,10 +61,12 @@ def add_bottle():
     inventory = Inventory(
         Sticker_Number=sticker_number,
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
+        Product_Number=product_number,
         Sub_Location_ID=sub_location_id,
         Last_Updated=datetime.now(),
-        Who_updated=current_username,
+        Who_Updated=current_username,
         Is_Dead=False,
+        MSDS=msds,
     )
     db.session.add(inventory)
     db.session.commit()
@@ -64,6 +74,28 @@ def add_bottle():
         "message": "Bottle added successfully",
         "inventory_id": inventory.Inventory_ID,
     }
+
+
+@chemicals.route("/api/product-search", methods=["GET"])
+def product_search():
+    # Get the query parameter; default to an empty string if not provided.
+    query = request.args.get("query", "")
+
+    # If query is empty, return an empty list immediately.
+    if not query:
+        return jsonify([])
+
+    # Perform a case-insensitive search using the ilike operator.
+    results = (
+        db.session.query(Inventory)
+        .filter(Inventory.Product_Number.ilike(f"%{query}%"))
+        .all()
+    )
+
+    # Extract product numbers, making sure to only return non-null values.
+    product_numbers = [item.Product_Number for item in results if item.Product_Number]
+    product_numbers = list(set(product_numbers))
+    return jsonify(product_numbers)
 
 
 @chemicals.route("/api/add_chemical", methods=["POST"])
@@ -165,10 +197,13 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
-    chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+    # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
     chemical_list = sorted(
         chemical_list,
-        key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        key=lambda x: (
+            x["quantity"] == 0,
+            re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        ),
     )
     return jsonify(chemical_list)
 
@@ -186,7 +221,7 @@ def product_number_lookup():
         return jsonify({}), 404
     query_result = (
         db.session.query(Chemical_Manufacturer)
-        .filter(Chemical_Manufacturer.Product_Number == product_number)
+        .filter(Chemical_Manufacturer.Product_Number.ilike(product_number))
         .first()
     )
     if not query_result:
@@ -240,8 +275,63 @@ def mark_dead():
     API to mark a chemical as dead.
     :return: Message indicating the chemical has been marked as dead.
     """
-    chemical_id = request.json.get("chemical_id")
-    chemical = Chemical.query.get(chemical_id)
-    chemical.Is_Dead = True
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
+
+
+@chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
+@oidc.require_login
+def get_chemicals_by_sublocation():
+    """
+    API to get chemicals by sublocation.
+    :return: A list of chemicals.
+    """
+    sub_location_id = request.args.get("sub_location_id", type=int)
+
+    if not sub_location_id:
+        return jsonify({"error": "sub_location_id is required"}), 400
+
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = (
+            session.query(Chemical)
+            .join(Chemical.Chemical_Manufacturers)
+            .join(Chemical_Manufacturer.Inventory)
+            .filter(Inventory.Sub_Location_ID == sub_location_id)
+            .all()
+        )
+
+        # Iterate through each table from the database
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append(
+                        {
+                            "name": chem.Chemical_Name,
+                            "product_number": manufacturer.Product_Number,
+                            "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                            "sticker_number": inventory.Sticker_Number,
+                        }
+                    )
+
+    return jsonify(chemical_list)
+
+
+@chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
+@oidc.require_login
+def mark_alive():
+    """
+    API to mark a chemical as alive.
+    :return: Message indicating the chemical has been marked as alive.
+    """
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = False
+    db.session.commit()
+    return {"message": "Chemical marked as alive"}

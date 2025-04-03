@@ -1,29 +1,51 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LocationSelector } from "./LocationSelector";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { StorageClassSelector } from "./StorageClassSelector";
 import Modal from "react-bootstrap/Modal";
-import Select from "react-select";
 
 // --- Step components (render only the inputs) ---
-const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => (
-  <div>
-    <label className="form-label">Product Number</label>
-    <input
-      type="text"
-      className="form-control"
-      value={productNumber}
-      onInput={(e) => setProductNumber(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onEnter && onEnter();
-        }
-      }}
-    />
-  </div>
-);
+const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => {
+  const [searchResults, setSearchResults] = useState([]);
+
+  // Function to fetch suggestions for product numbers
+  const searchByProductNumber = (query = productNumber) => {
+    fetch(`/api/product-search?query=${query}`, { credentials: "include" })
+      .then((response) => response.json())
+      .then(setSearchResults)
+      .catch(console.error);
+  };
+  console.log(searchResults);
+
+  return (
+    <div>
+      <label className="form-label">Product Number</label>
+      <input
+        list="productNumbersList"
+        type="text"
+        className="form-control"
+        value={productNumber}
+        onInput={(e) => {
+          const value = e.target.value;
+          setProductNumber(value);
+          searchByProductNumber(value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onEnter && onEnter();
+          }
+        }}
+      />
+      <datalist id="productNumbersList">
+        {searchResults.map((result, index) => (
+          <option key={index} value={result} />
+        ))}
+      </datalist>
+    </div>
+  );
+};
 
 const ChemicalNameInput = ({ chemicalName, setChemicalName, onEnter }) => {
   const [searchResults, setSearchResults] = useState([]);
@@ -146,6 +168,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
   const [step, setStep] = useState("product_number");
   const [animationDirection, setAnimationDirection] = useState("forward");
   const [stickerNumber, setStickerNumber] = useState(0);
+  const [msds, setMsds] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
 
@@ -214,6 +237,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         sub_location_id: selectedSubLocation?.sub_location_id,
         sticker_number: stickerNumber,
         product_number: productNumber,
+        msds: msds,
       }),
     })
       .then((response) => response.json())
@@ -235,7 +259,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
         } else {
           setChemicalID(data.chemical_id);
           setSelectedManufacturer(data.manufacturer);
-          setStep("manufacturer");
+          setStep("bottle_details");
         }
       })
       .catch(console.error);
@@ -342,6 +366,21 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
               value={stickerNumber}
               onChange={(e) => setStickerNumber(parseInt(e.target.value, 10))}
             />
+          </div>
+          <div className="grouped-section">
+            <label className="form-label">MSDS</label>
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                value={msds}
+                onChange={(e) => setMsds(e.target.checked)}
+                id="msds_check"
+              />
+              <label className="form-check-label" for="msds_check">
+                Safety data sheet added
+              </label>
+            </div>
           </div>
           <LocationSelector
             onChange={(loc, subLoc) => {
