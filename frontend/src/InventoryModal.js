@@ -63,14 +63,25 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       .filter((chem) => !enteredChemicals.has(chem["sticker"]))
       .map((chem) => chem["sticker"]);
 
+    if (unenteredChemicals.length === 0) {
+      alert("No chemicals left to be marked dead.")
+      return;
+    }
+
     fetch("/api/chemicals/mark_dead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ inventory_ids: unenteredChemicals }),
     })
-      .then((res) => res.json())
-      .then((data) => alert(data.message));
-  };
+      .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+      })
+      .then((data) => alert(data.message))
+      .catch((error) => console.error("Error marking chemicals as dead:", error));
+      };
 
   // Fetch all chemicals in the sub-location
   useEffect(() => {
@@ -102,6 +113,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           <label className="form-label">Sticker Number</label>
           <input
             onKeyDown={handleKeyDown}
+            onWheel={(e) => e.target.blur()}
             type="number"
             className="form-control"
             placeholder="Type in sticker number then press Enter twice..."
