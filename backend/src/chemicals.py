@@ -197,10 +197,16 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
-    chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+    # We can't get rid of them, because there's no way to mark them alive again
+    # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+
+    # But we can move them to the bottom of the list
     chemical_list = sorted(
         chemical_list,
-        key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        key=lambda x: (
+            x["quantity"] == 0,
+            re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        ),
     )
     return jsonify(chemical_list)
 
