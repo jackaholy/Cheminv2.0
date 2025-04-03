@@ -197,10 +197,7 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
-    # We can't get rid of them, because there's no way to mark them alive again
     # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
-
-    # But we can move them to the bottom of the list
     chemical_list = sorted(
         chemical_list,
         key=lambda x: (
@@ -283,3 +280,58 @@ def mark_dead():
     bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
+
+
+@chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
+@oidc.require_login
+def get_chemicals_by_sublocation():
+    """
+    API to get chemicals by sublocation.
+    :return: A list of chemicals.
+    """
+    sub_location_id = request.args.get("sub_location_id", type=int)
+
+    if not sub_location_id:
+        return jsonify({"error": "sub_location_id is required"}), 400
+
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = (
+            session.query(Chemical)
+            .join(Chemical.Chemical_Manufacturers)
+            .join(Chemical_Manufacturer.Inventory)
+            .filter(Inventory.Sub_Location_ID == sub_location_id)
+            .all()
+        )
+
+        # Iterate through each table from the database
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append(
+                        {
+                            "name": chem.Chemical_Name,
+                            "product_number": manufacturer.Product_Number,
+                            "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                            "sticker_number": inventory.Sticker_Number,
+                        }
+                    )
+
+    return jsonify(chemical_list)
+
+
+@chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
+@oidc.require_login
+def mark_alive():
+    """
+    API to mark a chemical as alive.
+    :return: Message indicating the chemical has been marked as alive.
+    """
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = False
+    db.session.commit()
+    return {"message": "Chemical marked as alive"}

@@ -148,7 +148,7 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
+    # chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
     if query:
         chemical_list.sort(
             key=lambda x: (
