@@ -151,6 +151,15 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       </Modal.Body>
 
       <Modal.Footer>
+        <div className="me-auto">
+          <button
+            onClick={() => setRemovedChemicals(new Set())}
+            type="button"
+            className="btn btn-secondary"
+          >
+          Reset
+          </button>
+        </div>
         <button
           onClick={handleCompleteSublocation}
           type="button"
