@@ -112,7 +112,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             onKeyDown={handleKeyDown}
             type="number"
             className="form-control"
-            placeholder="Enter sticker number then press Enter twice..."
+            placeholder="Type in sticker number then press Enter twice..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
