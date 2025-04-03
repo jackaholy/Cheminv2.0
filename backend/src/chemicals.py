@@ -197,7 +197,7 @@ def get_chemicals():
     )
 
     chemical_list = [chem.to_dict() for chem in chemicals]
-    chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+    # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
     chemical_list = sorted(
         chemical_list,
         key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
@@ -278,6 +278,7 @@ def mark_dead():
     db.session.commit()
     return {"message": "Chemical marked as dead"}
 
+
 @chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
 @oidc.require_login
 def get_chemicals_by_sublocation():
@@ -315,3 +316,17 @@ def get_chemicals_by_sublocation():
                     })
 
     return jsonify(chemical_list)
+
+
+@chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
+@oidc.require_login
+def mark_alive():
+    """
+    API to mark a chemical as alive.
+    :return: Message indicating the chemical has been marked as alive.
+    """
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = False
+    db.session.commit()
+    return {"message": "Chemical marked as alive"}
