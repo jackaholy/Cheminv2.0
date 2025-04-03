@@ -279,6 +279,45 @@ def mark_dead():
     return {"message": "Chemical marked as dead"}
 
 
+@chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
+@oidc.require_login
+def get_chemicals_by_sublocation():
+    """
+    API to get chemicals by sublocation.
+    :return: A list of chemicals.
+    """
+    sub_location_id = request.args.get("sub_location_id", type=int)
+
+    if not sub_location_id:
+        return jsonify({"error": "sub_location_id is required"}), 400
+
+    chemical_list = []
+    # Search through the entire database
+    with db.session() as session:
+        chemicals = (
+            session.query(Chemical)
+            .join(Chemical.Chemical_Manufacturers)
+            .join(Chemical_Manufacturer.Inventory)
+            .filter(Inventory.Sub_Location_ID == sub_location_id)
+            .all()
+        )
+
+        # Iterate through each table from the database
+        for chem in chemicals:
+            for manufacturer in chem.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # We can add more chemical attributes below if needed
+                    chemical_list.append({
+                        "name": chem.Chemical_Name,
+                        "product_number": manufacturer.Product_Number,
+                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                        "sticker_number": inventory.Sticker_Number
+                    })
+
+    return jsonify(chemical_list)
+
+
 @chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
 @oidc.require_login
 def mark_alive():
