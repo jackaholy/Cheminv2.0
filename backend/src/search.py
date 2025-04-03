@@ -127,11 +127,11 @@ def search_route():
     # Execute the query with appropriate joins and grouping
     matching_chemicals = (
         db.session.query(Chemical)
-        .join(Chemical.Chemical_Manufacturers)
-        .join(Chemical_Manufacturer.Manufacturer)
-        .join(Chemical_Manufacturer.Inventory)
-        .join(Inventory.Sub_Location)
-        .join(Sub_Location.Location)
+        .outerjoin(Chemical.Chemical_Manufacturers)
+        .outerjoin(Chemical_Manufacturer.Manufacturer)
+        .outerjoin(Chemical_Manufacturer.Inventory)
+        .outerjoin(Inventory.Sub_Location)
+        .outerjoin(Sub_Location.Location)
         .options(
             joinedload(Chemical.Storage_Class),
             joinedload(Chemical.Chemical_Manufacturers)
@@ -151,10 +151,17 @@ def search_route():
     # chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
     if query:
         chemical_list.sort(
-            key=lambda x: calculate_similarity(query, x["chemical_name"]), reverse=True
+            key=lambda x: (
+                x["quantity"] != 0,
+                calculate_similarity(query, x["chemical_name"]),
+            ),
+            reverse=True,
         )
     else:
         chemical_list.sort(
-            key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower()
+            key=lambda x: (
+                x["quantity"] != 0,
+                re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+            ),
         )
     return jsonify(chemical_list)

@@ -200,7 +200,10 @@ def get_chemicals():
     # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
     chemical_list = sorted(
         chemical_list,
-        key=lambda x: re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        key=lambda x: (
+            x["quantity"] == 0,
+            re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
+        ),
     )
     return jsonify(chemical_list)
 
@@ -308,12 +311,14 @@ def get_chemicals_by_sublocation():
                 for inventory in manufacturer.Inventory:
                     # Add the appropriate chemical detail to the chemical list
                     # We can add more chemical attributes below if needed
-                    chemical_list.append({
-                        "name": chem.Chemical_Name,
-                        "product_number": manufacturer.Product_Number,
-                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                        "sticker_number": inventory.Sticker_Number
-                    })
+                    chemical_list.append(
+                        {
+                            "name": chem.Chemical_Name,
+                            "product_number": manufacturer.Product_Number,
+                            "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                            "sticker_number": inventory.Sticker_Number,
+                        }
+                    )
 
     return jsonify(chemical_list)
 
