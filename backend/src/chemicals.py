@@ -13,7 +13,6 @@ from models import (
     Chemical_Manufacturer,
     Storage_Class,
     Manufacturer,
-    Location,
     Sub_Location,
     User,
 )
@@ -85,7 +84,7 @@ def product_search():
     if not query:
         return jsonify([])
 
-    # Perform a case-insensitive search using the ilike operator.
+    # Perform a case-insensitive search using the "ilike" operator.
     results = (
         db.session.query(Inventory)
         .filter(Inventory.Product_Number.ilike(f"%{query}%"))
@@ -276,6 +275,10 @@ def mark_dead():
     :return: Message indicating the chemical has been marked as dead.
     """
     inventory_id = request.json.get("inventory_id")
+
+    if not inventory_id:
+        return jsonify({"error": "Missing inventory_id"}), 400
+
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     bottle.Is_Dead = True
     db.session.commit()
