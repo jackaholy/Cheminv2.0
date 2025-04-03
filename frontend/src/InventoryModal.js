@@ -7,6 +7,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
   const [chemicals, setChemicals] = useState([]);
   const [enteredChemicals, setEnteredChemicals] = useState(new Set());
+  const [removedChemicals, setRemovedChemicals] = useState(new Set());
   const [inputValue, setInputValue] = useState("");
   const lastEnterTimeRef = useRef(0);
 
@@ -35,7 +36,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         if (!sticker_number) return;
 
         console.log("Entered Sticker Number:", sticker_number);
-        console.log("Available Chemicals:", chemicals);
 
         // Check if the entered sticker number exists in the list
         const matchingChemical = chemicals.find(
@@ -44,16 +44,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         console.log("Chemical: " + matchingChemical);
         if (matchingChemical) {
           // Remove from displayed list
-          setChemicals((prevChemicals) =>
-            prevChemicals.filter(
-              (chem) => chem.sticker_number !== sticker_number
-            )
-          );
-
-          // Add to entered set
-          setEnteredChemicals(
-            (prevEntered) => new Set([...prevEntered, sticker_number])
-          );
+          setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
         } else {
           console.log("No matching chemical found.");
         }
@@ -93,6 +84,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       .then((data) => setChemicals(data));
   }, [selectedSubLocation]);
 
+  console.log("Inventoried Chemicals:", removedChemicals);
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
@@ -136,7 +128,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
               </tr>
             </thead>
             <tbody>
-              {chemicals.map((item, index) => (
+              {chemicals.filter((chem) => !removedChemicals.has(chem.sticker_number)) // Exclude removed ones
+                .map((item, index) => (
                 <tr
                   key={index}
                   className={
