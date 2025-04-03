@@ -1,67 +1,128 @@
-import React from 'react';
-import { Modal, Button } from "react-bootstrap";
+import React, { useState } from "react";
+import { Modal, Button, Form, Table } from "react-bootstrap"; // React-Bootstrap components
 
-const ManufacturerModal = ( {show, handleClose} ) => {
-    console.log("ManufacturerModal rendered, show:", show);  /////////////// Remove eventually
+const ManufacturerModal = ({ showManufacturerModal, setShowManufacturerModal }) => {
+  const [showAddManModal, setShowAddManModal] = useState(false);
+  const [showEditManModal, setShowEditManModal] = useState(false);
+  const [showDeleteManModal, setShowDeleteManModal] = useState(false);
 
-    if (!show) return null;
+  // Toggle Modals
+  const handleCloseManufacturerModal = () => setShowManufacturerModal(false);
+  const handleCloseAddManModal = () => setShowAddManModal(false);
+  const handleCloseEditManModal = () => setShowEditManModal(false);
+  const handleCloseDeleteManModal = () => setShowDeleteManModal(false);
 
-    return (
-        <div className="modal fade show d-block" id="manufacturerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="manufacturerModalLabel">Manufacturers</h1>
-                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div className="modal-body">
-                        <form className="d-flex">
-                            <input className="form-control me-2" type="search" placeholder="Search" />
-                            <button className="btn btn-outline-success" type="submit">Search</button>
-                        </form>
+  return (
+    <div>
+      {/* Manufacturer Modal */}
+      <Modal
+        show={showManufacturerModal}
+        onHide={handleCloseManufacturerModal}
+        size="xl"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Manufacturers</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form className="d-flex">
+            <Form.Control type="search" placeholder="Search" className="me-2" />
+            <Button variant="outline-success" type="submit">Search</Button>
+          </Form>
 
-                        <table className="table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th scope="col">Manufacturer Name</th>
-                                    <th scope="col">Edit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input className="form-check-input" type="checkbox" value="" id="1" /></td>
-                                    <td>Big Pharma</td>
-                                    <td>
-                                        <button className="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input className="form-check-input" type="checkbox" value="" id="2" /></td>
-                                    <td>Big Pharma</td>
-                                    <td>
-                                        <button className="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><input className="form-check-input" type="checkbox" value="" id="3" /></td>
-                                    <td>Big Pharma</td>
-                                    <td>
-                                        <button className="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-primary" data-bs-target="#addMan" data-bs-toggle="modal">Add Manufacturer</button>
-                        <button type="button" className="btn btn-secondary" data-bs-target="#deleteMan" data-bs-toggle="modal">Remove Manufacturer</button>
-                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Manufacturer Name</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input className="form-check-input" type="checkbox" /></td>
+                <td>Big Pharma</td>
+                <td>
+                  <Button variant="outline-success" onClick={() => setShowEditManModal(true)}>
+                    Edit
+                  </Button>
+                </td>
+              </tr>
+              {/* More rows can go here */}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowAddManModal(true)}>
+            Add Manufacturer
+          </Button>
+          <Button variant="secondary" onClick={handleCloseManufacturerModal}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Add Manufacturer Modal */}
+      <Modal show={showAddManModal} onHide={handleCloseAddManModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Manufacturer</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Manufacturer Name</Form.Label>
+            <Form.Control type="text" placeholder="Name..." />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleCloseAddManModal}>
+            Save
+          </Button>
+          <Button variant="secondary" onClick={handleCloseAddManModal}>
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Edit Manufacturer Modal */}
+      <Modal show={showEditManModal} onHide={handleCloseEditManModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Manufacturer</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Manufacturer Name</Form.Label>
+            <Form.Control type="text" placeholder="Name..." />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleCloseEditManModal}>
+            Save
+          </Button>
+          <Button variant="secondary" onClick={handleCloseEditManModal}>
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Manufacturer Modal */}
+      <Modal show={showDeleteManModal} onHide={handleCloseDeleteManModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the following:
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleCloseDeleteManModal}>
+            Yes
+          </Button>
+          <Button variant="secondary" onClick={handleCloseDeleteManModal}>
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
+  );
 };
 
 export default ManufacturerModal;
