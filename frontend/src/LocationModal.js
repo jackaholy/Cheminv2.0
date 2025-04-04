@@ -92,34 +92,11 @@ const LocationModal = (props) => {
                             onChange={(e) => setFilterQuery(e.target.value)}
                         />
                     </Form>
-
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Room</th>
-                                <th>Building</th>
-                                <th>Edit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredLocations.map((location, index) => (
-                                <tr key={index}>
-                                    <td><Form.Check
-                                        type="checkbox"
-                                        id={`location-${index}`}
-                                        checked={location.selected}
-                                        onChange={() => handleCheckboxChange(index)} />
-                                    </td>
-                                    <td>{location.room}</td>
-                                    <td>{location.building}</td>
-                                    <td>
-                                        <Button variant="outline-success" onClick={handleShowEdit}>Edit</Button>
-                                    </td>
-                                </tr>))
-                            }
-                        </tbody>
-                    </Table>
+                    <LocationTable
+                        locations={filteredLocations}
+                        handleCheckboxChange={handleCheckboxChange}
+                        handleShowEdit={handleShowEdit}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="primary" onClick={handleShowAdd}>
@@ -134,72 +111,124 @@ const LocationModal = (props) => {
                 </Modal.Footer>
             </Modal>
 
-            {/* Add Location Modal */}
-            <Modal show={showAdd} onHide={handleCloseAdd}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Add Location</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Location Name</Form.Label>
-                        <Form.Control type="text" placeholder="Name..." aria-label="locName" />
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="primary" onClick={handleCloseAdd}>
-                        Save
-                    </Button>
-                    <Button variant="secondary" onClick={handleCloseAdd}>
-                        Cancel
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <AddLocationModal
+                show={showAdd}
+                handleClose={handleCloseAdd}
+            />
 
-            {/* Edit Location Modal */}
-            <Modal show={showEdit} onHide={handleCloseEdit}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Location</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Location Name</Form.Label>
-                        <Form.Control type="text" placeholder="Name..." aria-label="locName" />
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="primary" onClick={handleCloseEdit}>
-                        Save
-                    </Button>
-                    <Button variant="secondary" onClick={handleCloseEdit}>
-                        Cancel
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <EditLocationModal
+                show={showEdit}
+                handleClose={handleCloseEdit}
+            />
 
-            {/* Delete Location Modal */}
-            <Modal show={showDelete} onHide={handleCloseDelete}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Confirm Deletion</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    Are you sure you want to delete the following locations?:
-                    <ul>
-                        {locations.filter(location => location.selected).map((location, index) => (
-                            <li key={index}>{location.room} - {location.building}</li>
-                        ))}
-                    </ul>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="primary" onClick={handleDelete}>
-                        Yes
-                    </Button>
-                    <Button variant="secondary" onClick={handleCloseDelete}>
-                        Cancel
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <DeleteLocationConfirmationModal
+                show={showDelete}
+                handleClose={handleCloseDelete}
+                locations={locations}
+                handleDelete={handleDelete}
+            />
         </>
     );
 };
+
+const LocationTable = ({ locations, handleCheckboxChange, handleShowEdit }) => (
+    <Table striped bordered hover>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Room</th>
+                <th>Building</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {locations.map((location, index) => (
+                <tr key={index}>
+                    <td>
+                        <Form.Check
+                            type="checkbox"
+                            id={`location-${index}`}
+                            checked={location.selected}
+                            onChange={() => handleCheckboxChange(index)}
+                        />
+                    </td>
+                    <td>{location.room}</td>
+                    <td>{location.building}</td>
+                    <td>
+                        <Button variant="outline-success" onClick={handleShowEdit}>Edit</Button>
+                    </td>
+                </tr>
+            ))}
+        </tbody>
+    </Table>
+);
+
+const AddLocationModal = ({ show, handleClose }) => (
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+            <Modal.Title>Add Location</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <Form.Group className="mb-3">
+                <Form.Label>Location Name</Form.Label>
+                <Form.Control type="text" placeholder="Name..." aria-label="locName" />
+            </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="primary" onClick={handleClose}>
+                Save
+            </Button>
+            <Button variant="secondary" onClick={handleClose}>
+                Cancel
+            </Button>
+        </Modal.Footer>
+    </Modal>
+);
+
+const EditLocationModal = ({ show, handleClose }) => (
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+            <Modal.Title>Edit Location</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <Form.Group className="mb-3">
+                <Form.Label>Location Name</Form.Label>
+                <Form.Control type="text" placeholder="Name..." aria-label="locName" />
+            </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="primary" onClick={handleClose}>
+                Save
+            </Button>
+            <Button variant="secondary" onClick={handleClose}>
+                Cancel
+            </Button>
+        </Modal.Footer>
+    </Modal>
+);
+
+const DeleteLocationConfirmationModal = ({ show, handleClose, locations, handleDelete }) => (
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            Are you sure you want to delete the following locations?:
+            <ul>
+                {locations.filter(location => location.selected).map((location, index) => (
+                    <li key={index}>{location.room} - {location.building}</li>
+                ))}
+            </ul>
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="primary" onClick={handleDelete}>
+                Yes
+            </Button>
+            <Button variant="secondary" onClick={handleClose}>
+                Cancel
+            </Button>
+        </Modal.Footer>
+    </Modal>
+);
 
 export default LocationModal;
