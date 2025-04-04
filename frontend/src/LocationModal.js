@@ -16,14 +16,27 @@ const LocationModal = (props) => {
 
     const [filterQuery, setFilterQuery] = useState("");
 
-    const [locations, setLocations] = useState([{"room": "Room 1", "building": "Building A"}, {"room": "Room 2", "building": "Building B"}]);
+    const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
+
+    useEffect(() => {
+        // Fetch locations when the modal is shown
+        if (show) {
+            fetch("/api/locations")
+                .then((response) => response.json())
+                .then((data) => {
+                    setLocations(data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching locations:", error);
+                });
+        }
+    }, [show]);
 
     useEffect(() => {
         setFilteredLocations(
             locations.filter((location) =>
-                location.room.toLowerCase().includes(filterQuery.toLowerCase()) ||
-                location.building.toLowerCase().includes(filterQuery.toLowerCase()
+                `${location.building} ${location.room}`.toLowerCase().includes(filterQuery.toLowerCase()
             )
         ));
     }, [filterQuery, locations]);
@@ -58,7 +71,7 @@ const LocationModal = (props) => {
                         </thead>
                         <tbody>
                             {filteredLocations.map((location, index) => (
-                            <tr>
+                            <tr key={index}>
                                 <td><Form.Check type="checkbox" id="4" /></td>
                                 <td>{location.room}</td>
                                 <td>{location.building}</td>
