@@ -35,9 +35,11 @@ The database dump is a dump of the database from the previous version of the app
 
 You can access the application at `http://server_name_or_ip:5001`. It's recommended to use a reverse proxy to serve the application.
 
-By default, only users imported from the previous system will have full access. You can update access by clicking "Hi Your Name" and selecting "Manage Access". Anyone who has accessed the application will be listed here. Most users, like students should have Visitor access. Chemistry faculty should have "Editor" access, and a few people should have "Full Access". However, if you don't have full access, you may need to update access manually.
+By default, only users imported from the previous system will have full access. 
 
-If you need to give someone "Full Access" manually (you're unable to access the "Manage Access" menu), you can use the following command:
+**If you have full access:** You can update access by clicking "Hi Your Name" and selecting "Manage Access". Anyone who has accessed the application will be listed here. Most users, like students should have Visitor access. Chemistry faculty should have "Editor" access, and a few people should have "Full Access". However, if you don't have full access, you may need to update access manually.
+
+**If you only have visitor access:** You give someone "Full Access" manually (you're unable to access the "Manage Access" menu), you can use the following command:
 
 ```bash
 docker exec -it cheminv20-mysql-1 sh -c 'mysql -u"$MYSQL_USER" --password="$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "UPDATE User SET Permissions_ID = 1 WHERE User_Name = '\''someone@example.com'\'';"'
