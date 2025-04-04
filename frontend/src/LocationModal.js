@@ -1,135 +1,147 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Modal, Button, Form, Table } from 'react-bootstrap';
 
-const LocationModal = (show, handleClose) => {
+const LocationModal = (props) => {
+    const { show, handleClose } = props;
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
 
+    const handleCloseAdd = () => setShowAdd(false);
+    const handleShowAdd = () => setShowAdd(true);
+    const handleCloseEdit = () => setShowEdit(false);
+    const handleShowEdit = () => setShowEdit(true);
+    const handleCloseDelete = () => setShowDelete(false);
+    const handleShowDelete = () => setShowDelete(true);
+
+    const [filterQuery, setFilterQuery] = useState("");
+
+    const [locations, setLocations] = useState([{"room": "Room 1", "building": "Building A"}, {"room": "Room 2", "building": "Building B"}]);
+    const [filteredLocations, setFilteredLocations] = useState([]);
+
+    useEffect(() => {
+        setFilteredLocations(
+            locations.filter((location) =>
+                location.room.toLowerCase().includes(filterQuery.toLowerCase()) ||
+                location.building.toLowerCase().includes(filterQuery.toLowerCase()
+            )
+        ));
+    }, [filterQuery, locations]);
+
     return (
         <>
             {/* Location Modal */}
-            <div className={`modal fade ${show ? "show d-block" : ""}`} id="locationModal" tabIndex="-1" aria-labelledby="locationModalLabel" aria-hidden={!show}>
-                <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="locationModalLabel">Locations</h1>
-                            <button type="button" className="btn-close" onClick={handleClose} aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <form className="d-flex">
-                                <input className="form-control me-2" type="search" placeholder="Search" />
-                                <button className="btn btn-outline-success" type="submit">Search</button>
-                            </form>
+            <Modal show={show} onHide={handleClose} size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>Locations</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form className="d-flex">
+                        <Form.Control
+                            type="Filter"
+                            placeholder="Filter"
+                            className="me-2"
+                            aria-label="Filter"
+                            value={filterQuery}
+                            onChange={(e) => setFilterQuery(e.target.value)}
+                        />
+                    </Form>
 
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th scope="col">Room</th>
-                                        <th scope="col">Building</th>
-                                        <th scope="col">Edit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input className="form-check-input" type="checkbox" value="" id="4" /></td>
-                                        <td>111</td>
-                                        <td>FC</td>
-                                        <td>
-                                            <button className="btn btn-outline-success" onClick={() => setShowEdit(true)}>Edit</button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><input className="form-check-input" type="checkbox" value="" id="5" /></td>
-                                        <td>114</td>
-                                        <td>FC</td>
-                                        <td>
-                                            <button className="btn btn-outline-success" onClick={() => setShowEdit(true)}>Edit</button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><input className="form-check-input" type="checkbox" value="" id="6" /></td>
-                                        <td>115</td>
-                                        <td>FC</td>
-                                        <td>
-                                            <button className="btn btn-outline-success" onClick={() => setShowEdit(true)}>Edit</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-primary" onClick={() => setShowAdd(true)}>Add Location</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(true)}>Remove Location</button>
-                            <button type="button" className="btn btn-secondary" onClick={handleClose}>Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    <Table striped bordered hover>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Room</th>
+                                <th>Building</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredLocations.map((location, index) => (
+                            <tr>
+                                <td><Form.Check type="checkbox" id="4" /></td>
+                                <td>{location.room}</td>
+                                <td>{location.building}</td>
+                                <td>
+                                    <Button variant="outline-success" onClick={handleShowEdit}>Edit</Button>
+                                </td>
+                            </tr>))
+                            }
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleShowAdd}>
+                        Add Location
+                    </Button>
+                    <Button variant="secondary" onClick={handleShowDelete}>
+                        Remove Location
+                    </Button>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             {/* Add Location Modal */}
-            <div className={`modal fade ${showAdd ? "show d-block" : ""}`} id="addLoc" aria-hidden={!showAdd}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="addLocLabel">Add Location</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowAdd(false)} aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="input-group mb-3">
-                                <span className="input-group-text">Location Name</span>
-                                <input type="text" className="form-control" placeholder="Name..." aria-label="locName" />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowAdd(false)}>Save</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowAdd(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Modal show={showAdd} onHide={handleCloseAdd}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Location</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Location Name</Form.Label>
+                        <Form.Control type="text" placeholder="Name..." aria-label="locName" />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleCloseAdd}>
+                        Save
+                    </Button>
+                    <Button variant="secondary" onClick={handleCloseAdd}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             {/* Edit Location Modal */}
-            <div className={`modal fade ${showEdit ? "show d-block" : ""}`} id="editLoc" aria-hidden={!showEdit}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="editLocLabel">Edit Location</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowEdit(false)} aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="input-group mb-3">
-                                <span className="input-group-text">Location Name</span>
-                                <input type="text" className="form-control" placeholder="Name..." aria-label="locName" />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowEdit(false)}>Save</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Modal show={showEdit} onHide={handleCloseEdit}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Location</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Location Name</Form.Label>
+                        <Form.Control type="text" placeholder="Name..." aria-label="locName" />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleCloseEdit}>
+                        Save
+                    </Button>
+                    <Button variant="secondary" onClick={handleCloseEdit}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             {/* Delete Location Modal */}
-            <div className={`modal fade ${showDelete ? "show d-block" : ""}`} id="deleteLoc" aria-hidden={!showDelete}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="deleteLocLabel">Confirm Deletion</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowDelete(false)} aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            Are you sure you want to delete the following:
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowDelete(false)}>Yes</button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowDelete(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <Modal show={showDelete} onHide={handleCloseDelete}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Deletion</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete the following:
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleCloseDelete}>
+                        Yes
+                    </Button>
+                    <Button variant="secondary" onClick={handleCloseDelete}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };
