@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 from msds import get_msds_url
-from sqlalchemy import func
 from oidc import oidc
 from permission_requirements import require_editor
 from sqlalchemy.orm import joinedload
@@ -14,6 +13,7 @@ from models import (
     Storage_Class,
     Manufacturer,
     Sub_Location,
+    Location,
     User,
 )
 from database import db
