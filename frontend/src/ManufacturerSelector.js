@@ -3,7 +3,7 @@ import CreatableSelect from "react-select/creatable";
 export const ManufacturerSelector = ({ value, onChange }) => {
   const [manufacturers, setManufacturers] = useState([]);
   useEffect(() => {
-    fetch(`/api/manufacturers`, { credentials: "include" })
+    fetch(`/api/manufacturers?active=false`, { credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         setManufacturers(data);

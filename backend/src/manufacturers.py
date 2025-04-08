@@ -90,3 +90,33 @@ def delete_manufacturers():
     db.session.commit()
 
     return jsonify({"message": "Manufacturers deleted successfully."}), 200
+
+
+@manufacturers.route("/api/manufacturers/<int:manufacturer_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_manufacturer(manufacturer_id):
+    """
+    Updates an existing manufacturer in the database.
+
+    Args:
+        manufacturer_id (int): The ID of the manufacturer to update.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the update.
+    """
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"message": "Manufacturer name is required."}), 400
+
+    manufacturer = db.session.query(Manufacturer).filter(Manufacturer.Manufacturer_ID == manufacturer_id).first()
+
+    if not manufacturer:
+        return jsonify({"message": "Manufacturer not found."}), 404
+
+    manufacturer.Manufacturer_Name = name
+    db.session.commit()
+
+    return jsonify({"message": "Manufacturer updated successfully."}), 200

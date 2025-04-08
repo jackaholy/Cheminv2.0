@@ -7,12 +7,13 @@ const ManufacturerModal = ({ show, handleClose }) => {
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
+    const [selectedManufacturer, setSelectedManufacturer] = useState(null); // State for selected manufacturer
 
     // Fetch manufacturers from the API
     useEffect(() => {
         const fetchManufacturers = async () => {
             try {
-                const response = await fetch("/api/manufacturers");
+                const response = await fetch("/api/manufacturers?active=false");
                 const data = await response.json();
                 setManufacturers(data.map((man) => ({ ...man, selected: false })));
             } catch (error) {
@@ -80,7 +81,15 @@ const ManufacturerModal = ({ show, handleClose }) => {
                                     </td>
                                     <td>{manufacturer.name}</td>
                                     <td>
-                                        <Button variant="outline-success" onClick={() => setShowEdit(true)}>Edit</Button>
+                                        <Button
+                                            variant="outline-success"
+                                            onClick={() => {
+                                                setSelectedManufacturer(manufacturer);
+                                                setShowEdit(true);
+                                            }}
+                                        >
+                                            Edit
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -95,7 +104,11 @@ const ManufacturerModal = ({ show, handleClose }) => {
             </Modal>
 
             <AddManufacturerModal show={showAdd} handleClose={() => setShowAdd(false)} />
-            <EditManufacturerModal show={showEdit} handleClose={() => setShowEdit(false)} />
+            <EditManufacturerModal
+                show={showEdit}
+                handleClose={() => setShowEdit(false)}
+                manufacturer={selectedManufacturer}
+            />
             <DeleteManufacturerModal
                 show={showDelete}
                 handleClose={() => setShowDelete(false)}
@@ -105,41 +118,113 @@ const ManufacturerModal = ({ show, handleClose }) => {
     );
 };
 
-const AddManufacturerModal = ({ show, handleClose }) => (
-    <Modal show={show} onHide={handleClose} centered>
-        <Modal.Header closeButton>
-            <Modal.Title>Add Manufacturer</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form.Group className="mb-3">
-                <Form.Label>Manufacturer Name</Form.Label>
-                <Form.Control type="text" placeholder="Name..." />
-            </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={handleClose}>Save</Button>
-            <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-        </Modal.Footer>
-    </Modal>
-);
+const AddManufacturerModal = ({ show, handleClose }) => {
+    const [manufacturerName, setManufacturerName] = useState(""); // State for manufacturer name
 
-const EditManufacturerModal = ({ show, handleClose }) => (
-    <Modal show={show} onHide={handleClose} centered>
-        <Modal.Header closeButton>
-            <Modal.Title>Edit Manufacturer</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form.Group className="mb-3">
-                <Form.Label>Manufacturer Name</Form.Label>
-                <Form.Control type="text" placeholder="Name..." />
-            </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={handleClose}>Save</Button>
-            <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-        </Modal.Footer>
-    </Modal>
-);
+    const handleSave = async () => {
+        if (!manufacturerName) {
+            alert("Please provide a manufacturer name.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/add_manufacturer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: manufacturerName }),
+            });
+
+            if (response.ok) {
+                alert("Manufacturer added successfully");
+                handleClose();
+            } else {
+                console.error("Failed to add manufacturer");
+            }
+        } catch (error) {
+            console.error("Error adding manufacturer:", error);
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Add Manufacturer</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Manufacturer Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name..."
+                        value={manufacturerName} // Bind input to state
+                        onChange={(e) => setManufacturerName(e.target.value)} // Update state on change
+                    />
+                </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+const EditManufacturerModal = ({ show, handleClose, manufacturer }) => {
+    const [manufacturerName, setManufacturerName] = useState(manufacturer ? manufacturer.name : "");
+
+    useEffect(() => {
+        if (manufacturer) {
+            setManufacturerName(manufacturer.name);
+        }
+    }, [manufacturer]);
+
+    const handleSave = async () => {
+        if (!manufacturerName) {
+            alert("Please provide a manufacturer name.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/manufacturers/${manufacturer.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: manufacturerName }),
+            });
+
+            if (response.ok) {
+                alert("Manufacturer updated successfully");
+                handleClose();
+            } else {
+                console.error("Failed to update manufacturer");
+            }
+        } catch (error) {
+            console.error("Error updating manufacturer:", error);
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit Manufacturer</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Manufacturer Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name..."
+                        value={manufacturerName} // Bind input to state
+                        onChange={(e) => setManufacturerName(e.target.value)} // Update state on change
+                    />
+                </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) => {
     const handleDelete = async () => {
