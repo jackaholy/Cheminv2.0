@@ -73,6 +73,11 @@ class Chemical(Base):
                             if chem_man.Manufacturer
                             else None
                         ),
+                        "manufacturer_id": (
+                            chem_man.Manufacturer.Manufacturer_ID
+                            if chem_man.Manufacturer
+                            else None
+                        ),
                         "dead": inv.Is_Dead,
                     }
                 )

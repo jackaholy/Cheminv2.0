@@ -386,3 +386,49 @@ def delete_chemical(chemical_id):
     db.session.delete(chemical)
     db.session.commit()
     return jsonify({"message": "Chemical deleted successfully"})
+
+
+@chemicals.route("/api/update_inventory/<int:inventory_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_inventory(inventory_id):
+    data = request.json
+    inventory = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    
+    if not inventory:
+        return jsonify({"error": "Inventory not found"}), 404
+    
+    # Update basic fields
+    inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
+    inventory.Product_Number = data.get("product_number", inventory.Product_Number)
+    inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
+    
+    # Update chemical manufacturer if manufacturer changed
+    if "manufacturer_id" in data:
+        chemical_id = inventory.Chemical_Manufacturer.Chemical_ID
+        manufacturer_id = data["manufacturer_id"]
+        
+        # Find or create Chemical_Manufacturer record
+        chem_man = (
+            db.session.query(Chemical_Manufacturer)
+            .filter_by(Chemical_ID=chemical_id, Manufacturer_ID=manufacturer_id)
+            .first()
+        )
+        
+        if not chem_man:
+            chem_man = Chemical_Manufacturer(
+                Chemical_ID=chemical_id,
+                Manufacturer_ID=manufacturer_id,
+                Product_Number=data.get("product_number")
+            )
+            db.session.add(chem_man)
+            db.session.flush()
+        
+        inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
+    
+    # Update timestamp and user
+    inventory.Last_Updated = datetime.now()
+    inventory.Who_Updated = session["oidc_auth_profile"].get("preferred_username")
+    
+    db.session.commit()
+    return jsonify({"message": "Inventory updated successfully"})
