@@ -49,11 +49,6 @@ const SubLocationModal = ({ show, handleClose }) => {
         .includes(filter.toLowerCase())
   );
 
-  // Delete modal filtered sublocations
-  const selectedForDeletion = filteredSubLocations.filter(
-    (sublocation) => sublocation.selected
-  );
-
   const handleEditClick = (sublocation) => {
     setCurrentEditSubLocation(sublocation); // Set the sublocation to be edited
     setShowEdit(true);
@@ -139,7 +134,7 @@ const SubLocationModal = ({ show, handleClose }) => {
       <DeleteSubLocationModal
         show={showDelete}
         handleClose={() => setShowDelete(false)}
-        selectedSubLocations={selectedForDeletion}
+        selectedSubLocations={filteredSubLocations.filter((sublocation) => sublocation.selected)} // Inline filter
       />
     </>
   );

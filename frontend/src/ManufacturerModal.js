@@ -2,15 +2,30 @@ import React, { useState } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 
 const ManufacturerModal = ({ show, handleClose }) => {
-    const [manufacturers, setManufacturers] = useState(["Big Pharma", "Small Pharma", "Medium Pharma"]);
+    const [manufacturers, setManufacturers] = useState([
+        { name: "Big Pharma", selected: false },
+        { name: "Small Pharma", selected: false },
+        { name: "Medium Pharma", selected: false },
+    ]);
     const [filter, setFilter] = useState(""); // State for the filter input
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
 
+    // Handle checkbox selection
+    const handleCheckboxChange = (index) => {
+        setManufacturers((prevManufacturers) =>
+            prevManufacturers.map((manufacturer, i) =>
+                i === index
+                    ? { ...manufacturer, selected: !manufacturer.selected }
+                    : manufacturer
+            )
+        );
+    };
+
     // Filtered manufacturers based on the filter input
-    const filteredManufacturers = manufacturers.filter((name) =>
-        name.toLowerCase().includes(filter.toLowerCase())
+    const filteredManufacturers = manufacturers.filter((manufacturer) =>
+        manufacturer.name.toLowerCase().includes(filter.toLowerCase())
     );
 
     return (
@@ -41,12 +56,16 @@ const ManufacturerModal = ({ show, handleClose }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredManufacturers.map((name, index) => (
+                            {filteredManufacturers.map((manufacturer, index) => (
                                 <tr key={index}>
                                     <td>
-                                        <Form.Check type="checkbox" />
+                                        <Form.Check
+                                            type="checkbox"
+                                            checked={manufacturer.selected}
+                                            onChange={() => handleCheckboxChange(index)}
+                                        />
                                     </td>
-                                    <td>{name}</td>
+                                    <td>{manufacturer.name}</td>
                                     <td>
                                         <Button variant="outline-success" onClick={() => setShowEdit(true)}>Edit</Button>
                                     </td>
@@ -64,7 +83,11 @@ const ManufacturerModal = ({ show, handleClose }) => {
 
             <AddManufacturerModal show={showAdd} handleClose={() => setShowAdd(false)} />
             <EditManufacturerModal show={showEdit} handleClose={() => setShowEdit(false)} />
-            <DeleteManufacturerModal show={showDelete} handleClose={() => setShowDelete(false)} />
+            <DeleteManufacturerModal
+                show={showDelete}
+                handleClose={() => setShowDelete(false)}
+                selectedManufacturers={filteredManufacturers.filter((manufacturer) => manufacturer.selected)} // Inline filter
+            />
         </>
     );
 };
@@ -105,13 +128,18 @@ const EditManufacturerModal = ({ show, handleClose }) => (
     </Modal>
 );
 
-const DeleteManufacturerModal = ({ show, handleClose }) => (
+const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) => (
     <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            Are you sure you want to delete the selected manufacturers?
+            Are you sure you want to delete the following manufacturers?
+            <ul>
+                {selectedManufacturers.map((manufacturer, index) => (
+                    <li key={index}>{manufacturer.name}</li>
+                ))}
+            </ul>
         </Modal.Body>
         <Modal.Footer>
             <Button variant="primary" onClick={handleClose}>Yes</Button>
