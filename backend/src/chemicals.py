@@ -297,31 +297,27 @@ def get_chemicals_by_sublocation():
     if not sub_location_id:
         return jsonify({"error": "sub_location_id is required"}), 400
 
-    chemical_list = []
-    # Search through the entire database
-    with db.session() as session:
-        chemicals = (
-            session.query(Chemical)
-            .join(Chemical.Chemical_Manufacturers)
-            .join(Chemical_Manufacturer.Inventory)
-            .filter(Inventory.Sub_Location_ID == sub_location_id)
-            .all()
-        )
+    # Query inventory records for the specified sublocation
+    inventory_records = (
+        db.session.query(Inventory)
+        .join(Chemical_Manufacturer)
+        .join(Chemical)
+        .join(Sub_Location)
+        .join(Location)
+        .filter(Inventory.Sub_Location_ID == sub_location_id)
+        .all()
+    )
 
-        # Iterate through each table from the database
-        for chem in chemicals:
-            for manufacturer in chem.Chemical_Manufacturers:
-                for inventory in manufacturer.Inventory:
-                    # Add the appropriate chemical detail to the chemical list
-                    # We can add more chemical attributes below if needed
-                    chemical_list.append(
-                        {
-                            "name": chem.Chemical_Name,
-                            "product_number": manufacturer.Product_Number,
-                            "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                            "sticker_number": inventory.Sticker_Number,
-                        }
-                    )
+    # Build the response with relevant details
+    chemical_list = [
+        {
+            "name": record.Chemical_Manufacturer.Chemical.Chemical_Name,
+            "product_number": record.Chemical_Manufacturer.Product_Number,
+            "manufacturer": record.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
+            "sticker_number": record.Sticker_Number,
+        }
+        for record in inventory_records
+    ]
 
     return jsonify(chemical_list)
 

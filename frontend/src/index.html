@@ -35,12 +35,17 @@
                                         href="#inventoryModal" href="inventoryModal">Inventory</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">MSDS Log</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manage Database</a>
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Manage
+                        Database</a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Manufacturer List</a></li>
-                        <li><a class="dropdown-item" href="#">Location List</a></li>
-                        <li><a class="dropdown-item" href="#">Sub Location List</a></li>
-                        <li><a class="dropdown-item" href="#">Delete Elements</a></li>
+                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#manufacturerModal"
+                               href="#manufacturerModal">Manufacturer List</a></li>
+                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#locationModal"
+                               href="#locationModal">Location List</a></li>
+                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#subModal"
+                               href="#subModal">Sub Location List</a></li>
+                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#classModal"
+                               href="#classModal">Storage Class</a></li>
                     </ul>
                 </li>
             </ul>
@@ -378,6 +383,530 @@
                 <button type="button" class="btn btn-secondary">Complete Sub Location</button>
                 <button type="button" class="btn btn-secondary">Complete Room</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Finish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--   Attempting a Proper Modal   -->
+<!-- Manufacturer Modal -->
+<div class="modal fade" id="manufacturerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="manufacturerModalLabel">Manufacturers</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Manufacturer Name</th>
+                        <th scope="col">Edit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="1">
+                        </td>
+                        <td>Big Pharma</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="2">
+                        </td>
+                        <td>Big Pharma</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="3">
+                        </td>
+                        <td>Big Pharma</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editMan" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-target="#addMan" data-bs-toggle="modal">Add Manufacturer</button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#deleteMan" data-bs-toggle="modal">Remove Manufacturer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Manufacturer Modal -->
+<div class="modal fade" id="addMan" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addManLabel">Add Manufacturer</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">Manufacturer Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="manName"
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editMan" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editManLabel">Edit Manufacturer</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon2">Manufacturer Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="manName"
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteMan" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteManLabel">Confirm Deletion</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the following:
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Yes
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#manufacturerModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--   Attempting a Proper Modal   -->
+<!-- Sub Location Modal -->
+<div class="modal fade" id="subModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="subModalLabel">Sub Locations</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Room</th>
+                        <th scope="col">Building</th>
+                        <th scope="col">Edit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="7">
+                        </td>
+                        <td>acid cabinet</td>
+                        <td>FC 114</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editSub" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="8">
+                        </td>
+                        <td>amino acids</td>
+                        <td>FC 114</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editSub" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="9">
+                        </td>
+                        <td>corrosive white shelf</td>
+                        <td>FC 211</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editSub" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-target="#addSub" data-bs-toggle="modal">Add Sub Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#deleteSub" data-bs-toggle="modal">Remove Sub Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Location Modal -->
+<div class="modal fade" id="addSub" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addSubLabel">Add Sub Location</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon5">Sub Location Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="locName"
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#subModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#subModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editSub" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editSubLabel">Edit Sub Location</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon6">Sub Location Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="locName"
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#subModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#subModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteSub" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteSubLabel">Confirm Deletion</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the following:
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#subModal" data-bs-toggle="modal">Yes
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#subModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--   Attempting a Proper Modal   -->
+<!-- Location Modal -->
+<div class="modal fade" id="locationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="locationModalLabel">Locations</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Room</th>
+                        <th scope="col">Building</th>
+                        <th scope="col">Edit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="4">
+                        </td>
+                        <td>111</td>
+                        <td>FC</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editLoc" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="5">
+                        </td>
+                        <td>114</td>
+                        <td>FC</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editLoc" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="6">
+                        </td>
+                        <td>115</td>
+                        <td>FC</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editLoc" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-target="#addLoc" data-bs-toggle="modal">Add Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#deleteLoc" data-bs-toggle="modal">Remove Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Location Modal -->
+<div class="modal fade" id="addLoc" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addLocLabel">Add Location</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon3">Location Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="locName"
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#locationModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#locationModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editLoc" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editLocLabel">Edit Location</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon4">Location Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="locName"
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#locationModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#locationModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteLoc" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteLocLabel">Confirm Deletion</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the following:
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#locationModal" data-bs-toggle="modal">Yes
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#locationModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--   Attempting a Proper Modal   -->
+<!-- Storage Class Modal -->
+<div class="modal fade" id="classModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="classModalLabel">Storage Class</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Storage Class Name</th>
+                        <th scope="col">Edit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="10">
+                        </td>
+                        <td>corr white</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editClass" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="11">
+                        </td>
+                        <td>flam red</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editClass" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="12">
+                        </td>
+                        <td>gen gray</td>
+                        <td>
+                            <button class="btn btn-outline-success" data-bs-target="#editClass" data-bs-toggle="modal">Edit</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-target="#addClass" data-bs-toggle="modal">Add Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#deleteClass" data-bs-toggle="modal">Remove Location</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Location Modal -->
+<div class="modal fade" id="addClass" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addClassLabel">Add New Storage Class</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon7">Storage Class Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="className"
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#classModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#classModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editClass" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editClassLabel">Edit Storage Class</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon8">Storage Class Name</span>
+                    <input type="text" class="form-control" placeholder="Name..." aria-label="className"
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#classModal" data-bs-toggle="modal">Save
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#classModal" data-bs-toggle="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteClass" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteClassLabel">Confirm Deletion</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the following:
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#classModal" data-bs-toggle="modal">Yes
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-target="#classModal" data-bs-toggle="modal">Cancel</button>
             </div>
         </div>
     </div>
