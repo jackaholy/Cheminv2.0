@@ -174,3 +174,62 @@ def update_location(location_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Error updating location", "error": str(e)}), 500
+
+@locations.route("/api/sublocations", methods=["GET"])
+@oidc.require_login
+@require_editor
+def get_sublocations():
+    """
+    Fetches all sublocations as a flat list with their parent location details.
+
+    Returns:
+        jsonify: A JSON response containing a flat list of sublocations.
+    """
+    try:
+        sublocations = []
+        locations = db.session.query(Location).all()
+
+        for location in locations:
+            for sub_location in location.Sub_Locations:
+                sublocations.append({
+                    "id": sub_location.Sub_Location_ID,
+                    "name": sub_location.Sub_Location_Name,
+                    "building": location.Building,
+                    "room": location.Room,
+                })
+
+        return jsonify(sublocations), 200
+    except Exception as e:
+        return jsonify({"message": "Error fetching sublocations", "error": str(e)}), 500
+
+@locations.route("/api/sublocations", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_sublocations():
+    """
+    Deletes multiple sublocations from the database.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the deletion.
+    """
+    try:
+        data = request.get_json()
+        sublocation_ids = data.get("ids")
+
+        if not sublocation_ids:
+            return jsonify({"message": "No sublocation IDs provided."}), 400
+
+        # Delete inventory records associated with the sublocations
+        db.session.query(Inventory).filter(Inventory.Sub_Location_ID.in_(sublocation_ids)).delete(synchronize_session=False)
+
+        # Delete the sublocations themselves
+        db.session.query(Location.Sub_Locations.property.mapper.class_).filter(
+            Location.Sub_Locations.property.mapper.class_.Sub_Location_ID.in_(sublocation_ids)
+        ).delete(synchronize_session=False)
+
+        db.session.commit()
+
+        return jsonify({"message": "Sublocations deleted successfully."}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error deleting sublocations", "error": str(e)}), 500
