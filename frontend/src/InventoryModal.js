@@ -179,9 +179,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         >
           Complete Sub Location
         </button>
-        <button type="button" className="btn btn-secondary">
-          Complete Room
-        </button>
         <button
           type="button"
           className="btn btn-secondary"
