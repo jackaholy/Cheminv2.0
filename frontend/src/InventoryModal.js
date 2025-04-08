@@ -68,10 +68,10 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       return;
     }
 
-    fetch("/api/chemicals/mark_dead", {
+    fetch("/api/chemicals/mark_many_dead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inventory_ids: unenteredChemicals }),
+      body: JSON.stringify({ inventory_id: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id}),
     })
       .then((res) => {
       if (!res.ok) {
@@ -113,6 +113,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           <label className="form-label">Sticker Number</label>
           <input
             onKeyDown={handleKeyDown}
+            // Prevent scrolling in the "Type sticker number" text box
             onWheel={(e) => e.target.blur()}
             type="number"
             className="form-control"
