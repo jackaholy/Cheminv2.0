@@ -10,11 +10,15 @@ const LocationModal = (props) => {
     const handleCloseAdd = () => setShowAdd(false);
     const handleShowAdd = () => setShowAdd(true);
     const handleCloseEdit = () => setShowEdit(false);
-    const handleShowEdit = () => setShowEdit(true);
+    const handleShowEdit = (location) => {
+        setShowEdit(true);
+        setEditLocationData(location);
+    };
     const handleCloseDelete = () => setShowDelete(false);
     const handleShowDelete = () => setShowDelete(true);
 
     const [filterQuery, setFilterQuery] = useState("");
+    const [editLocationData, setEditLocationData] = useState(null);
 
     const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
@@ -56,7 +60,7 @@ const LocationModal = (props) => {
         console.log("Deleting locations:", selectedLocations);
         for (const location of selectedLocations) {
             try {
-                const response = await fetch(`/api/locations/${location.id}`, {
+                const response = await fetch(`/api/locations/${location.location_id}`, {
                     method: 'DELETE',
                 });
                 if (!response.ok) {
@@ -119,6 +123,7 @@ const LocationModal = (props) => {
             <EditLocationModal
                 show={showEdit}
                 handleClose={handleCloseEdit}
+                locationData={editLocationData}
             />
 
             <DeleteLocationConfirmationModal
@@ -155,7 +160,7 @@ const LocationTable = ({ locations, handleCheckboxChange, handleShowEdit }) => (
                     <td>{location.room}</td>
                     <td>{location.building}</td>
                     <td>
-                        <Button variant="outline-success" onClick={handleShowEdit}>Edit</Button>
+                        <Button variant="outline-success" onClick={() => handleShowEdit(location)}>Edit</Button>
                     </td>
                 </tr>
             ))}
@@ -163,49 +168,144 @@ const LocationTable = ({ locations, handleCheckboxChange, handleShowEdit }) => (
     </Table>
 );
 
-const AddLocationModal = ({ show, handleClose }) => (
-    <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-            <Modal.Title>Add Location</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form.Group className="mb-3">
-                <Form.Label>Location Name</Form.Label>
-                <Form.Control type="text" placeholder="Name..." aria-label="locName" />
-            </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={handleClose}>
-                Save
-            </Button>
-            <Button variant="secondary" onClick={handleClose}>
-                Cancel
-            </Button>
-        </Modal.Footer>
-    </Modal>
-);
+const AddLocationModal = ({ show, handleClose }) => {
+    const [room, setRoom] = useState("");
+    const [building, setBuilding] = useState("");
 
-const EditLocationModal = ({ show, handleClose }) => (
-    <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-            <Modal.Title>Edit Location</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form.Group className="mb-3">
-                <Form.Label>Location Name</Form.Label>
-                <Form.Control type="text" placeholder="Name..." aria-label="locName" />
-            </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={handleClose}>
-                Save
-            </Button>
-            <Button variant="secondary" onClick={handleClose}>
-                Cancel
-            </Button>
-        </Modal.Footer>
-    </Modal>
-);
+    const handleSave = async () => {
+        try {
+            const response = await fetch("/api/locations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ room, building }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to add location");
+            }
+
+            alert("Location added successfully");
+            handleClose();
+        } catch (error) {
+            console.error("Error adding location:", error);
+            alert("Failed to add location. Check console for details.");
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Add Location</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Room</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter room..."
+                            aria-label="room"
+                            value={room}
+                            onChange={(e) => setRoom(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Building</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter building..."
+                            aria-label="building"
+                            value={building}
+                            onChange={(e) => setBuilding(e.target.value)}
+                        />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>
+                    Save
+                </Button>
+                <Button variant="secondary" onClick={handleClose}>
+                    Cancel
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+const EditLocationModal = ({ show, handleClose, locationData }) => {
+    const [room, setRoom] = useState(locationData?.room || "");
+    const [building, setBuilding] = useState(locationData?.building || "");
+
+    useEffect(() => {
+        setRoom(locationData?.room || "");
+        setBuilding(locationData?.building || "");
+    }, [locationData]);
+
+    const handleSave = async () => {
+        try {
+            const response = await fetch(`/api/locations/${locationData.location_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ room, building }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update location");
+            }
+
+            alert("Location updated successfully");
+            handleClose();
+        } catch (error) {
+            console.error("Error updating location:", error);
+            alert("Failed to update location. Check console for details.");
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose}>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit Location</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Room</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter room..."
+                            aria-label="room"
+                            value={room}
+                            onChange={(e) => setRoom(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Building</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter building..."
+                            aria-label="building"
+                            value={building}
+                            onChange={(e) => setBuilding(e.target.value)}
+                        />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>
+                    Save
+                </Button>
+                <Button variant="secondary" onClick={handleClose}>
+                    Cancel
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 const DeleteLocationConfirmationModal = ({ show, handleClose, locations, handleDelete }) => (
     <Modal show={show} onHide={handleClose}>
@@ -219,6 +319,7 @@ const DeleteLocationConfirmationModal = ({ show, handleClose, locations, handleD
                     <li key={index}>{location.room} - {location.building}</li>
                 ))}
             </ul>
+            <b>This will delete every bottle in every sub location in these rooms, permanently and irreversably.</b>
         </Modal.Body>
         <Modal.Footer>
             <Button variant="primary" onClick={handleDelete}>
