@@ -7,6 +7,7 @@ export const MainContent = ({
   query,
   handleSearch,
   handleShowModal,
+  onDataUpdate, // Add this prop to MainContent
 }) => {
   const [user, setUser] = useState({});
   const [showEditModal, setShowEditModal] = useState(false); // State to control modal visibility
@@ -108,6 +109,7 @@ export const MainContent = ({
         show={showEditModal}
         handleClose={handleCloseEditModal}
         chemical={selectedChemical}
+        onDataUpdate={onDataUpdate}
       />
     </div>
   );

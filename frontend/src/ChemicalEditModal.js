@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const ChemicalEditModal = ({ show, handleClose, chemical }) => {
+const ChemicalEditModal = ({ show, handleClose, chemical, onDataUpdate }) => {
     console.log(chemical);
     const [chemicalName, setChemicalName] = useState(chemical?.chemical_name || "");
     const [chemicalFormula, setChemicalFormula] = useState(chemical?.formula || "");
@@ -37,6 +37,7 @@ const ChemicalEditModal = ({ show, handleClose, chemical }) => {
             .then((response) => {
                 if (response.ok) {
                     alert("Chemical updated successfully!");
+                    onDataUpdate();
                     handleClose();
                 } else {
                     alert("Failed to update chemical.");
@@ -53,6 +54,7 @@ const ChemicalEditModal = ({ show, handleClose, chemical }) => {
                 .then((response) => {
                     if (response.ok) {
                         alert("Chemical deleted successfully!");
+                        onDataUpdate();
                         handleClose();
                     } else {
                         alert("Failed to delete chemical.");

@@ -161,6 +161,10 @@ const App = () => {
                     query={query}
                     handleSearch={handleSearch}
                     handleShowModal={handleShowChemicalModal}
+                    onDataUpdate={async () => {
+                        const updatedData = await refreshChemicals();
+                        setResults(updatedData);
+                    }}
                 />
                 <ManageUsersModal/>
             </div>
