@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from permission_requirements import require_editor
 from database import db
 from oidc import oidc
-from models import Inventory, Location, Chemical
+from models import Inventory, Location, Chemical, Sub_Location
 
 locations = Blueprint("locations", __name__)
 
@@ -174,3 +174,126 @@ def update_location(location_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Error updating location", "error": str(e)}), 500
+
+@locations.route("/api/sublocations", methods=["GET"])
+@oidc.require_login
+@require_editor
+def get_sublocations():
+    """
+    Fetches all sublocations as a flat list with their parent location details.
+
+    Returns:
+        jsonify: A JSON response containing a flat list of sublocations.
+    """
+    sublocations = db.session.query(
+        Sub_Location.Sub_Location_ID,
+        Sub_Location.Sub_Location_Name,
+        Location.Building,
+        Location.Room
+    ).join(Location, Sub_Location.Location_ID == Location.Location_ID).all()
+
+    result = [
+        {
+            "id": sublocation.Sub_Location_ID,
+            "name": sublocation.Sub_Location_Name,
+            "building": sublocation.Building,
+            "room": sublocation.Room,
+        }
+        for sublocation in sublocations
+    ]
+
+    return jsonify(result), 200
+
+@locations.route("/api/sublocations", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_sublocations():
+    """
+    Deletes multiple sublocations from the database.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the deletion.
+    """
+    try:
+        data = request.get_json()
+        sublocation_ids = data.get("ids")
+
+        if not sublocation_ids:
+            return jsonify({"message": "No sublocation IDs provided."}), 400
+
+        # Delete inventory records associated with the sublocations
+        db.session.query(Inventory).filter(Inventory.Sub_Location_ID.in_(sublocation_ids)).delete(synchronize_session=False)
+
+        # Delete the sublocations themselves
+        db.session.query(Sub_Location).filter(
+            Sub_Location.Sub_Location_ID.in_(sublocation_ids)
+        ).delete(synchronize_session=False)
+
+        db.session.commit()
+
+        return jsonify({"message": "Sublocations deleted successfully."}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error deleting sublocations", "error": str(e)}), 500
+
+@locations.route("/api/sublocations", methods=["POST"])
+@oidc.require_login
+@require_editor
+def create_sublocation():
+    """
+    Creates a new sublocation in the database.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the creation.
+    """
+    data = request.get_json()
+    name = data.get("name")
+    location_id = data.get("locationId")
+
+    if not name or not location_id:
+        return jsonify({"message": "Name and location ID are required."}), 400
+
+    location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
+
+    if not location:
+        return jsonify({"message": "Parent location not found."}), 404
+
+    # Correctly instantiate the Sub_Location model
+    new_sublocation = Sub_Location(Sub_Location_Name=name, Location_ID=location_id)
+    db.session.add(new_sublocation)
+    db.session.commit()
+
+    return jsonify({"message": "Sublocation created successfully", "id": new_sublocation.Sub_Location_ID}), 201
+
+@locations.route("/api/sublocations/<int:sublocation_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_sublocation(sublocation_id):
+    """
+    Updates an existing sublocation in the database.
+
+    Args:
+        sublocation_id (int): The ID of the sublocation to update.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the update.
+    """
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"message": "Name is required."}), 400
+
+    sublocation = (
+        db.session.query(Sub_Location)
+        .filter_by(Sub_Location_ID=sublocation_id)
+        .first()
+    )
+
+    if not sublocation:
+        return jsonify({"message": "Sublocation not found."}), 404
+
+    sublocation.Sub_Location_Name = name
+    db.session.commit()
+
+    return jsonify({"message": "Sublocation updated successfully."}), 200

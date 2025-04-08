@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-export const LocationSelector = ({ onChange }) => {
+export const LocationSelector = ({ onChange, sublocationSelection=true }) => {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
@@ -50,6 +50,7 @@ export const LocationSelector = ({ onChange }) => {
           </option>
         ))}
       </select>
+      { sublocationSelection ? <>
       <label className="form-label">Sub-Location</label>
       <select
         className="form-select"
@@ -62,7 +63,7 @@ export const LocationSelector = ({ onChange }) => {
               {sub.sub_location_name}
             </option>
           ))}
-      </select>
+      </select></>:null}
     </div>
   );
 };
