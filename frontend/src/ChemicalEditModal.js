@@ -1,36 +1,68 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const ChemicalEditModal = ({ show, handleClose, chemical, storageClasses, onSave }) => {
-    const [chemicalName, setChemicalName] = useState(chemical?.Chemical_Name || "");
-    const [chemicalFormula, setChemicalFormula] = useState(chemical?.Chemical_Formula || "");
-    const [storageClassId, setStorageClassId] = useState(chemical?.Storage_Class_ID || "");
+const ChemicalEditModal = ({ show, handleClose, chemical }) => {
+    console.log(chemical);
+    const [chemicalName, setChemicalName] = useState(chemical?.chemical_name || "");
+    const [chemicalFormula, setChemicalFormula] = useState(chemical?.formula || "");
+    const [storageClasses, setStorageClasses] = useState([]);
+    const [storageClassId, setStorageClassId] = useState(chemical?.storage_class_id || "");
 
     useEffect(() => {
-        if (chemical) {
-            setChemicalName(chemical.Chemical_Name);
-            setChemicalFormula(chemical.Chemical_Formula);
-            setStorageClassId(chemical.Storage_Class_ID);
-        }
+        fetch("/api/storage_classes")
+            .then((response) => response.json())
+            .then((data) => setStorageClasses(data))
+            .catch((error) => console.error(error));
+    }, []);
+    useEffect(() => {
+        setChemicalName(chemical?.chemical_name || "");
+        setChemicalFormula(chemical?.formula || "");
+        setStorageClassId(chemical?.storage_class_id || "");
     }, [chemical]);
 
     const handleSave = () => {
-        if (!chemicalName || !storageClassId) {
-            alert("Please provide all required fields.");
-            return;
-        }
-
         const updatedChemical = {
-            ...chemical,
-            Chemical_Name: chemicalName,
-            Chemical_Formula: chemicalFormula,
-            Storage_Class_ID: storageClassId,
+            chemical_name: chemicalName,
+            chemical_formula: chemicalFormula,
+            storage_class_id: storageClassId,
         };
 
-        onSave(updatedChemical);
-        handleClose();
+        fetch(`/api/update_chemical/${chemical.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedChemical),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    alert("Chemical updated successfully!");
+                    handleClose();
+                } else {
+                    alert("Failed to update chemical.");
+                }
+            })
+            .catch((error) => console.error("Error updating chemical:", error));
     };
 
+    const handleDelete = () => {
+        if (window.confirm("Are you sure you want to permanently delete this chemical? This action cannot be undone.")) {
+            fetch(`/api/delete_chemical/${chemical.id}`, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("Chemical deleted successfully!");
+                        handleClose();
+                    } else {
+                        alert("Failed to delete chemical.");
+                    }
+                })
+                .catch((error) => console.error("Error deleting chemical:", error));
+        }
+    };
+
+    console.log(storageClassId, chemicalName, chemicalFormula);
     return (
         <Modal show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
@@ -64,8 +96,8 @@ const ChemicalEditModal = ({ show, handleClose, chemical, storageClasses, onSave
                         >
                             <option value="">Select a storage class</option>
                             {storageClasses.map((sc) => (
-                                <option key={sc.Storage_Class_ID} value={sc.Storage_Class_ID}>
-                                    {sc.Storage_Class_Name}
+                                <option key={sc.id} value={sc.id}>
+                                    {sc.name}
                                 </option>
                             ))}
                         </Form.Select>
@@ -73,6 +105,7 @@ const ChemicalEditModal = ({ show, handleClose, chemical, storageClasses, onSave
                 </Form>
             </Modal.Body>
             <Modal.Footer>
+                <Button variant="danger" onClick={handleDelete}>Delete</Button>
                 <Button variant="primary" onClick={handleSave}>Save</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>

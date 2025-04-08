@@ -83,6 +83,8 @@ class Chemical(Base):
             "storage_class": (
                 self.Storage_Class.Storage_Class_Name if self.Storage_Class else None
             ),
+            "storage_class_id": (
+                self.Storage_Class.Storage_Class_ID if self.Storage_Class else None),
             "inventory": sorted(inventory_list, key=lambda x: x["dead"]),
             "quantity": len(
                 [bottle for bottle in inventory_list if not bottle["dead"]]

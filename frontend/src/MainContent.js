@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ChemicalEditModal from "./ChemicalEditModal"; // Import the modal
 
 export const MainContent = ({
   chemicalsData,
@@ -8,6 +9,8 @@ export const MainContent = ({
   handleShowModal,
 }) => {
   const [user, setUser] = useState({});
+  const [showEditModal, setShowEditModal] = useState(false); // State to control modal visibility
+  const [selectedChemical, setSelectedChemical] = useState(null); // State to store selected chemical
 
   useEffect(() => {
     fetch("/api/user", {
@@ -30,6 +33,16 @@ export const MainContent = ({
       );
     }
     return null;
+  };
+
+  const handleEditClick = (chemical) => {
+    setSelectedChemical(chemical); // Set the selected chemical
+    setShowEditModal(true); // Show the modal
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false); // Hide the modal
+    setSelectedChemical(null); // Clear the selected chemical
   };
 
   return (
@@ -64,7 +77,14 @@ export const MainContent = ({
                 </a>
               </div>
               <div>{chem.formula}</div>
-              <div><button className="btn btn-link" onClick={()=>{alert("edit")}} href="#">Edit</button></div>
+              <div>
+                <button
+                  className="btn btn-link"
+                  onClick={() => handleEditClick(chem)} // Trigger modal on edit click
+                >
+                  Edit
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -81,6 +101,11 @@ export const MainContent = ({
           </button>
         )}
       </div>
+      <ChemicalEditModal
+        show={showEditModal}
+        handleClose={handleCloseEditModal}
+        chemical={selectedChemical}
+      />
     </div>
   );
 };

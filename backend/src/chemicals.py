@@ -331,3 +331,58 @@ def mark_alive():
     bottle.Is_Dead = False
     db.session.commit()
     return {"message": "Chemical marked as alive"}
+
+
+@chemicals.route("/api/update_chemical/<int:chemical_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_chemical(chemical_id):
+    """
+    API to update chemical details.
+    :param chemical_id: ID of the chemical to update.
+    :return: Success or error message.
+    """
+    data = request.json
+    chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
+
+    if not chemical:
+        return jsonify({"error": "Chemical not found"}), 404
+
+    chemical.Chemical_Name = data.get("chemical_name", chemical.Chemical_Name)
+    chemical.Chemical_Formula = data.get("chemical_formula", chemical.Chemical_Formula)
+    chemical.Storage_Class_ID = data.get("storage_class_id", chemical.Storage_Class_ID)
+
+    db.session.commit()
+    return jsonify({"message": "Chemical updated successfully"})
+
+
+@chemicals.route("/api/delete_chemical/<int:chemical_id>", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_chemical(chemical_id):
+    """
+    API to permanently delete a chemical.
+    :param chemical_id: ID of the chemical to delete.
+    :return: Success or error message.
+    """
+    chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
+
+    if not chemical:
+        return jsonify({"error": "Chemical not found"}), 404
+
+    # Get all related Chemical_Manufacturer IDs
+    chemical_manufacturer_ids = db.session.query(Chemical_Manufacturer.Chemical_Manufacturer_ID).filter_by(Chemical_ID=chemical_id).all()
+
+    # Flatten the list of tuples
+    chemical_manufacturer_ids = [cm_id[0] for cm_id in chemical_manufacturer_ids]
+
+    # Delete related Inventory records
+    db.session.query(Inventory).filter(Inventory.Chemical_Manufacturer_ID.in_(chemical_manufacturer_ids)).delete(synchronize_session=False)
+
+    # Delete related Chemical_Manufacturer records
+    db.session.query(Chemical_Manufacturer).filter_by(Chemical_ID=chemical_id).delete(synchronize_session=False)
+
+    # Delete the chemical itself
+    db.session.delete(chemical)
+    db.session.commit()
+    return jsonify({"message": "Chemical deleted successfully"})
