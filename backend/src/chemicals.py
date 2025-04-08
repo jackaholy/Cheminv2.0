@@ -404,3 +404,15 @@ def sticker_lookup():
         "location_name": bottle.Sub_Location.Location.Location_Name,
         "sub_location_name": bottle.Sub_Location.Sub_Location_Name
     })
+
+
+@chemicals.route("/api/chemicals/update_location", methods=["POST"])
+@oidc.require_login
+def update_location():
+    inventory_id = request.json.get("inventory_id")
+    new_sub_location_id = request.json.get("new_sub_location_id")
+
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Sub_Location_ID = new_sub_location_id
+    db.session.commit()
+    return jsonify({"message": "Location updated"})
