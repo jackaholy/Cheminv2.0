@@ -26,7 +26,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   };
 
   // Detect double space
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
       const currentTime = Date.now();
       const DOUBLE_ENTER_THRESHOLD = 500;
@@ -37,18 +37,48 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
         console.log("Entered Sticker Number:", sticker_number);
 
-        // Check if the entered sticker number exists in the list
-        const matchingChemical = chemicals.find(
-          (chem) => chem.sticker_number === sticker_number
-        );
-        console.log("Chemical: " + matchingChemical);
-        if (matchingChemical) {
-          // Remove from displayed list
-          setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
-        } else {
-          console.log("No matching chemical found.");
-        }
+      // Fetch the current sublocation of the entered sticker number
+      const response = await fetch(
+        `/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`
+      );
+      const data = await response.json();
 
+      if (response.ok) {
+        // Check if the chemical is from a different sublocation
+        if (data.sub_location_id !== selectedSubLocation.sub_location_id) {
+          const confirmMove = window.confirm(
+            `This chemical was last found at: ${data.Location_ID} – ${data.sub_location_id}. 
+            Do you want to move it to the current location?`
+          );
+
+          if (confirmMove) {
+            // Update the location if user confirms
+            await fetch("/api/chemicals/update_location", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                inventory_id: data.inventory_id,
+                new_sub_location_id: selectedSubLocation.sub_location_id,
+              }),
+            }).then(() => {
+              // Update the list of chemicals if location is updated
+              setChemicals((prevChemicals) =>
+                prevChemicals.map((chem) => {
+                  if (chem.sticker_number === sticker_number) {
+                    chem.sub_location_id = selectedSubLocation.sub_location_id;
+                  }
+                  return chem;
+                })
+              );
+            });
+          }
+        } else {
+          // Remove from displayed list if already in the correct location
+          setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
+        }
+      } else {
+        console.log("No matching chemical found.");
+      }
         // Clear input
         setInputValue("");
       }
