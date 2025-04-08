@@ -56,7 +56,7 @@ const LocationModal = (props) => {
     };
     const handleDelete = async () => {
         const selectedLocations = locations.filter(location => location.selected);
-        // Perform delete operation here
+        // Perform delete operation here 
         console.log("Deleting locations:", selectedLocations);
         for (const location of selectedLocations) {
             try {
@@ -76,7 +76,6 @@ const LocationModal = (props) => {
         alert("Deleted: " + selectedLocations.map(location => location.room).join(", ") + " successfully");
         setShowDelete(false);
         loadLocations();
-
     }
     return (
         <>
@@ -117,12 +116,14 @@ const LocationModal = (props) => {
             <AddLocationModal
                 show={showAdd}
                 handleClose={handleCloseAdd}
+                onLocationChange={loadLocations}
             />
 
             <EditLocationModal
                 show={showEdit}
                 handleClose={handleCloseEdit}
                 locationData={editLocationData}
+                onLocationChange={loadLocations}
             />
 
             <DeleteLocationConfirmationModal
@@ -167,7 +168,7 @@ const LocationTable = ({ locations, handleCheckboxChange, handleShowEdit }) => (
     </Table>
 );
 
-const AddLocationModal = ({ show, handleClose }) => {
+const AddLocationModal = ({ show, handleClose, onLocationChange }) => {
     const [room, setRoom] = useState("");
     const [building, setBuilding] = useState("");
 
@@ -187,6 +188,7 @@ const AddLocationModal = ({ show, handleClose }) => {
 
             alert("Location added successfully");
             handleClose();
+            onLocationChange();
         } catch (error) {
             console.error("Error adding location:", error);
             alert("Failed to add location. Check console for details.");
@@ -234,7 +236,7 @@ const AddLocationModal = ({ show, handleClose }) => {
     );
 };
 
-const EditLocationModal = ({ show, handleClose, locationData }) => {
+const EditLocationModal = ({ show, handleClose, locationData, onLocationChange }) => {
     const [room, setRoom] = useState(locationData?.room || "");
     const [building, setBuilding] = useState(locationData?.building || "");
 
@@ -259,6 +261,7 @@ const EditLocationModal = ({ show, handleClose, locationData }) => {
 
             alert("Location updated successfully");
             handleClose();
+            onLocationChange();
         } catch (error) {
             console.error("Error updating location:", error);
             alert("Failed to update location. Check console for details.");
