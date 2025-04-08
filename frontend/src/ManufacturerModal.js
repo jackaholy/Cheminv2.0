@@ -1,16 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 
 const ManufacturerModal = ({ show, handleClose }) => {
-    const [manufacturers, setManufacturers] = useState([
-        { name: "Big Pharma", selected: false },
-        { name: "Small Pharma", selected: false },
-        { name: "Medium Pharma", selected: false },
-    ]);
+    const [manufacturers, setManufacturers] = useState([]);
     const [filter, setFilter] = useState(""); // State for the filter input
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
+
+    // Fetch manufacturers from the API
+    useEffect(() => {
+        const fetchManufacturers = async () => {
+            try {
+                const response = await fetch("/api/manufacturers");
+                const data = await response.json();
+                setManufacturers(data.map((man) => ({ ...man, selected: false })));
+            } catch (error) {
+                console.error("Error fetching manufacturers:", error);
+            }
+        };
+
+        if (show) {
+            fetchManufacturers();
+        }
+    }, [show]);
 
     // Handle checkbox selection
     const handleCheckboxChange = (index) => {
@@ -128,24 +141,45 @@ const EditManufacturerModal = ({ show, handleClose }) => (
     </Modal>
 );
 
-const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) => (
-    <Modal show={show} onHide={handleClose} centered>
-        <Modal.Header closeButton>
-            <Modal.Title>Confirm Deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            Are you sure you want to delete the following manufacturers?
-            <ul>
-                {selectedManufacturers.map((manufacturer, index) => (
-                    <li key={index}>{manufacturer.name}</li>
-                ))}
-            </ul>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="primary" onClick={handleClose}>Yes</Button>
-            <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-        </Modal.Footer>
-    </Modal>
-);
+const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) => {
+    const handleDelete = async () => {
+        try {
+            const response = await fetch("/api/delete_manufacturers", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: selectedManufacturers.map((man) => man.id) }),
+            });
+
+            if (response.ok) {
+                alert("Manufacturers deleted successfully");
+                handleClose();
+            } else {
+                console.error("Failed to delete manufacturers");
+            }
+        } catch (error) {
+            console.error("Error deleting manufacturers:", error);
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Confirm Deletion</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                Are you sure you want to delete the following manufacturers?
+                <ul>
+                    {selectedManufacturers.map((manufacturer) => (
+                        <li key={manufacturer.id}>{manufacturer.name}</li>
+                    ))}
+                </ul>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleDelete}>Yes</Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
 
 export default ManufacturerModal;
