@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
+from permission_requirements import require_editor
 from database import db
 from oidc import oidc
-from models import Location, Chemical
+from models import Inventory, Location, Chemical
 
 locations = Blueprint("locations", __name__)
 
@@ -69,3 +70,107 @@ def get_chemical_location_data():
                 )
 
     return jsonify(location_list)
+
+
+@locations.route("/api/locations/<location_id>", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_location(location_id):
+    """
+    Deletes a location from the database.
+
+    Args:
+        location_id (int): The ID of the location to delete.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the deletion.
+                 Returns a 200 status code on success, 404 if the location is not found,
+                 and 500 for internal server errors.
+    """
+    try:
+        # Query the database for the location with the given ID
+        location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
+        if location:
+            # Check if there are any inventory records associated with the sublocations
+            for sub_location in location.Sub_Locations:
+                # Delete inventory records associated with the sublocation
+                db.session.query(Inventory).filter(Inventory.Sub_Location_ID == sub_location.Sub_Location_ID).delete()
+
+                # Delete the sublocation itself
+                db.session.delete(sub_location)
+
+            # Then, delete the location itself
+            db.session.delete(location)
+            db.session.commit()  # Commit the changes to persist the deletion
+            return jsonify({"message": "Location and associated data deleted successfully"}), 200
+        else:
+            # If the location does not exist, return a 404 error
+            return jsonify({"message": "Location not found"}), 404
+    except Exception as e:
+        # If any error occurs during the process, rollback the changes
+        db.session.rollback()
+        return jsonify({"message": "Error deleting location", "error": str(e)}), 500
+
+
+@locations.route("/api/locations", methods=["POST"])
+@oidc.require_login
+@require_editor
+def create_location():
+    """
+    Creates a new location in the database.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the creation.
+    """
+    try:
+        data = request.get_json()
+        room = data.get("room")
+        building = data.get("building")
+
+        if not room or not building:
+            return jsonify({"message": "Room and building are required."}), 400
+
+        new_location = Location(Room=room, Building=building)
+        db.session.add(new_location)
+        db.session.commit()
+
+        return jsonify({"message": "Location created successfully", "location_id": new_location.Location_ID}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error creating location", "error": str(e)}), 500
+
+
+@locations.route("/api/locations/<location_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_location(location_id):
+    """
+    Updates an existing location in the database.
+
+    Args:
+        location_id (int): The ID of the location to update.
+
+    Returns:
+        jsonify: A JSON response indicating the success or failure of the update.
+    """
+    try:
+        data = request.get_json()
+        room = data.get("room")
+        building = data.get("building")
+
+        if not room or not building:
+            return jsonify({"message": "Room and building are required."}), 400
+
+        location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
+
+        if not location:
+            return jsonify({"message": "Location not found"}), 404
+
+        location.Room = room
+        location.Building = building
+        db.session.commit()
+
+        return jsonify({"message": "Location updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error updating location", "error": str(e)}), 500
