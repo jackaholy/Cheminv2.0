@@ -54,7 +54,6 @@ const ManufacturerModal = ({ show, handleClose }) => {
                         <Form.Control
                             type="search"
                             placeholder="Search by manufacturer name"
-                            className="me-2"
                             value={filter} // Bind input to state
                             onChange={(e) => setFilter(e.target.value)} // Update state on change
                         />

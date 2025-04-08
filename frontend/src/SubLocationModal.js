@@ -66,7 +66,6 @@ const SubLocationModal = ({ show, handleClose }) => {
             <Form.Control
               type="search"
               placeholder="Filter by sublocation or location"
-              className="me-2"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
