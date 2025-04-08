@@ -10,22 +10,25 @@ const SubLocationModal = ({ show, handleClose }) => {
   const [sublocations, setSubLocations] = useState([]); // State for fetched sublocations
   const [currentEditSubLocation, setCurrentEditSubLocation] = useState(null); // State for the sublocation being edited
 
-  // Fetch sublocations from the backend
+  const loadSubLocations = () => {
+    fetch("/api/sublocations")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setSubLocations(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching sublocations:", error);
+      });
+  };
+
   useEffect(() => {
     if (show) {
-      fetch("/api/sublocations")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setSubLocations(data);
-        })
-        .catch((error) => {
-          console.error("Error fetching sublocations:", error);
-        });
+      loadSubLocations();
     }
   }, [show]);
 
@@ -124,22 +127,25 @@ const SubLocationModal = ({ show, handleClose }) => {
       <AddSubLocationModal
         show={showAdd}
         handleClose={() => setShowAdd(false)}
+        onUpdate={loadSubLocations}
       />
       <EditSubLocationModal
         show={showEdit}
         handleClose={() => setShowEdit(false)}
         sublocation={currentEditSubLocation} // Pass the current sublocation to the modal
+        onUpdate={loadSubLocations}
       />
       <DeleteSubLocationModal
         show={showDelete}
         handleClose={() => setShowDelete(false)}
         selectedSubLocations={filteredSubLocations.filter((sublocation) => sublocation.selected)} // Inline filter
+        onUpdate={loadSubLocations}
       />
     </>
   );
 };
 
-const AddSubLocationModal = ({ show, handleClose }) => {
+const AddSubLocationModal = ({ show, handleClose, onUpdate }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [subLocationName, setSubLocationName] = useState(""); // Added state for sublocation name
 
@@ -166,6 +172,7 @@ const AddSubLocationModal = ({ show, handleClose }) => {
       })
       .then((data) => {
         console.log("Sublocation saved successfully:", data);
+        onUpdate();
         handleClose();
       })
       .catch((error) => {
@@ -205,7 +212,7 @@ const AddSubLocationModal = ({ show, handleClose }) => {
   );
 };
 
-const EditSubLocationModal = ({ show, handleClose, sublocation }) => {
+const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
   const [selectedLocation, setSelectedLocation] = useState(
     sublocation ? { location_id: sublocation.locationId } : null
   );
@@ -244,6 +251,7 @@ const EditSubLocationModal = ({ show, handleClose, sublocation }) => {
       })
       .then((data) => {
         console.log("Sublocation updated successfully:", data);
+        onUpdate();
         handleClose();
       })
       .catch((error) => {
@@ -288,30 +296,51 @@ const DeleteSubLocationModal = ({
   show,
   handleClose,
   selectedSubLocations,
-}) => (
-  <Modal show={show} onHide={handleClose} centered>
-    <Modal.Header closeButton>
-      <Modal.Title>Confirm Deletion</Modal.Title>
-    </Modal.Header>
-    <Modal.Body>
-      Are you sure you want to delete the following sublocations?
-      <ul>
-        {selectedSubLocations.map((sublocation) => (
-          <li key={sublocation.id}>
-            {sublocation.name} ({sublocation.room} {sublocation.building})
-          </li>
-        ))}
-      </ul>
-    </Modal.Body>
-    <Modal.Footer>
-      <Button variant="primary" onClick={handleClose}>
-        Yes
-      </Button>
-      <Button variant="secondary" onClick={handleClose}>
-        Cancel
-      </Button>
-    </Modal.Footer>
-  </Modal>
-);
+  onUpdate
+}) => {
+  const handleDelete = async () => {
+    for (const sublocation of selectedSubLocations) {
+      try {
+        const response = await fetch(`/api/sublocations/${sublocation.id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to delete sublocation');
+        }
+      } catch (error) {
+        console.error("Error deleting sublocation:", error);
+        return;
+      }
+    }
+    onUpdate();
+    handleClose();
+  };
+
+  return (
+    <Modal show={show} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Confirm Deletion</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        Are you sure you want to delete the following sublocations?
+        <ul>
+          {selectedSubLocations.map((sublocation) => (
+            <li key={sublocation.id}>
+              {sublocation.name} ({sublocation.room} {sublocation.building})
+            </li>
+          ))}
+        </ul>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="primary" onClick={handleDelete}>
+          Yes
+        </Button>
+        <Button variant="secondary" onClick={handleClose}>
+          Cancel
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 
 export default SubLocationModal;

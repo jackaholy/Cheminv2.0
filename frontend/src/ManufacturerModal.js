@@ -9,20 +9,19 @@ const ManufacturerModal = ({ show, handleClose }) => {
     const [showDelete, setShowDelete] = useState(false);
     const [selectedManufacturer, setSelectedManufacturer] = useState(null); // State for selected manufacturer
 
-    // Fetch manufacturers from the API
-    useEffect(() => {
-        const fetchManufacturers = async () => {
-            try {
-                const response = await fetch("/api/manufacturers?active=false");
-                const data = await response.json();
-                setManufacturers(data.map((man) => ({ ...man, selected: false })));
-            } catch (error) {
-                console.error("Error fetching manufacturers:", error);
-            }
-        };
+    const loadManufacturers = async () => {
+        try {
+            const response = await fetch("/api/manufacturers?active=false");
+            const data = await response.json();
+            setManufacturers(data.map((man) => ({ ...man, selected: false })));
+        } catch (error) {
+            console.error("Error fetching manufacturers:", error);
+        }
+    };
 
+    useEffect(() => {
         if (show) {
-            fetchManufacturers();
+            loadManufacturers();
         }
     }, [show]);
 
@@ -102,22 +101,28 @@ const ManufacturerModal = ({ show, handleClose }) => {
                 </Modal.Footer>
             </Modal>
 
-            <AddManufacturerModal show={showAdd} handleClose={() => setShowAdd(false)} />
+            <AddManufacturerModal 
+                show={showAdd} 
+                handleClose={() => setShowAdd(false)} 
+                onUpdate={loadManufacturers}
+            />
             <EditManufacturerModal
                 show={showEdit}
                 handleClose={() => setShowEdit(false)}
                 manufacturer={selectedManufacturer}
+                onUpdate={loadManufacturers}
             />
             <DeleteManufacturerModal
                 show={showDelete}
                 handleClose={() => setShowDelete(false)}
                 selectedManufacturers={filteredManufacturers.filter((manufacturer) => manufacturer.selected)} // Inline filter
+                onUpdate={loadManufacturers}
             />
         </>
     );
 };
 
-const AddManufacturerModal = ({ show, handleClose }) => {
+const AddManufacturerModal = ({ show, handleClose, onUpdate }) => {
     const [manufacturerName, setManufacturerName] = useState(""); // State for manufacturer name
 
     const handleSave = async () => {
@@ -135,6 +140,7 @@ const AddManufacturerModal = ({ show, handleClose }) => {
 
             if (response.ok) {
                 alert("Manufacturer added successfully");
+                onUpdate();
                 handleClose();
             } else {
                 console.error("Failed to add manufacturer");
@@ -168,7 +174,7 @@ const AddManufacturerModal = ({ show, handleClose }) => {
     );
 };
 
-const EditManufacturerModal = ({ show, handleClose, manufacturer }) => {
+const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) => {
     const [manufacturerName, setManufacturerName] = useState(manufacturer ? manufacturer.name : "");
 
     useEffect(() => {
@@ -192,6 +198,7 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer }) => {
 
             if (response.ok) {
                 alert("Manufacturer updated successfully");
+                onUpdate();
                 handleClose();
             } else {
                 console.error("Failed to update manufacturer");
@@ -225,7 +232,7 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer }) => {
     );
 };
 
-const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) => {
+const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onUpdate }) => {
     const handleDelete = async () => {
         try {
             const response = await fetch("/api/delete_manufacturers", {
@@ -236,6 +243,7 @@ const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers }) =
 
             if (response.ok) {
                 alert("Manufacturers deleted successfully");
+                onUpdate();
                 handleClose();
             } else {
                 console.error("Failed to delete manufacturers");

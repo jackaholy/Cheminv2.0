@@ -9,7 +9,7 @@ const StorageClassModal = ({ show, handleClose }) => {
     const [showDelete, setShowDelete] = useState(false);
     const [selectedStorageClass, setSelectedStorageClass] = useState(null);
 
-    useEffect(() => {
+    const loadStorageClasses = () => {
         fetch("/api/storage_classes/", {credentials: "include"})
             .then((res) => res.json())
             .then((data) =>
@@ -18,7 +18,13 @@ const StorageClassModal = ({ show, handleClose }) => {
             .catch((error) =>
                 console.error("Error fetching storage classes:", error)
             );
-    }, []);
+    };
+
+    useEffect(() => {
+        if (show) {
+            loadStorageClasses();
+        }
+    }, [show]);
 
     const handleCheckboxChange = (index) => {
         setStorageClasses((prevStorageClasses) =>
@@ -98,23 +104,31 @@ const StorageClassModal = ({ show, handleClose }) => {
                 </Modal.Footer>
             </Modal>
 
-            <AddStorageClassModal show={showAdd} handleClose={() => setShowAdd(false)} />
+            <AddStorageClassModal 
+                show={showAdd} 
+                handleClose={() => setShowAdd(false)} 
+                onUpdate={loadStorageClasses}
+            />
             <EditStorageClassModal
                 show={showEdit}
                 handleClose={() => setShowEdit(false)}
                 storageClass={selectedStorageClass}
+                onUpdate={loadStorageClasses}
             />
             <DeleteStorageClassModal
                 show={showDelete}
                 handleClose={() => setShowDelete(false)}
                 selectedStorageClasses={filteredStorageClasses.filter((storageClass) => storageClass.selected)}
-                onDeleteSuccess={handleDeleteSuccess}
+                onDeleteSuccess={() => {
+                    loadStorageClasses();
+                    setShowDelete(false);
+                }}
             />
         </>
     );
 };
 
-const AddStorageClassModal = ({ show, handleClose }) => {
+const AddStorageClassModal = ({ show, handleClose, onUpdate }) => {
     const [storageClassName, setStorageClassName] = useState("");
 
     const handleSave = async () => {
@@ -139,6 +153,7 @@ const AddStorageClassModal = ({ show, handleClose }) => {
             }
 
             alert("Storage Class added successfully");
+            onUpdate();
             handleClose();
         } catch (error) {
             console.error('Error adding storage class:', error);
@@ -170,7 +185,7 @@ const AddStorageClassModal = ({ show, handleClose }) => {
     );
 };
 
-const EditStorageClassModal = ({ show, handleClose, storageClass }) => {
+const EditStorageClassModal = ({ show, handleClose, storageClass, onUpdate }) => {
     const [storageClassName, setStorageClassName] = useState(storageClass ? storageClass.name : "");
 
     React.useEffect(() => {
@@ -201,6 +216,7 @@ const EditStorageClassModal = ({ show, handleClose, storageClass }) => {
             }
 
             alert("Storage Class updated successfully");
+            onUpdate();
             handleClose();
         } catch (error) {
             console.error('Error updating storage class:', error);
