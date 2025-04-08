@@ -71,7 +71,8 @@ def search_route():
         return jsonify([])
 
     # Clean up the query string by removing certain characters
-    query = query.replace("/", "").replace("%2F", "").replace("%2f", "")
+    #query = query.replace("/", "").replace("%2F", "").replace("%2f", "")
+    
 
     # Start with the primary query and add synonyms if enabled
     search_terms = [query]
