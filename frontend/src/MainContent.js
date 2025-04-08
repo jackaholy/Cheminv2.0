@@ -37,17 +37,18 @@ export const MainContent = ({
       <div className="tw-flex tw-justify-between">
         {renderDownloadButton(user)}
       </div>
-      <div className="tw-grid tw-grid-cols-3 tw-border-b tw-p-2 tw-font-semibold">
+      <div className="tw-grid tw-grid-cols-4 tw-border-b tw-p-2 tw-font-semibold">
         <div>Quantity</div>
         <div>Chemical</div>
         <div>Chemical Formula</div>
+        <div></div>
       </div>
       <div className="tw-divide-y">
         {loading && chemicalsData.length === 0 ? (
           <p>Loading...</p>
         ) : (
           chemicalsData.map((chem, index) => (
-            <div key={index} className="tw-grid tw-grid-cols-3 tw-p-2">
+            <div key={index} className="tw-grid tw-grid-cols-4 tw-p-2">
               {/*Columns on the main page*/}
               <div>{chem.quantity}</div>
               <div>
@@ -63,6 +64,7 @@ export const MainContent = ({
                 </a>
               </div>
               <div>{chem.formula}</div>
+              <div><button className="btn btn-link" onClick={()=>{alert("edit")}} href="#">Edit</button></div>
             </div>
           ))
         )}
