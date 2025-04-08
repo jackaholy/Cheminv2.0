@@ -90,7 +90,6 @@ const LocationModal = (props) => {
                         <Form.Control
                             type="Filter"
                             placeholder="Filter"
-                            className="me-2"
                             aria-label="Filter"
                             value={filterQuery}
                             onChange={(e) => setFilterQuery(e.target.value)}

@@ -17,6 +17,7 @@ from csv_export import csv_export
 from msds import msds
 from database import db, init_db
 from oidc import init_oidc, oidc
+from storage_class import storage_class
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +61,7 @@ def create_app(config=ProdConfig):
     app.register_blueprint(users)
     app.register_blueprint(csv_export)
     app.register_blueprint(msds)
+    app.register_blueprint(storage_class)
     return app
 
 
