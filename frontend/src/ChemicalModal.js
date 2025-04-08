@@ -286,6 +286,7 @@ export const ChemicalModal = ({
           inventory={selectedInventory}
           show={editModalShow}
           handleClose={handleEditModalClose}
+          onUpdate={refreshChemicals}
         />
       )}
     </>

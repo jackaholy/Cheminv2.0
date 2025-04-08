@@ -3,7 +3,7 @@ import Modal from "react-bootstrap/Modal";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { LocationSelector } from "./LocationSelector";
 
-export const InventoryEditModal = ({ inventory, show, handleClose }) => {
+export const InventoryEditModal = ({ inventory, show, handleClose, onUpdate }) => {
   const [stickerNumber, setStickerNumber] = useState(inventory?.sticker || "");
   const [productNumber, setProductNumber] = useState(inventory?.product_number || "");
   const [location, setLocation] = useState(inventory?.location || null);
@@ -33,9 +33,8 @@ export const InventoryEditModal = ({ inventory, show, handleClose }) => {
         throw new Error('Failed to update inventory');
       }
 
+      if (onUpdate) onUpdate();
       handleClose();
-      // You might want to add a callback here to refresh the parent component
-      // if (onUpdate) onUpdate();
     } catch (error) {
       console.error('Error updating inventory:', error);
       // You might want to show an error message to the user here
