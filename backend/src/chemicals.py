@@ -376,3 +376,31 @@ def get_chemicals_by_sublocation():
     return jsonify(chemical_list)
 
 
+@chemicals.route("/api/chemicals/sticker_lookup", methods=["GET"])
+@oidc.require_login
+def sticker_lookup():
+    """
+    Look up a chemical's current sublocation by sticker number.
+    """
+    sticker_number = request.args.get("sticker_number")
+
+    if not sticker_number:
+        return jsonify({"error": "Missing sticker_number"}), 400
+
+    bottle = (
+        db.session.query(Inventory)
+        .filter_by(Sticker_Number=sticker_number)
+        .join(Sub_Location)
+        .join(Location)
+        .first()
+    )
+
+    if not bottle:
+        return jsonify({"error": "Sticker not found"}), 404
+
+    return jsonify({
+        "inventory_id": bottle.Inventory_ID,
+        "sub_location_id": bottle.Sub_Location.Sub_Location_ID,
+        "location_name": bottle.Sub_Location.Location.Location_Name,
+        "sub_location_name": bottle.Sub_Location.Sub_Location_Name
+    })
