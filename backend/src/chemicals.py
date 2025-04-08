@@ -284,6 +284,45 @@ def mark_dead():
     db.session.commit()
     return {"message": "Chemical marked as dead"}
 
+@chemicals.route("/api/chemicals/mark_many_dead", methods=["POST"])
+@oidc.require_login
+def mark_many_dead():
+    """
+    API to mark multiple chemicals as dead.
+    :return: Message indicating the chemicals that have been marked as dead.
+    """
+    sub_location_id = request.json.get("sub_location_id")
+    inventory_ids = request.json.get("inventory_id")
+
+    if not sub_location_id or not isinstance(sub_location_id, int):
+        return jsonify({"error": "Missing or invalid sub_location_id"}), 400
+    if not inventory_ids or not isinstance(inventory_ids, list):
+        return jsonify({"error": "Missing or invalid inventory_id"}), 400
+
+    # Get all chemicals in the specified sublocation
+    all_inventory_ids = set(
+        row[0] for row in db.session.query(Inventory.Inventory_ID)
+        .filter(Inventory.Sub_Location_ID == sub_location_id)
+        .all()
+    )
+
+    if len(all_inventory_ids) == 0:
+        return jsonify({"error": "No chemicals marked as dead"}), 400
+
+    # Remove the ones that are not accounted for (provided in inventory_ids)
+    unentered_inventory_ids = list(all_inventory_ids - set(inventory_ids))
+
+    bottles = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID.in_(unentered_inventory_ids))
+        .all()
+    )
+
+    for bottle in bottles:
+        bottle.Is_Dead = True
+
+    db.session.commit()
+    return {"message": f"{len(bottles)} chemicals marked as dead"}
 
 @chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
 @oidc.require_login
