@@ -66,16 +66,16 @@ export const MainContent = ({
               {/*Columns on the main page*/}
               <div>{chem.quantity}</div>
               <div>
-                <a
-                  href="#"
-                  className="text-primary text-decoration-none"
+                <button
+                  type="button"
+                  className="btn btn-link text-primary text-decoration-none"
                   onClick={(e) => {
                     e.preventDefault();
                     handleShowModal(chem);
                   }}
                 >
                   {chem.chemical_name}
-                </a>
+                </button>
               </div>
               <div>{chem.formula}</div>
               <div>

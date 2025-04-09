@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {  useCallback, useEffect, useState } from "react";
 import { Modal, Button, Form, Table } from 'react-bootstrap';
 import { StatusMessage } from "./StatusMessage";
 
@@ -27,24 +27,28 @@ const LocationModal = (props) => {
     const [statusMessage, setStatusMessage] = useState("");
     const [statusColor, setStatusColor] = useState("success");
 
-    useEffect(() => {
-        loadLocations();
-    }, [show]);
-    const loadLocations = () => {
+    const loadLocations = useCallback(() => {
         // Fetch locations when the modal is shown
         if (show) {
             fetch("/api/locations")
-                .then((response) => response.json())
-                .then((data) => {
-                    // Initialize each location with a 'selected' property
-                    const locationsWithSelection = data.map(location => ({ ...location, selected: false }));
-                    setLocations(locationsWithSelection);
-                })
-                .catch((error) => {
-                    console.error("Error fetching locations:", error);
-                });
+            .then((response) => response.json())
+            .then((data) => {
+                // Initialize each location with a 'selected' property
+                const locationsWithSelection = data.map(location => ({ ...location, selected: false }));
+                setLocations(locationsWithSelection);
+            })
+            .catch((error) => {
+                console.error("Error fetching locations:", error);
+            });
         }
-    }
+    }, [show]);
+    
+    
+
+    useEffect(() => {
+        loadLocations();
+    }, [show, loadLocations]);
+
     useEffect(() => {
         setFilteredLocations(
             locations.filter((location) =>

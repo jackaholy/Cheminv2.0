@@ -1,4 +1,4 @@
-import React, {useState, useEffect, use} from "react";
+import React, {useState, useEffect} from "react";
 import "./style.css";
 import {ManageUsersModal} from "./ManageUsersModal";
 import {Sidebar} from "./Sidebar";

@@ -3,24 +3,36 @@ import Modal from "react-bootstrap/Modal";
 import { ManufacturerSelector } from "./ManufacturerSelector";
 import { LocationSelector } from "./LocationSelector";
 
-export const InventoryEditModal = ({ inventory, show, handleClose, onUpdate }) => {
+export const InventoryEditModal = ({
+  inventory,
+  show,
+  handleClose,
+  onUpdate,
+}) => {
   const [stickerNumber, setStickerNumber] = useState(inventory?.sticker || "");
-  const [productNumber, setProductNumber] = useState(inventory?.product_number || "");
-  const [location, setLocation] = useState(inventory?.location || null);
-  const [subLocation, setSubLocation] = useState(inventory?.sub_location || null);
-  const [manufacturer, setManufacturer] = useState(
-    inventory?.manufacturer ? { id: inventory.manufacturer_id, name: inventory.manufacturer } : null
+  const [productNumber, setProductNumber] = useState(
+    inventory?.product_number || ""
   );
-  const [manufacturerId, setManufacturerId] = useState(inventory?.manufacturer_id || null);
+  const [subLocation, setSubLocation] = useState(
+    inventory?.sub_location || null
+  );
+  const [manufacturer, setManufacturer] = useState(
+    inventory?.manufacturer
+      ? { id: inventory.manufacturer_id, name: inventory.manufacturer }
+      : null
+  );
+  const [manufacturerId, setManufacturerId] = useState(
+    inventory?.manufacturer_id || null
+  );
 
   const handleSave = async () => {
     try {
       const response = await fetch(`/api/update_inventory/${inventory.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           sticker_number: stickerNumber,
           product_number: productNumber,
@@ -30,13 +42,13 @@ export const InventoryEditModal = ({ inventory, show, handleClose, onUpdate }) =
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update inventory');
+        throw new Error("Failed to update inventory");
       }
 
       if (onUpdate) onUpdate();
       handleClose();
     } catch (error) {
-      console.error('Error updating inventory:', error);
+      console.error("Error updating inventory:", error);
       // You might want to show an error message to the user here
     }
   };
@@ -74,8 +86,7 @@ export const InventoryEditModal = ({ inventory, show, handleClose, onUpdate }) =
           </div>
           <div className="mb-3">
             <LocationSelector
-              onChange={(loc, subLoc) => {
-                setLocation(loc);
+              onChange={(_, subLoc) => {
                 setSubLocation(subLoc);
               }}
               sublocationSelection={true}
@@ -96,7 +107,11 @@ export const InventoryEditModal = ({ inventory, show, handleClose, onUpdate }) =
         <button type="button" className="btn btn-primary" onClick={handleSave}>
           Save Changes
         </button>
-        <button type="button" className="btn btn-secondary" onClick={handleClose}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleClose}
+        >
           Close
         </button>
       </Modal.Footer>

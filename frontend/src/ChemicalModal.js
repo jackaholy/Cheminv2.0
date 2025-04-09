@@ -175,7 +175,7 @@ export const ChemicalModal = ({
                 <th scope="col">Location</th>
                 <th scope="col">Sub-Location</th>
                 <th scope="col">Manufacturer</th>
-                {user.access == "Editor" || user.access == "Full Access" ? (
+                {user.access==="Editor" || user.access==="Full Access" ? (
                   <th scope="col">Edit</th>
                 ) : null}
                 <th></th>
@@ -186,7 +186,7 @@ export const ChemicalModal = ({
                 <tr
                   key={index}
                   className={
-                    "" + item["dead"] == "true" ? "tw-italic tw-line-through" : ""
+                    "" + item["dead"]==="true" ? "tw-italic tw-line-through" : ""
                   }
                 >
                   <th scope="row">{item.sticker}</th>
@@ -194,7 +194,7 @@ export const ChemicalModal = ({
                   <td>{item.location}</td>
                   <td>{item.sub_location}</td>
                   <td>{item.manufacturer}</td>
-                  {user.access == "Editor" || user.access == "Full Access" ? (
+                  {user.access==="Editor" || user.access==="Full Access" ? (
                     <td>
                       <OverlayTrigger
                         placement="bottom"
