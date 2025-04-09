@@ -1,137 +1,302 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
+import {Modal, Button, Form, Table} from "react-bootstrap";
 
-const StorageClassModal = (show, handleClose) => {
+const StorageClassModal = ({show, handleClose}) => {
+    const [storageClasses, setStorageClasses] = useState([]);
+    const [filter, setFilter] = useState("");
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
+    const [selectedStorageClass, setSelectedStorageClass] = useState(null);
+
+    useEffect(() => {
+        fetch("/api/storage_classes/", {credentials: "include"})
+            .then((res) => res.json())
+            .then((data) =>
+                setStorageClasses(data)
+            )
+            .catch((error) =>
+                console.error("Error fetching storage classes:", error)
+            );
+    }, []);
+
+    const handleCheckboxChange = (index) => {
+        setStorageClasses((prevStorageClasses) =>
+            prevStorageClasses.map((storageClass, i) =>
+                i === index ? {...storageClass, selected: !storageClass.selected} : storageClass
+            )
+        );
+    };
+
+    const filteredStorageClasses = storageClasses.filter((storageClass) =>
+        storageClass.name.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    const handleDeleteSuccess = (deletedClasses) => {
+        setStorageClasses(prevClasses =>
+            prevClasses.filter(sc => !deletedClasses.includes(sc.name))
+        );
+        setShowDelete(false);
+    };
 
     return (
         <>
             {/* Storage Class Modal */}
-            <div className={`modal fade ${show ? "show d-block" : ""}`} id="classModal" tabIndex="-1"
-                 aria-labelledby="classModalLabel" aria-hidden={!show}>
-                <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="classModalLabel">Storage Class</h1>
-                            <button type="button" className="btn-close" onClick={handleClose}
-                                    aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <form className="d-flex">
-                                <input className="form-control me-2" type="search" placeholder="Search"/>
-                                <button className="btn btn-outline-success" type="submit">Search</button>
-                            </form>
+            <Modal show={show} onHide={handleClose} size="xl" centered scrollable>
+                <Modal.Header closeButton>
+                    <Modal.Title>Storage Class</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form className="d-flex mb-3">
+                        <Form.Control
+                            type="search"
+                            placeholder="Filter by storage class name"
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                        />
+                    </Form>
 
-                            <table className="table">
-                                <thead>
-                                <tr>
-                                    <th></th>
-                                    <th scope="col">Storage Class Name</th>
-                                    <th scope="col">Edit</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {["corr white", "flam red", "gen gray"].map((name, index) => (
-                                    <tr key={index}>
-                                        <td><input className="form-check-input" type="checkbox"/></td>
-                                        <td>{name}</td>
-                                        <td>
-                                            <button className="btn btn-outline-success"
-                                                    onClick={() => setShowEdit(true)}>Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-primary" onClick={() => setShowAdd(true)}>Add
-                                Storage Class
-                            </button>
-                            <button type="button" className="btn btn-secondary"
-                                    onClick={() => setShowDelete(true)}>Remove Storage Class
-                            </button>
-                            <button type="button" className="btn btn-secondary" onClick={handleClose}>Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    <Table striped bordered hover>
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>Storage Class Name</th>
+                            <th>Edit</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredStorageClasses.map((storageClass, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <Form.Check
+                                        type="checkbox"
+                                        checked={storageClass.selected}
+                                        onChange={() => handleCheckboxChange(index)}
+                                    />
+                                </td>
+                                <td>{storageClass.name}</td>
+                                <td>
+                                    <Button
+                                        variant="outline-success"
+                                        onClick={() => {
+                                            setSelectedStorageClass(storageClass);
+                                            setShowEdit(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={() => setShowAdd(true)}>Add Storage Class</Button>
+                    <Button variant="secondary" onClick={() => setShowDelete(true)}>Remove Storage Class</Button>
+                    <Button variant="secondary" onClick={handleClose}>Close</Button>
+                </Modal.Footer>
+            </Modal>
 
-            {/* Add Storage Class Modal */}
-            <div className={`modal fade ${showAdd ? "show d-block" : ""}`} id="addClass" aria-hidden={!showAdd}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="addClassLabel">Add New Storage Class</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowAdd(false)}
-                                    aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="input-group mb-3">
-                                <span className="input-group-text">Storage Class Name</span>
-                                <input type="text" className="form-control" placeholder="Name..."/>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowAdd(false)}>Save</button>
-                            <button type="button" className="btn btn-secondary"
-                                    onClick={() => setShowAdd(false)}>Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Edit Storage Class Modal */}
-            <div className={`modal fade ${showEdit ? "show d-block" : ""}`} id="editClass" aria-hidden={!showEdit}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="editClassLabel">Edit Storage Class</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowEdit(false)}
-                                    aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="input-group mb-3">
-                                <span className="input-group-text">Storage Class Name</span>
-                                <input type="text" className="form-control" placeholder="Name..."/>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowEdit(false)}>Save</button>
-                            <button type="button" className="btn btn-secondary"
-                                    onClick={() => setShowEdit(false)}>Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Delete Storage Class Modal */}
-            <div className={`modal fade ${showDelete ? "show d-block" : ""}`} id="deleteClass"
-                 aria-hidden={!showDelete}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="deleteClassLabel">Confirm Deletion</h1>
-                            <button type="button" className="btn-close" onClick={() => setShowDelete(false)}
-                                    aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            Are you sure you want to delete the selected storage classes?
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={() => setShowDelete(false)}>Yes</button>
-                            <button type="button" className="btn btn-secondary"
-                                    onClick={() => setShowDelete(false)}>Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <AddStorageClassModal show={showAdd} handleClose={() => setShowAdd(false)}/>
+            <EditStorageClassModal
+                show={showEdit}
+                handleClose={() => setShowEdit(false)}
+                storageClass={selectedStorageClass}
+            />
+            <DeleteStorageClassModal
+                show={showDelete}
+                handleClose={() => setShowDelete(false)}
+                selectedStorageClasses={filteredStorageClasses.filter((storageClass) => storageClass.selected)}
+                onDeleteSuccess={handleDeleteSuccess}
+            />
         </>
+    );
+};
+
+const AddStorageClassModal = ({show, handleClose}) => {
+    const [storageClassName, setStorageClassName] = useState("");
+
+    const handleSave = async () => {
+        if (!storageClassName) {
+            alert("Please provide a storage class name.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/storage_classes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({name: storageClassName}),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to add storage class');
+            }
+
+            alert("Storage Class added successfully");
+            handleClose();
+        } catch (error) {
+            console.error('Error adding storage class:', error);
+            alert(error.message || 'Failed to add storage class. Please try again.');
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Add Storage Class</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Storage Class Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name..."
+                        value={storageClassName}
+                        onChange={(e) => setStorageClassName(e.target.value)}
+                    />
+                </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+const EditStorageClassModal = ({show, handleClose, storageClass}) => {
+    const [storageClassName, setStorageClassName] = useState(storageClass ? storageClass.name : "");
+
+    React.useEffect(() => {
+        if (storageClass) {
+            setStorageClassName(storageClass.name);
+        }
+    }, [storageClass]);
+
+    const handleSave = async () => {
+        if (!storageClassName) {
+            alert("Please provide a storage class name.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/storage_classes/${storageClass.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({name: storageClassName}),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update storage class');
+            }
+
+            alert("Storage Class updated successfully");
+            handleClose();
+        } catch (error) {
+            console.error('Error updating storage class:', error);
+            alert(error.message || 'Failed to update storage class. Please try again.');
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit Storage Class</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Storage Class Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name..."
+                        value={storageClassName}
+                        onChange={(e) => setStorageClassName(e.target.value)}
+                    />
+                </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+const DeleteStorageClassModal = ({show, handleClose, selectedStorageClasses, onDeleteSuccess}) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        try {
+            setIsDeleting(true);
+
+            // Prevent "Unknown" from being deleted
+            const filteredClasses = selectedStorageClasses.filter(sc => sc.name !== "Unknown");
+            if (filteredClasses.length !== selectedStorageClasses.length) {
+                alert('Cannot delete the "Unknown" storage class.');
+                setIsDeleting(false);
+                return;
+            }
+
+            const response = await fetch('/api/storage_classes/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    storageClasses: filteredClasses.map(sc => sc.name)
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete storage classes');
+            }
+
+            onDeleteSuccess(selectedStorageClasses.map(sc => sc.name));
+            handleClose();
+        } catch (error) {
+            console.error('Error deleting storage classes:', error);
+            alert(error.message || 'Failed to delete storage classes. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Confirm Deletion</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                Are you sure you want to delete the following storage classes?
+                <ul>
+                    {selectedStorageClasses.map((storageClass) => (
+                        <li key={storageClass.name}>{storageClass.name}</li>
+                    ))}
+                </ul>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    variant="danger"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                </Button>
+                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+            </Modal.Footer>
+        </Modal>
     );
 };
 
