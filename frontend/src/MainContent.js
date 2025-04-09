@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import ChemicalEditModal from "./ChemicalEditModal"; // Import the modal
+import ChemicalEditModal from "./ChemicalEditModal";
+import { StatusMessage } from "./StatusMessage"; // Import StatusMessage
 
 export const MainContent = ({
   chemicalsData,
@@ -12,6 +13,8 @@ export const MainContent = ({
   const [user, setUser] = useState({});
   const [showEditModal, setShowEditModal] = useState(false); // State to control modal visibility
   const [selectedChemical, setSelectedChemical] = useState(null); // State to store selected chemical
+  const [statusMessage, setStatusMessage] = useState(""); // State for status message
+  const [statusColor, setStatusColor] = useState(""); // State for status color
 
   useEffect(() => {
     fetch("/api/user", {
@@ -51,6 +54,7 @@ export const MainContent = ({
       <div className="tw-flex tw-justify-between">
         {renderDownloadButton(user)}
       </div>
+      <StatusMessage statusMessage={statusMessage} color={statusColor} />
       <div className="tw-grid tw-grid-cols-[2fr_3fr_3fr_40px] tw-border-b tw-p-2 tw-font-semibold">
         <div>Quantity</div>
         <div>Chemical</div>
@@ -110,6 +114,8 @@ export const MainContent = ({
         handleClose={handleCloseEditModal}
         chemical={selectedChemical}
         onDataUpdate={onDataUpdate}
+        setStatusMessage={setStatusMessage} // Pass setStatusMessage
+        setStatusColor={setStatusColor} // Pass setStatusColor
       />
     </div>
   );
