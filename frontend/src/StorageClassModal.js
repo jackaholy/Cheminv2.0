@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table } from "react-bootstrap";
+import React, {useState, useEffect} from "react";
+import {Modal, Button, Form, Table} from "react-bootstrap";
 import { StatusMessage } from "./StatusMessage";
 
-const StorageClassModal = ({ show, handleClose }) => {
+const StorageClassModal = ({show, handleClose}) => {
     const [storageClasses, setStorageClasses] = useState([]);
     const [filter, setFilter] = useState("");
     const [showAdd, setShowAdd] = useState(false);
@@ -39,7 +39,7 @@ const StorageClassModal = ({ show, handleClose }) => {
     const handleCheckboxChange = (index) => {
         setStorageClasses((prevStorageClasses) =>
             prevStorageClasses.map((storageClass, i) =>
-                i === index ? { ...storageClass, selected: !storageClass.selected } : storageClass
+                i === index ? {...storageClass, selected: !storageClass.selected} : storageClass
             )
         );
     };
@@ -68,36 +68,36 @@ const StorageClassModal = ({ show, handleClose }) => {
 
                     <Table striped bordered hover>
                         <thead>
-                            <tr>
-                                <th></th>
-                                <th>Storage Class Name</th>
-                                <th>Edit</th>
-                            </tr>
+                        <tr>
+                            <th></th>
+                            <th>Storage Class Name</th>
+                            <th>Edit</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {filteredStorageClasses.map((storageClass, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={storageClass.selected}
-                                            onChange={() => handleCheckboxChange(index)}
-                                        />
-                                    </td>
-                                    <td>{storageClass.name}</td>
-                                    <td>
-                                        <Button
-                                            variant="outline-success"
-                                            onClick={() => {
-                                                setSelectedStorageClass(storageClass);
-                                                setShowEdit(true);
-                                            }}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                        {filteredStorageClasses.map((storageClass, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <Form.Check
+                                        type="checkbox"
+                                        checked={storageClass.selected}
+                                        onChange={() => handleCheckboxChange(index)}
+                                    />
+                                </td>
+                                <td>{storageClass.name}</td>
+                                <td>
+                                    <Button
+                                        variant="outline-success"
+                                        onClick={() => {
+                                            setSelectedStorageClass(storageClass);
+                                            setShowEdit(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </Table>
                 </Modal.Body>
@@ -108,12 +108,12 @@ const StorageClassModal = ({ show, handleClose }) => {
                 </Modal.Footer>
             </Modal>
 
-            <AddStorageClassModal 
-                show={showAdd} 
-                handleClose={() => setShowAdd(false)} 
-                onUpdate={loadStorageClasses} 
-                onSuccess={handleSuccess} 
-                onError={handleError} 
+            <AddStorageClassModal
+                show={showAdd}
+                handleClose={() => setShowAdd(false)}
+                onUpdate={loadStorageClasses}
+                onSuccess={handleSuccess}
+                onError={handleError}
             />
             <EditStorageClassModal
                 show={showEdit}
@@ -151,7 +151,7 @@ const AddStorageClassModal = ({ show, handleClose, onUpdate, onSuccess, onError 
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ name: storageClassName }),
+                body: JSON.stringify({name: storageClassName}),
             });
 
             if (!response.ok) {
@@ -214,7 +214,7 @@ const EditStorageClassModal = ({ show, handleClose, storageClass, onUpdate, onSu
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ name: storageClassName }),
+                body: JSON.stringify({name: storageClassName}),
             });
 
             if (!response.ok) {
@@ -310,9 +310,9 @@ const DeleteStorageClassModal = ({ show, handleClose, selectedStorageClasses, on
                 </ul>
             </Modal.Body>
             <Modal.Footer>
-                <Button 
-                    variant="danger" 
-                    onClick={handleDelete} 
+                <Button
+                    variant="danger"
+                    onClick={handleDelete}
                     disabled={isDeleting}
                 >
                     {isDeleting ? 'Deleting...' : 'Delete'}

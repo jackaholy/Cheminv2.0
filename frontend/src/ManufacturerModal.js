@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table } from "react-bootstrap";
+import React, {useState, useEffect} from "react";
+import {Modal, Button, Form, Table} from "react-bootstrap";
 import { StatusMessage } from "./StatusMessage";
 
-const ManufacturerModal = ({ show, handleClose }) => {
+const ManufacturerModal = ({show, handleClose}) => {
     const [manufacturers, setManufacturers] = useState([]);
     const [filter, setFilter] = useState("");
     const [showAdd, setShowAdd] = useState(false);
@@ -32,7 +32,7 @@ const ManufacturerModal = ({ show, handleClose }) => {
         setManufacturers((prevManufacturers) =>
             prevManufacturers.map((manufacturer, i) =>
                 i === index
-                    ? { ...manufacturer, selected: !manufacturer.selected }
+                    ? {...manufacturer, selected: !manufacturer.selected}
                     : manufacturer
             )
         );
@@ -73,36 +73,36 @@ const ManufacturerModal = ({ show, handleClose }) => {
 
                     <Table striped bordered hover>
                         <thead>
-                            <tr>
-                                <th></th>
-                                <th>Manufacturer Name</th>
-                                <th>Edit</th>
-                            </tr>
+                        <tr>
+                            <th></th>
+                            <th>Manufacturer Name</th>
+                            <th>Edit</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {filteredManufacturers.map((manufacturer, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={manufacturer.selected}
-                                            onChange={() => handleCheckboxChange(index)}
-                                        />
-                                    </td>
-                                    <td>{manufacturer.name}</td>
-                                    <td>
-                                        <Button
-                                            variant="outline-success"
-                                            onClick={() => {
-                                                setSelectedManufacturer(manufacturer);
-                                                setShowEdit(true);
-                                            }}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                        {filteredManufacturers.map((manufacturer, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <Form.Check
+                                        type="checkbox"
+                                        checked={manufacturer.selected}
+                                        onChange={() => handleCheckboxChange(index)}
+                                    />
+                                </td>
+                                <td>{manufacturer.name}</td>
+                                <td>
+                                    <Button
+                                        variant="outline-success"
+                                        onClick={() => {
+                                            setSelectedManufacturer(manufacturer);
+                                            setShowEdit(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </Table>
                 </Modal.Body>
@@ -113,9 +113,9 @@ const ManufacturerModal = ({ show, handleClose }) => {
                 </Modal.Footer>
             </Modal>
 
-            <AddManufacturerModal 
-                show={showAdd} 
-                handleClose={() => setShowAdd(false)} 
+            <AddManufacturerModal
+                show={showAdd}
+                handleClose={() => setShowAdd(false)}
                 onSuccess={handleSuccess}
                 onError={handleError}
                 onUpdate={loadManufacturers} // Pass onUpdate
@@ -152,8 +152,8 @@ const AddManufacturerModal = ({ show, handleClose, onSuccess, onError, onUpdate 
         try {
             const response = await fetch("/api/add_manufacturer", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: manufacturerName }),
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({name: manufacturerName}),
             });
 
             if (response.ok) {
@@ -211,8 +211,8 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onSuccess, onE
         try {
             const response = await fetch(`/api/manufacturers/${manufacturer.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: manufacturerName }),
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({name: manufacturerName}),
             });
 
             if (response.ok) {
@@ -257,8 +257,8 @@ const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onS
         try {
             const response = await fetch("/api/delete_manufacturers", {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ids: selectedManufacturers.map((man) => man.id) }),
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ids: selectedManufacturers.map((man) => man.id)}),
             });
 
             if (response.ok) {

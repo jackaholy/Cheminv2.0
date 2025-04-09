@@ -1,9 +1,9 @@
 import React, {  useCallback, useEffect, useState } from "react";
-import { Modal, Button, Form, Table } from 'react-bootstrap';
+import {Modal, Button, Form, Table} from 'react-bootstrap';
 import { StatusMessage } from "./StatusMessage";
 
 const LocationModal = (props) => {
-    const { show, handleClose } = props;
+    const {show, handleClose} = props;
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
@@ -42,8 +42,8 @@ const LocationModal = (props) => {
             });
         }
     }, [show]);
-    
-    
+
+
 
     useEffect(() => {
         loadLocations();
@@ -149,34 +149,34 @@ const LocationModal = (props) => {
     );
 };
 
-const LocationTable = ({ locations, handleCheckboxChange, handleShowEdit }) => (
+const LocationTable = ({locations, handleCheckboxChange, handleShowEdit}) => (
     <Table striped bordered hover>
         <thead>
-            <tr>
-                <th></th>
-                <th>Room</th>
-                <th>Building</th>
-                <th>Edit</th>
-            </tr>
+        <tr>
+            <th></th>
+            <th>Room</th>
+            <th>Building</th>
+            <th>Edit</th>
+        </tr>
         </thead>
         <tbody>
-            {locations.map((location, index) => (
-                <tr key={index}>
-                    <td>
-                        <Form.Check
-                            type="checkbox"
-                            id={`location-${index}`}
-                            checked={location.selected}
-                            onChange={() => handleCheckboxChange(index)}
-                        />
-                    </td>
-                    <td>{location.room}</td>
-                    <td>{location.building}</td>
-                    <td>
-                        <Button variant="outline-success" onClick={() => handleShowEdit(location)}>Edit</Button>
-                    </td>
-                </tr>
-            ))}
+        {locations.map((location, index) => (
+            <tr key={index}>
+                <td>
+                    <Form.Check
+                        type="checkbox"
+                        id={`location-${index}`}
+                        checked={location.selected}
+                        onChange={() => handleCheckboxChange(index)}
+                    />
+                </td>
+                <td>{location.room}</td>
+                <td>{location.building}</td>
+                <td>
+                    <Button variant="outline-success" onClick={() => handleShowEdit(location)}>Edit</Button>
+                </td>
+            </tr>
+        ))}
         </tbody>
     </Table>
 );
@@ -192,7 +192,7 @@ const AddLocationModal = ({ show, handleClose, onLocationChange, setStatusMessag
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ room, building }),
+                body: JSON.stringify({room, building}),
             });
 
             if (!response.ok) {
@@ -267,7 +267,7 @@ const EditLocationModal = ({ show, handleClose, locationData, onLocationChange, 
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ room, building }),
+                body: JSON.stringify({room, building}),
             });
 
             if (!response.ok) {
@@ -326,7 +326,7 @@ const EditLocationModal = ({ show, handleClose, locationData, onLocationChange, 
     );
 };
 
-const DeleteLocationConfirmationModal = ({ show, handleClose, locations, handleDelete }) => (
+const DeleteLocationConfirmationModal = ({show, handleClose, locations, handleDelete}) => (
     <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
@@ -338,7 +338,7 @@ const DeleteLocationConfirmationModal = ({ show, handleClose, locations, handleD
                     <li key={index}>{location.room} - {location.building}</li>
                 ))}
             </ul>
-            <b>This will delete every bottle in every sub location in these rooms, permanently and irreversably.</b>
+            <b>This will delete every bottle in every sub location in these rooms, permanently and irreversibly.</b>
         </Modal.Body>
         <Modal.Footer>
             <Button variant="primary" onClick={handleDelete}>
