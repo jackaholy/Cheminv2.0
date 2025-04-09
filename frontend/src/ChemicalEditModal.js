@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
 const ChemicalEditModal = ({ show, handleClose, chemical, onDataUpdate, setStatusMessage, setStatusColor }) => {
-    console.log(chemical);
     const [chemicalName, setChemicalName] = useState(chemical?.chemical_name || "");
     const [chemicalFormula, setChemicalFormula] = useState(chemical?.formula || "");
     const [storageClasses, setStorageClasses] = useState([]);
@@ -75,7 +74,6 @@ const ChemicalEditModal = ({ show, handleClose, chemical, onDataUpdate, setStatu
             });
     };
 
-    console.log(storageClassId, chemicalName, chemicalFormula);
     return (
         <>
             <Modal show={show} onHide={handleClose} centered>

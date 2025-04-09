@@ -64,7 +64,6 @@ const LocationModal = (props) => {
     };
     const handleDelete = async () => {
         const selectedLocations = locations.filter(location => location.selected);
-        console.log("Deleting locations:", selectedLocations);
         for (const location of selectedLocations) {
             try {
                 const response = await fetch(`/api/locations/${location.location_id}`, {

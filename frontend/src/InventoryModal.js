@@ -34,14 +34,10 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       if (currentTime - lastEnterTimeRef.current <= DOUBLE_ENTER_THRESHOLD) {
         if (!sticker_number) return;
 
-        console.log("Entered Sticker Number:", sticker_number);
-        console.log("Available Chemicals:", chemicals);
-
         // Check if the entered sticker number exists in the list
         const matchingChemical = chemicals.find(
           (chem) => chem.sticker_number === sticker_number
         );
-        console.log("Chemical: " + matchingChemical);
         if (matchingChemical) {
           // Remove from displayed list
           setChemicals((prevChemicals) =>

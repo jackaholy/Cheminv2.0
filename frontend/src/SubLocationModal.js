@@ -36,14 +36,12 @@ const SubLocationModal = ({ show, handleClose }) => {
   }, [show]);
 
   const handleSuccess = (message) => {
-    console.log("Success message:", message);
     setStatusMessage(message || "Operation successful"); // Ensure we always have a message
     setStatusColor("success");
     loadSubLocations();
   };
 
   const handleError = (message) => {
-    console.log("Error message:", message);
     setStatusMessage(message || "An error occurred"); // Ensure we always have a message
     setStatusColor("danger");
   };

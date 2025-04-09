@@ -68,7 +68,6 @@ const App = () => {
     };
 
     async function handleSearch(query, synonyms = false) {
-        console.log(query, selectedManufacturers, selectedRoom);
         if (
             query === "" &&
             selectedManufacturers.length === 0 &&
