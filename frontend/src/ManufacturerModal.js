@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
+import { StatusMessage } from "./StatusMessage";
 
 const ManufacturerModal = ({ show, handleClose }) => {
     const [manufacturers, setManufacturers] = useState([]);
-    const [filter, setFilter] = useState(""); // State for the filter input
+    const [filter, setFilter] = useState("");
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
-    const [selectedManufacturer, setSelectedManufacturer] = useState(null); // State for selected manufacturer
+    const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+    const [statusMessage, setStatusMessage] = useState("");
+    const [statusColor, setStatusColor] = useState("success");
 
     const loadManufacturers = async () => {
         try {
@@ -25,7 +28,6 @@ const ManufacturerModal = ({ show, handleClose }) => {
         }
     }, [show]);
 
-    // Handle checkbox selection
     const handleCheckboxChange = (index) => {
         setManufacturers((prevManufacturers) =>
             prevManufacturers.map((manufacturer, i) =>
@@ -36,25 +38,35 @@ const ManufacturerModal = ({ show, handleClose }) => {
         );
     };
 
-    // Filtered manufacturers based on the filter input
+    const handleSuccess = (message) => {
+        setStatusMessage(message || "Operation successful");
+        setStatusColor("success");
+        loadManufacturers();
+    };
+
+    const handleError = (message) => {
+        setStatusMessage(message || "An error occurred");
+        setStatusColor("danger");
+    };
+
     const filteredManufacturers = manufacturers.filter((manufacturer) =>
         manufacturer.name.toLowerCase().includes(filter.toLowerCase())
     );
 
     return (
         <>
-            {/* Manufacturer Modal */}
             <Modal show={show} onHide={handleClose} size="xl" centered scrollable>
                 <Modal.Header closeButton>
                     <Modal.Title>Manufacturers</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <StatusMessage statusMessage={statusMessage} color={statusColor} />
                     <Form className="d-flex mb-3">
                         <Form.Control
                             type="search"
                             placeholder="Search by manufacturer name"
-                            value={filter} // Bind input to state
-                            onChange={(e) => setFilter(e.target.value)} // Update state on change
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
                         />
                         <Button variant="outline-success" type="submit">Search</Button>
                     </Form>
@@ -104,30 +116,36 @@ const ManufacturerModal = ({ show, handleClose }) => {
             <AddManufacturerModal 
                 show={showAdd} 
                 handleClose={() => setShowAdd(false)} 
-                onUpdate={loadManufacturers}
+                onSuccess={handleSuccess}
+                onError={handleError}
+                onUpdate={loadManufacturers} // Pass onUpdate
             />
             <EditManufacturerModal
                 show={showEdit}
                 handleClose={() => setShowEdit(false)}
                 manufacturer={selectedManufacturer}
-                onUpdate={loadManufacturers}
+                onSuccess={handleSuccess}
+                onError={handleError}
+                onUpdate={loadManufacturers} // Pass onUpdate
             />
             <DeleteManufacturerModal
                 show={showDelete}
                 handleClose={() => setShowDelete(false)}
-                selectedManufacturers={filteredManufacturers.filter((manufacturer) => manufacturer.selected)} // Inline filter
-                onUpdate={loadManufacturers}
+                selectedManufacturers={filteredManufacturers.filter((manufacturer) => manufacturer.selected)}
+                onSuccess={handleSuccess}
+                onError={handleError}
+                onUpdate={loadManufacturers} // Pass onUpdate
             />
         </>
     );
 };
 
-const AddManufacturerModal = ({ show, handleClose, onUpdate }) => {
-    const [manufacturerName, setManufacturerName] = useState(""); // State for manufacturer name
+const AddManufacturerModal = ({ show, handleClose, onSuccess, onError, onUpdate }) => {
+    const [manufacturerName, setManufacturerName] = useState("");
 
     const handleSave = async () => {
         if (!manufacturerName) {
-            alert("Please provide a manufacturer name.");
+            onError("Please provide a manufacturer name.");
             return;
         }
 
@@ -139,14 +157,15 @@ const AddManufacturerModal = ({ show, handleClose, onUpdate }) => {
             });
 
             if (response.ok) {
-                alert("Manufacturer added successfully");
-                onUpdate();
                 handleClose();
+                onSuccess("Manufacturer added successfully");
+                onUpdate(); // Refresh data
             } else {
-                console.error("Failed to add manufacturer");
+                onError("Failed to add manufacturer");
             }
         } catch (error) {
             console.error("Error adding manufacturer:", error);
+            onError("Error adding manufacturer");
         }
     };
 
@@ -161,8 +180,8 @@ const AddManufacturerModal = ({ show, handleClose, onUpdate }) => {
                     <Form.Control
                         type="text"
                         placeholder="Name..."
-                        value={manufacturerName} // Bind input to state
-                        onChange={(e) => setManufacturerName(e.target.value)} // Update state on change
+                        value={manufacturerName}
+                        onChange={(e) => setManufacturerName(e.target.value)}
                     />
                 </Form.Group>
             </Modal.Body>
@@ -174,7 +193,7 @@ const AddManufacturerModal = ({ show, handleClose, onUpdate }) => {
     );
 };
 
-const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) => {
+const EditManufacturerModal = ({ show, handleClose, manufacturer, onSuccess, onError, onUpdate }) => {
     const [manufacturerName, setManufacturerName] = useState(manufacturer ? manufacturer.name : "");
 
     useEffect(() => {
@@ -185,7 +204,7 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) =>
 
     const handleSave = async () => {
         if (!manufacturerName) {
-            alert("Please provide a manufacturer name.");
+            onError("Please provide a manufacturer name.");
             return;
         }
 
@@ -197,14 +216,15 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) =>
             });
 
             if (response.ok) {
-                alert("Manufacturer updated successfully");
-                onUpdate();
                 handleClose();
+                onSuccess("Manufacturer updated successfully");
+                onUpdate(); // Refresh data
             } else {
-                console.error("Failed to update manufacturer");
+                onError("Failed to update manufacturer");
             }
         } catch (error) {
             console.error("Error updating manufacturer:", error);
+            onError("Error updating manufacturer");
         }
     };
 
@@ -219,8 +239,8 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) =>
                     <Form.Control
                         type="text"
                         placeholder="Name..."
-                        value={manufacturerName} // Bind input to state
-                        onChange={(e) => setManufacturerName(e.target.value)} // Update state on change
+                        value={manufacturerName}
+                        onChange={(e) => setManufacturerName(e.target.value)}
                     />
                 </Form.Group>
             </Modal.Body>
@@ -232,7 +252,7 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onUpdate }) =>
     );
 };
 
-const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onUpdate }) => {
+const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onSuccess, onError, onUpdate }) => {
     const handleDelete = async () => {
         try {
             const response = await fetch("/api/delete_manufacturers", {
@@ -242,14 +262,15 @@ const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onU
             });
 
             if (response.ok) {
-                alert("Manufacturers deleted successfully");
-                onUpdate();
                 handleClose();
+                onSuccess("Manufacturers deleted successfully");
+                onUpdate(); // Refresh data
             } else {
-                console.error("Failed to delete manufacturers");
+                onError("Failed to delete manufacturers");
             }
         } catch (error) {
             console.error("Error deleting manufacturers:", error);
+            onError("Error deleting manufacturers");
         }
     };
 

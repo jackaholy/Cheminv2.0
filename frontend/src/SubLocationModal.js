@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 import { LocationSelector } from "./LocationSelector";
+import { StatusMessage } from "./StatusMessage";
 
 const SubLocationModal = ({ show, handleClose }) => {
   const [showAdd, setShowAdd] = useState(false);
@@ -9,6 +10,8 @@ const SubLocationModal = ({ show, handleClose }) => {
   const [filter, setFilter] = useState(""); // State for the filter input
   const [sublocations, setSubLocations] = useState([]); // State for fetched sublocations
   const [currentEditSubLocation, setCurrentEditSubLocation] = useState(null); // State for the sublocation being edited
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusColor, setStatusColor] = useState("success");
 
   const loadSubLocations = () => {
     fetch("/api/sublocations")
@@ -31,6 +34,19 @@ const SubLocationModal = ({ show, handleClose }) => {
       loadSubLocations();
     }
   }, [show]);
+
+  const handleSuccess = (message) => {
+    console.log("Success message:", message);
+    setStatusMessage(message || "Operation successful"); // Ensure we always have a message
+    setStatusColor("success");
+    loadSubLocations();
+  };
+
+  const handleError = (message) => {
+    console.log("Error message:", message);
+    setStatusMessage(message || "An error occurred"); // Ensure we always have a message
+    setStatusColor("danger");
+  };
 
   // Handle checkbox selection
   const handleCheckboxChange = (id) => {
@@ -65,6 +81,7 @@ const SubLocationModal = ({ show, handleClose }) => {
           <Modal.Title>Sub Locations</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <StatusMessage statusMessage={statusMessage} color={statusColor} />
           <Form className="d-flex mb-3">
             <Form.Control
               type="search"
@@ -126,32 +143,41 @@ const SubLocationModal = ({ show, handleClose }) => {
 
       <AddSubLocationModal
         show={showAdd}
-        handleClose={() => setShowAdd(false)}
-        onUpdate={loadSubLocations}
+        handleClose={() => {
+          setShowAdd(false);
+        }}
+        onSuccess={handleSuccess} // Pass the function reference directly
+        onError={handleError} // Pass the function reference directly
       />
       <EditSubLocationModal
         show={showEdit}
-        handleClose={() => setShowEdit(false)}
+        handleClose={() => {
+          setShowEdit(false);
+        }}
         sublocation={currentEditSubLocation} // Pass the current sublocation to the modal
-        onUpdate={loadSubLocations}
+        onSuccess={handleSuccess} // Pass the function reference directly
+        onError={handleError} // Pass the function reference directly
       />
       <DeleteSubLocationModal
         show={showDelete}
-        handleClose={() => setShowDelete(false)}
+        handleClose={() => {
+          setShowDelete(false);
+        }}
         selectedSubLocations={filteredSubLocations.filter((sublocation) => sublocation.selected)} // Inline filter
-        onUpdate={loadSubLocations}
+        onSuccess={handleSuccess} // Pass the function reference directly
+        onError={handleError} // Pass the function reference directly
       />
     </>
   );
 };
 
-const AddSubLocationModal = ({ show, handleClose, onUpdate }) => {
+const AddSubLocationModal = ({ show, handleClose, onSuccess, onError }) => {
+  const [subLocationName, setSubLocationName] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [subLocationName, setSubLocationName] = useState(""); // Added state for sublocation name
 
   const handleSave = () => {
     if (!subLocationName || !selectedLocation) {
-      alert("Please provide a name and select a location.");
+      onError("Please provide a name and select a location.");
       return;
     }
     fetch("/api/sublocations", {
@@ -170,13 +196,13 @@ const AddSubLocationModal = ({ show, handleClose, onUpdate }) => {
         }
         return response.json();
       })
-      .then((data) => {
-        console.log("Sublocation saved successfully:", data);
-        onUpdate();
+      .then(() => {
         handleClose();
+        onSuccess("Sublocation saved successfully");
       })
       .catch((error) => {
         console.error("Error saving sublocation:", error);
+        onError("Error saving sublocation");
       });
   };
 
@@ -191,8 +217,8 @@ const AddSubLocationModal = ({ show, handleClose, onUpdate }) => {
           <Form.Control
             type="text"
             placeholder="Name..."
-            value={subLocationName} // Bind input to state
-            onChange={(e) => setSubLocationName(e.target.value)} // Update state on change
+            value={subLocationName}
+            onChange={(e) => setSubLocationName(e.target.value)}
           />
         </Form.Group>
         <LocationSelector
@@ -212,7 +238,7 @@ const AddSubLocationModal = ({ show, handleClose, onUpdate }) => {
   );
 };
 
-const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
+const EditSubLocationModal = ({ show, handleClose, sublocation, onSuccess, onError }) => {
   const [selectedLocation, setSelectedLocation] = useState(
     sublocation ? { location_id: sublocation.locationId } : null
   );
@@ -229,7 +255,7 @@ const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
 
   const handleSave = () => {
     if (!subLocationName || !selectedLocation) {
-      alert("Please provide a name and select a location.");
+      onError("Please provide a name and select a location.");
       return;
     }
 
@@ -249,13 +275,13 @@ const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
         }
         return response.json();
       })
-      .then((data) => {
-        console.log("Sublocation updated successfully:", data);
-        onUpdate();
+      .then(() => {
         handleClose();
+        onSuccess("Sublocation updated successfully");
       })
       .catch((error) => {
         console.error("Error updating sublocation:", error);
+        onError("Error updating sublocation");
       });
   };
 
@@ -270,14 +296,14 @@ const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
           <Form.Control
             type="text"
             placeholder="Name..."
-            value={subLocationName} // Bind input to state
-            onChange={(e) => setSubLocationName(e.target.value)} // Update state on change
+            value={subLocationName}
+            onChange={(e) => setSubLocationName(e.target.value)}
           />
         </Form.Group>
         <LocationSelector
           sublocationSelection={false}
           onChange={(location) => setSelectedLocation(location)}
-          selectedLocation={selectedLocation} // Pass the selected location
+          selectedLocation={selectedLocation}
         />
       </Modal.Body>
       <Modal.Footer>
@@ -292,12 +318,7 @@ const EditSubLocationModal = ({ show, handleClose, sublocation, onUpdate }) => {
   );
 };
 
-const DeleteSubLocationModal = ({
-  show,
-  handleClose,
-  selectedSubLocations,
-  onUpdate
-}) => {
+const DeleteSubLocationModal = ({ show, handleClose, selectedSubLocations, onSuccess, onError }) => {
   const handleDelete = async () => {
     for (const sublocation of selectedSubLocations) {
       try {
@@ -309,11 +330,12 @@ const DeleteSubLocationModal = ({
         }
       } catch (error) {
         console.error("Error deleting sublocation:", error);
+        onError("Error deleting sublocation");
         return;
       }
     }
-    onUpdate();
     handleClose();
+    onSuccess("Sublocations deleted successfully");
   };
 
   return (
