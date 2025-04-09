@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 
-const SubLocationModal = () => {
-    const [show, setShow] = useState(false);
+const SubLocationModal = (show, handleClose) => {
     const [showAdd, setShowAdd] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
@@ -21,7 +20,7 @@ const SubLocationModal = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h1 className="modal-title fs-5" id="subModalLabel">Sub Locations</h1>
-                            <button type="button" className="btn-close" onClick={() => setShow(false)}
+                            <button type="button" className="btn-close" onClick={handleClose}
                                     aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
@@ -64,7 +63,7 @@ const SubLocationModal = () => {
                             <button type="button" className="btn btn-secondary"
                                     onClick={() => setShowDelete(true)}>Remove Sub Location
                             </button>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShow(false)}>Close
+                            <button type="button" className="btn btn-secondary" onClick={handleClose}>Close
                             </button>
                         </div>
                     </div>
@@ -142,9 +141,6 @@ const SubLocationModal = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Button to open the main modal */}
-            <button className="btn btn-primary mt-3" onClick={() => setShow(true)}>Open Sub Location Modal</button>
         </>
     );
 };
