@@ -4,9 +4,9 @@ services:
     ports:
       - 5001:5000
 
-    # Delete this in a production environment
+    # Include the volume only in development
     volumes:
-      - ./backend/src:/cheminv
+      - ${CHEMINV_ENVIRONMENT:-development} == "development" ? "./backend/src:/cheminv" : ""
 
     build:
       context: .

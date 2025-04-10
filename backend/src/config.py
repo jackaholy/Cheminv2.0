@@ -42,10 +42,16 @@ class TestingConfig(ProdConfig):
     """
     Changes to the production setup for testing
     """
-
+    SECRET_KEY = os.getenv("CHEMINV_SECRET_KEY")
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///../../testing_database.db"
 
+    OIDC_ENABLED = False
+    OIDC_TESTING_PROFILE = {
+        "nickname": "Anne Admin",
+        "email": "anne-admin@example.com",
+        "groups":[]
+    }
 
 class DevConfig(ProdConfig):
     """

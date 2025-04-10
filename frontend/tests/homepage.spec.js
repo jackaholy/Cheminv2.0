@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("test", async ({ page }) => {
-  await page.goto("http://localhost:3000/");
+  await page.goto("http://localhost:5001/");
   await expect(page.getByRole("navigation")).toMatchAriaSnapshot(
     `- link "Chemical Inventory"`
   );
