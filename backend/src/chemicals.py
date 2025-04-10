@@ -415,3 +415,104 @@ def update_location():
     bottle.Sub_Location_ID = new_sub_location_id
     db.session.commit()
     return jsonify({"message": "Location updated"})
+
+
+@chemicals.route("/api/update_chemical/<int:chemical_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_chemical(chemical_id):
+    """
+    API to update chemical details.
+    :param chemical_id: ID of the chemical to update.
+    :return: Success or error message.
+    """
+    data = request.json
+    chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
+
+    if not chemical:
+        return jsonify({"error": "Chemical not found"}), 404
+
+    chemical.Chemical_Name = data.get("chemical_name", chemical.Chemical_Name)
+    chemical.Chemical_Formula = data.get("chemical_formula", chemical.Chemical_Formula)
+    chemical.Storage_Class_ID = data.get("storage_class_id", chemical.Storage_Class_ID)
+
+    db.session.commit()
+    return jsonify({"message": "Chemical updated successfully"})
+
+
+@chemicals.route("/api/delete_chemical/<int:chemical_id>", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_chemical(chemical_id):
+    """
+    API to permanently delete a chemical.
+    :param chemical_id: ID of the chemical to delete.
+    :return: Success or error message.
+    """
+    chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
+
+    if not chemical:
+        return jsonify({"error": "Chemical not found"}), 404
+
+    # Get all related Chemical_Manufacturer IDs
+    chemical_manufacturer_ids = db.session.query(Chemical_Manufacturer.Chemical_Manufacturer_ID).filter_by(Chemical_ID=chemical_id).all()
+
+    # Flatten the list of tuples
+    chemical_manufacturer_ids = [cm_id[0] for cm_id in chemical_manufacturer_ids]
+
+    # Delete related Inventory records
+    db.session.query(Inventory).filter(Inventory.Chemical_Manufacturer_ID.in_(chemical_manufacturer_ids)).delete(synchronize_session=False)
+
+    # Delete related Chemical_Manufacturer records
+    db.session.query(Chemical_Manufacturer).filter_by(Chemical_ID=chemical_id).delete(synchronize_session=False)
+
+    # Delete the chemical itself
+    db.session.delete(chemical)
+    db.session.commit()
+    return jsonify({"message": "Chemical deleted successfully"})
+
+
+@chemicals.route("/api/update_inventory/<int:inventory_id>", methods=["PUT"])
+@oidc.require_login
+@require_editor
+def update_inventory(inventory_id):
+    data = request.json
+    inventory = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    
+    if not inventory:
+        return jsonify({"error": "Inventory not found"}), 404
+    
+    # Update basic fields
+    inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
+    inventory.Product_Number = data.get("product_number", inventory.Product_Number)
+    inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
+    
+    # Update chemical manufacturer if manufacturer changed
+    if "manufacturer_id" in data:
+        chemical_id = inventory.Chemical_Manufacturer.Chemical_ID
+        manufacturer_id = data["manufacturer_id"]
+        
+        # Find or create Chemical_Manufacturer record
+        chem_man = (
+            db.session.query(Chemical_Manufacturer)
+            .filter_by(Chemical_ID=chemical_id, Manufacturer_ID=manufacturer_id)
+            .first()
+        )
+        
+        if not chem_man:
+            chem_man = Chemical_Manufacturer(
+                Chemical_ID=chemical_id,
+                Manufacturer_ID=manufacturer_id,
+                Product_Number=data.get("product_number")
+            )
+            db.session.add(chem_man)
+            db.session.flush()
+        
+        inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
+    
+    # Update timestamp and user
+    inventory.Last_Updated = datetime.now()
+    inventory.Who_Updated = session["oidc_auth_profile"].get("preferred_username")
+    
+    db.session.commit()
+    return jsonify({"message": "Inventory updated successfully"})

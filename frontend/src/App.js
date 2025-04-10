@@ -1,4 +1,4 @@
-import React, {useState, useEffect, use} from "react";
+import React, {useState, useEffect} from "react";
 import "./style.css";
 import {ManageUsersModal} from "./ManageUsersModal";
 import {Sidebar} from "./Sidebar";
@@ -68,7 +68,6 @@ const App = () => {
     };
 
     async function handleSearch(query, synonyms = false) {
-        console.log(query, selectedManufacturers, selectedRoom);
         if (
             query === "" &&
             selectedManufacturers.length === 0 &&
@@ -161,6 +160,10 @@ const App = () => {
                     query={query}
                     handleSearch={handleSearch}
                     handleShowModal={handleShowChemicalModal}
+                    onDataUpdate={async () => {
+                        const updatedData = await refreshChemicals();
+                        setResults(updatedData);
+                    }}
                 />
                 <ManageUsersModal/>
             </div>

@@ -16,7 +16,6 @@ const ProductNumberInput = ({ productNumber, setProductNumber, onEnter }) => {
       .then(setSearchResults)
       .catch(console.error);
   };
-  console.log(searchResults);
 
   return (
     <div>
