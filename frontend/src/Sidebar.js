@@ -17,8 +17,8 @@ export const Sidebar = ({
     const [manufacturers, setManufacturers] = useState([]);
     const [filteredManufacturers, setFilteredManufacturers] = useState([]);
 
-    const [isRoomAccordionOpen, setIsRoomAccordionOpen] = useState(true);
-    const [isManufacturerAccordionOpen, setIsManufacturerAccordionOpen] = useState(true);
+    const [isRoomAccordionOpen, setIsRoomAccordionOpen] = useState(false);
+    const [isManufacturerAccordionOpen, setIsManufacturerAccordionOpen] = useState(false);
 
     useEffect(() => {
         if (manufacturerFilterText !== "") {
@@ -27,9 +27,9 @@ export const Sidebar = ({
                     man.name.toLowerCase().includes(manufacturerFilterText.toLowerCase())
                 )
             );
-            return;
+        } else {
+            setFilteredManufacturers(manufacturers);
         }
-        setFilteredManufacturers(manufacturers);
     }, [manufacturerFilterText, manufacturers]);
 
     useEffect(() => {
@@ -41,9 +41,9 @@ export const Sidebar = ({
                         .includes(roomFilterText.toLowerCase())
                 )
             );
-            return;
+        } else {
+            setFilteredLocations(locations);
         }
-        setFilteredLocations(locations);
     }, [roomFilterText, locations]);
 
     useEffect(() => {
@@ -108,17 +108,19 @@ export const Sidebar = ({
             {/* Room Accordion */}
             <div className="tw-mt-4">
                 <div
-                    className="tw-font-semibold tw-cursor-pointer tw-flex tw-justify-between"
-                    onClick={() => setIsRoomAccordionOpen(!isRoomAccordionOpen)}
+                    className="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-font-semibold"
+                    onClick={() => setIsRoomAccordionOpen((prev) => !prev)}
                 >
-                    <span>Room Location</span>
-                    <span className="material-icons">{isRoomAccordionOpen ? "expand_less" : "expand_more"}</span>
+                    Room Location
+                    <span className="material-icons">
+            {isRoomAccordionOpen ? "expand_less" : "expand_more"}
+          </span>
                 </div>
 
                 {isRoomAccordionOpen && (
                     <>
                         <input
-                            className="form-control tw-mt-1"
+                            className="form-control tw-mt-2"
                             placeholder="Filter rooms"
                             value={roomFilterText}
                             onChange={(e) => setRoomFilterText(e.target.value)}
@@ -153,18 +155,19 @@ export const Sidebar = ({
             {/* Manufacturer Accordion */}
             <div className="tw-mt-4">
                 <div
-                    className="tw-font-semibold tw-cursor-pointer tw-flex tw-justify-between"
-                    onClick={() => setIsManufacturerAccordionOpen(!isManufacturerAccordionOpen)}
+                    className="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-font-semibold"
+                    onClick={() => setIsManufacturerAccordionOpen((prev) => !prev)}
                 >
-                    <span>Manufacturers</span>
-                    <span
-                        className="material-icons">{isManufacturerAccordionOpen ? "expand_less" : "expand_more"}</span>
+                    Manufacturers
+                    <span className="material-icons">
+            {isManufacturerAccordionOpen ? "expand_less" : "expand_more"}
+          </span>
                 </div>
 
                 {isManufacturerAccordionOpen && (
                     <>
                         <input
-                            className="form-control tw-mt-1"
+                            className="form-control tw-mt-2"
                             placeholder="Filter manufacturers"
                             value={manufacturerFilterText}
                             onChange={(e) => setManufacturerFilterText(e.target.value)}
