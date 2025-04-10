@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 from msds import get_msds_url
-from sqlalchemy import func
 from oidc import oidc
 from permission_requirements import require_editor
 from sqlalchemy.orm import joinedload
@@ -13,8 +12,8 @@ from models import (
     Chemical_Manufacturer,
     Storage_Class,
     Manufacturer,
-    Location,
     Sub_Location,
+    Location,
     User,
 )
 from database import db
@@ -85,7 +84,7 @@ def product_search():
     if not query:
         return jsonify([])
 
-    # Perform a case-insensitive search using the ilike operator.
+    # Perform a case-insensitive search using the "ilike" operator.
     results = (
         db.session.query(Inventory)
         .filter(Inventory.Product_Number.ilike(f"%{query}%"))
@@ -276,10 +275,64 @@ def mark_dead():
     :return: Message indicating the chemical has been marked as dead.
     """
     inventory_id = request.json.get("inventory_id")
+
+    if not inventory_id:
+        return jsonify({"error": "Missing inventory_id"}), 400
+
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
+
+@chemicals.route("/api/chemicals/mark_many_dead", methods=["POST"])
+@oidc.require_login
+def mark_many_dead():
+    """
+    API to mark multiple chemicals as dead.
+    :return: Message indicating the chemicals that have been marked as dead.
+    """
+    sub_location_id = request.json.get("sub_location_id")
+    inventory_ids = request.json.get("inventory_id")
+
+    if not sub_location_id or not isinstance(sub_location_id, int):
+        return jsonify({"error": "Missing or invalid sub_location_id"}), 400
+    if not inventory_ids or not isinstance(inventory_ids, list):
+        return jsonify({"error": "Missing or invalid inventory_id"}), 400
+
+    # Get all chemicals in the specified sublocation
+    bottles_to_check = db.session.query(Inventory).filter(
+        Inventory.Sub_Location_ID == sub_location_id,
+        Inventory.Is_Dead == False
+    ).all()
+
+    if len(bottles_to_check) == 0:
+        return jsonify({"error": "No chemicals marked as dead"}), 400
+
+    # Remove the ones that are not accounted for
+    bottles_not_found = [
+        bottle for bottle in bottles_to_check
+        if bottle.Sticker_Number in inventory_ids
+    ]
+
+    for bottle in bottles_not_found:
+        bottle.Is_Dead = True
+
+    db.session.commit()
+    return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
+
+
+@chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
+@oidc.require_login
+def mark_alive():
+    """
+    API to mark a chemical as alive.
+    :return: Message indicating the chemical has been marked as alive.
+    """
+    inventory_id = request.json.get("inventory_id")
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle.Is_Dead = False
+    db.session.commit()
+    return {"message": "Chemical marked as alive"}
 
 
 @chemicals.route("/api/chemicals/by_sublocation", methods=["GET"])
@@ -294,6 +347,7 @@ def get_chemicals_by_sublocation():
     if not sub_location_id:
         return jsonify({"error": "sub_location_id is required"}), 400
 
+
     # Query inventory records for the specified sublocation
     inventory_records = (
         db.session.query(Inventory)
@@ -301,7 +355,9 @@ def get_chemicals_by_sublocation():
         .join(Chemical)
         .join(Sub_Location)
         .join(Location)
-        .filter(Inventory.Sub_Location_ID == sub_location_id)
+        .filter(Inventory.Sub_Location_ID == sub_location_id,
+                Inventory.Is_Dead == False  # Filter out dead chemicals
+                )
         .all()
     )
 
@@ -319,18 +375,46 @@ def get_chemicals_by_sublocation():
     return jsonify(chemical_list)
 
 
-@chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
+@chemicals.route("/api/chemicals/sticker_lookup", methods=["GET"])
 @oidc.require_login
-def mark_alive():
+def sticker_lookup():
     """
-    API to mark a chemical as alive.
-    :return: Message indicating the chemical has been marked as alive.
+    Look up a chemical's current sublocation by sticker number.
     """
+    sticker_number = request.args.get("sticker_number")
+
+    if not sticker_number:
+        return jsonify({"error": "Missing sticker_number"}), 400
+
+    bottle = (
+        db.session.query(Inventory)
+        .filter_by(Sticker_Number=sticker_number)
+        .join(Sub_Location)
+        .join(Location)
+        .first()
+    )
+
+    if not bottle:
+        return jsonify({"error": "Sticker not found"}), 404
+
+    return jsonify({
+        "inventory_id": bottle.Inventory_ID,
+        "sub_location_id": bottle.Sub_Location.Sub_Location_ID,
+        "location_name": bottle.Sub_Location.Location.Building + " " + bottle.Sub_Location.Location.Room,
+        "sub_location_name": bottle.Sub_Location.Sub_Location_Name
+    })
+
+
+@chemicals.route("/api/chemicals/update_chemical_location", methods=["POST"])
+@oidc.require_login
+def update_location():
     inventory_id = request.json.get("inventory_id")
+    new_sub_location_id = request.json.get("new_sub_location_id")
+
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
-    bottle.Is_Dead = False
+    bottle.Sub_Location_ID = new_sub_location_id
     db.session.commit()
-    return {"message": "Chemical marked as alive"}
+    return jsonify({"message": "Location updated"})
 
 
 @chemicals.route("/api/update_chemical/<int:chemical_id>", methods=["PUT"])

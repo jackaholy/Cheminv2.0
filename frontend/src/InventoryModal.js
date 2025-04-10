@@ -7,15 +7,18 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   const [selectedSubLocation, setSelectedSubLocation] = useState(null);
   const [chemicals, setChemicals] = useState([]);
   const [enteredChemicals, setEnteredChemicals] = useState(new Set());
+  const [removedChemicals, setRemovedChemicals] = useState(new Set());
   const [inputValue, setInputValue] = useState("");
   const lastEnterTimeRef = useRef(0);
 
-  // if (!chemical) return null; // Don't render if no chemical is selected
   // Reset all state when the modal closes.
   const resetState = () => {
     setSelectedLocation(null);
     setSelectedSubLocation(null);
     setChemicals([]);
+    setInputValue("");
+    setEnteredChemicals(new Set());
+    setRemovedChemicals(new Set());
   };
 
   // Handles closing modals
@@ -25,7 +28,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   };
 
   // Detect double space
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
       const currentTime = Date.now();
       const DOUBLE_ENTER_THRESHOLD = 500;
@@ -33,6 +36,9 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
       if (currentTime - lastEnterTimeRef.current <= DOUBLE_ENTER_THRESHOLD) {
         if (!sticker_number) return;
+
+
+        console.log("Entered Sticker Number:", sticker_number);
 
         // Check if the entered sticker number exists in the list
         const matchingChemical = chemicals.find(
@@ -51,7 +57,38 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             (prevEntered) => new Set([...prevEntered, sticker_number])
           );
         } else {
-          console.log("No matching chemical found.");
+          // If not found, check if the chemical exists elsewhere and offer to update location
+          try {
+            const locationResponse = await fetch(`/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`);
+            if (!locationResponse.ok) throw new Error("Unable to fetch sticker location");
+            const location_data = await locationResponse.json();
+
+            if (
+              location_data.location_id !== selectedLocation?.location_id ||
+              location_data.sub_location_id !== selectedSubLocation?.sub_location_id
+            ) {
+              const confirmMove = window.confirm(
+                `This chemical was last found at:  "${location_data.location_name} - ${location_data.sub_location_name}".\nDo you want to move it to the current location?`
+              );
+              if (confirmMove) {
+                await fetch(`api/chemicals/update_chemical_location`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    inventory_id: location_data.inventory_id,
+                    new_sub_location_id: selectedSubLocation?.sub_location_id,
+                  }),
+                });
+                alert("Location updated successfully.");
+                // Reload list
+                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+                  .then((res) => res.json())
+                  .then((data) => setChemicals(data));
+              }
+            }
+          } catch (err) {
+            console.error("Error checking or moving chemical:", err);
+          }
         }
 
         // Clear input
@@ -59,23 +96,35 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       }
       // Update the last time the user pressed Enter.
       lastEnterTimeRef.current = currentTime;
+      console.log("Available Chemicals:", chemicals);
     }
   };
 
   // Mark remaining chemicals as dead
   const handleCompleteSublocation = () => {
     const unenteredChemicals = chemicals
-      .filter((chem) => !enteredChemicals.has(chem["sticker"]))
-      .map((chem) => chem["sticker"]);
+      .filter((chem) => !enteredChemicals.has(chem.sticker_number))
+      .map((chem) => chem.sticker_number);
 
-    fetch("/api/chemicals/mark_dead", {
+    if (unenteredChemicals.length === 0) {
+      alert("No chemicals left to be marked dead.")
+      return;
+    }
+
+    fetch("/api/chemicals/mark_many_dead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inventory_ids: unenteredChemicals }),
+      body: JSON.stringify({ inventory_id: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id}),
     })
-      .then((res) => res.json())
-      .then((data) => alert(data.message));
-  };
+      .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+      })
+      .then((data) => alert(data.message))
+      .catch((error) => console.error("Error marking chemicals as dead:", error));
+      };
 
   // Fetch all chemicals in the sub-location
   useEffect(() => {
@@ -89,6 +138,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       .then((data) => setChemicals(data));
   }, [selectedSubLocation]);
 
+  // console.log("Inventoried Chemicals:", removedChemicals);
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
@@ -106,9 +156,11 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           <label className="form-label">Sticker Number</label>
           <input
             onKeyDown={handleKeyDown}
+            // Prevent scrolling in the "Type sticker number" text box
+            onWheel={(e) => e.target.blur()}
             type="number"
             className="form-control"
-            placeholder="Enter sticker number then press Enter twice..."
+            placeholder="Type in sticker number then press Enter twice..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
@@ -132,7 +184,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
               </tr>
             </thead>
             <tbody>
-              {chemicals.map((item, index) => (
+              {chemicals.filter((chem) => !removedChemicals.has(chem.sticker_number)) // Exclude removed ones
+                .map((item, index) => (
                 <tr
                   key={index}
                   className={
@@ -154,15 +207,32 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       </Modal.Body>
 
       <Modal.Footer>
+        <div className="me-auto">
+          <button
+            onClick={() => {
+              if (selectedSubLocation) {
+                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+                  .then((res) => res.json())
+                  .then((data) => {
+                    setChemicals(data);
+                    setRemovedChemicals(new Set());
+                    setEnteredChemicals(new Set());
+                    setInputValue("");
+                  });
+              }
+            }}
+            type="button"
+            className="btn btn-secondary"
+          >
+            Reset
+          </button>
+        </div>
         <button
           onClick={handleCompleteSublocation}
           type="button"
           className="btn btn-secondary"
         >
           Complete Sub Location
-        </button>
-        <button type="button" className="btn btn-secondary">
-          Complete Room
         </button>
         <button
           type="button"
