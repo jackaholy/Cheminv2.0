@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table } from "react-bootstrap";
+import React, {useState, useEffect} from "react";
+import {Modal, Button, Form, Table} from "react-bootstrap";
 
-const StorageClassModal = ({ show, handleClose }) => {
+const StorageClassModal = ({show, handleClose}) => {
     const [storageClasses, setStorageClasses] = useState([]);
     const [filter, setFilter] = useState("");
     const [showAdd, setShowAdd] = useState(false);
@@ -23,7 +23,7 @@ const StorageClassModal = ({ show, handleClose }) => {
     const handleCheckboxChange = (index) => {
         setStorageClasses((prevStorageClasses) =>
             prevStorageClasses.map((storageClass, i) =>
-                i === index ? { ...storageClass, selected: !storageClass.selected } : storageClass
+                i === index ? {...storageClass, selected: !storageClass.selected} : storageClass
             )
         );
     };
@@ -33,7 +33,7 @@ const StorageClassModal = ({ show, handleClose }) => {
     );
 
     const handleDeleteSuccess = (deletedClasses) => {
-        setStorageClasses(prevClasses => 
+        setStorageClasses(prevClasses =>
             prevClasses.filter(sc => !deletedClasses.includes(sc.name))
         );
         setShowDelete(false);
@@ -58,36 +58,36 @@ const StorageClassModal = ({ show, handleClose }) => {
 
                     <Table striped bordered hover>
                         <thead>
-                            <tr>
-                                <th></th>
-                                <th>Storage Class Name</th>
-                                <th>Edit</th>
-                            </tr>
+                        <tr>
+                            <th></th>
+                            <th>Storage Class Name</th>
+                            <th>Edit</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {filteredStorageClasses.map((storageClass, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={storageClass.selected}
-                                            onChange={() => handleCheckboxChange(index)}
-                                        />
-                                    </td>
-                                    <td>{storageClass.name}</td>
-                                    <td>
-                                        <Button
-                                            variant="outline-success"
-                                            onClick={() => {
-                                                setSelectedStorageClass(storageClass);
-                                                setShowEdit(true);
-                                            }}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                        {filteredStorageClasses.map((storageClass, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <Form.Check
+                                        type="checkbox"
+                                        checked={storageClass.selected}
+                                        onChange={() => handleCheckboxChange(index)}
+                                    />
+                                </td>
+                                <td>{storageClass.name}</td>
+                                <td>
+                                    <Button
+                                        variant="outline-success"
+                                        onClick={() => {
+                                            setSelectedStorageClass(storageClass);
+                                            setShowEdit(true);
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </Table>
                 </Modal.Body>
@@ -98,7 +98,7 @@ const StorageClassModal = ({ show, handleClose }) => {
                 </Modal.Footer>
             </Modal>
 
-            <AddStorageClassModal show={showAdd} handleClose={() => setShowAdd(false)} />
+            <AddStorageClassModal show={showAdd} handleClose={() => setShowAdd(false)}/>
             <EditStorageClassModal
                 show={showEdit}
                 handleClose={() => setShowEdit(false)}
@@ -114,7 +114,7 @@ const StorageClassModal = ({ show, handleClose }) => {
     );
 };
 
-const AddStorageClassModal = ({ show, handleClose }) => {
+const AddStorageClassModal = ({show, handleClose}) => {
     const [storageClassName, setStorageClassName] = useState("");
 
     const handleSave = async () => {
@@ -130,7 +130,7 @@ const AddStorageClassModal = ({ show, handleClose }) => {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ name: storageClassName }),
+                body: JSON.stringify({name: storageClassName}),
             });
 
             if (!response.ok) {
@@ -170,7 +170,7 @@ const AddStorageClassModal = ({ show, handleClose }) => {
     );
 };
 
-const EditStorageClassModal = ({ show, handleClose, storageClass }) => {
+const EditStorageClassModal = ({show, handleClose, storageClass}) => {
     const [storageClassName, setStorageClassName] = useState(storageClass ? storageClass.name : "");
 
     React.useEffect(() => {
@@ -192,7 +192,7 @@ const EditStorageClassModal = ({ show, handleClose, storageClass }) => {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ name: storageClassName }),
+                body: JSON.stringify({name: storageClassName}),
             });
 
             if (!response.ok) {
@@ -232,7 +232,7 @@ const EditStorageClassModal = ({ show, handleClose, storageClass }) => {
     );
 };
 
-const DeleteStorageClassModal = ({ show, handleClose, selectedStorageClasses, onDeleteSuccess }) => {
+const DeleteStorageClassModal = ({show, handleClose, selectedStorageClasses, onDeleteSuccess}) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
@@ -287,9 +287,9 @@ const DeleteStorageClassModal = ({ show, handleClose, selectedStorageClasses, on
                 </ul>
             </Modal.Body>
             <Modal.Footer>
-                <Button 
-                    variant="danger" 
-                    onClick={handleDelete} 
+                <Button
+                    variant="danger"
+                    onClick={handleDelete}
                     disabled={isDeleting}
                 >
                     {isDeleting ? 'Deleting...' : 'Delete'}
