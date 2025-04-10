@@ -11,7 +11,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   const [inputValue, setInputValue] = useState("");
   const lastEnterTimeRef = useRef(0);
 
-  // if (!chemical) return null; // Don't render if no chemical is selected
   // Reset all state when the modal closes.
   const resetState = () => {
     setSelectedLocation(null);
