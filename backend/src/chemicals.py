@@ -300,29 +300,27 @@ def mark_many_dead():
         return jsonify({"error": "Missing or invalid inventory_id"}), 400
 
     # Get all chemicals in the specified sublocation
-    all_inventory_ids = set(
-        row[0] for row in db.session.query(Inventory.Inventory_ID)
-        .filter(Inventory.Sub_Location_ID == sub_location_id)
-        .all()
-    )
+    bottles_to_check = db.session.query(Inventory).filter(
+        Inventory.Sub_Location_ID == sub_location_id,
+        Inventory.Is_Dead == False
+    ).all()
 
-    if len(all_inventory_ids) == 0:
+    if len(bottles_to_check) == 0:
         return jsonify({"error": "No chemicals marked as dead"}), 400
 
     # Remove the ones that are not accounted for (provided in inventory_ids)
-    unentered_inventory_ids = list(all_inventory_ids - set(inventory_ids))
+    # unentered_inventory_ids = list(bottles_to_check - set(inventory_ids))
 
-    bottles = (
-        db.session.query(Inventory)
-        .filter(Inventory.Inventory_ID.in_(unentered_inventory_ids))
-        .all()
-    )
+    bottles_not_found = [
+        bottle for bottle in bottles_to_check
+        if bottle.Sticker_Number in inventory_ids
+    ]
 
-    for bottle in bottles:
+    for bottle in bottles_not_found:
         bottle.Is_Dead = True
 
     db.session.commit()
-    return {"message": f"{len(bottles)} chemicals marked as dead"}
+    return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
 
 
 @chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
@@ -351,6 +349,7 @@ def get_chemicals_by_sublocation():
     if not sub_location_id:
         return jsonify({"error": "sub_location_id is required"}), 400
 
+
     # Query inventory records for the specified sublocation
     inventory_records = (
         db.session.query(Inventory)
@@ -358,7 +357,9 @@ def get_chemicals_by_sublocation():
         .join(Chemical)
         .join(Sub_Location)
         .join(Location)
-        .filter(Inventory.Sub_Location_ID == sub_location_id)
+        .filter(Inventory.Sub_Location_ID == sub_location_id,
+                Inventory.Is_Dead == False  # Filter out dead chemicals
+                )
         .all()
     )
 
