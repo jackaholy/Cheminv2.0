@@ -6,3 +6,9 @@ Instead, you can `cd` into `frontend` and run `npm start`, and your changes will
 Just make sure to leave the backend running.
 
 If you have to sign in or run into weird auth issues, use `:5001`.
+
+When using `:5001` if you continue to have problems with authentication try clearing cookies and refresh the page.
+
+## Backend Development
+
+This is where I will put some helpful developer information.
