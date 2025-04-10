@@ -17,6 +17,9 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     setSelectedLocation(null);
     setSelectedSubLocation(null);
     setChemicals([]);
+    setInputValue("");
+    setEnteredChemicals(new Set());
+    setRemovedChemicals(new Set());
   };
 
   // Handles closing modals
@@ -176,11 +179,22 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       <Modal.Footer>
         <div className="me-auto">
           <button
-            onClick={() => setRemovedChemicals(new Set())}
+            onClick={() => {
+              if (selectedSubLocation) {
+                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+                  .then((res) => res.json())
+                  .then((data) => {
+                    setChemicals(data);
+                    setRemovedChemicals(new Set());
+                    setEnteredChemicals(new Set());
+                    setInputValue("");
+                  });
+              }
+            }}
             type="button"
             className="btn btn-secondary"
           >
-          Reset
+            Reset
           </button>
         </div>
         <button
