@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, {  useCallback, useEffect, useState } from "react";
 import {Modal, Button, Form, Table} from 'react-bootstrap';
+import { StatusMessage } from "./StatusMessage";
 
 const LocationModal = (props) => {
     const {show, handleClose} = props;
@@ -23,24 +24,31 @@ const LocationModal = (props) => {
     const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
 
-    useEffect(() => {
-        loadLocations();
-    }, [show]);
-    const loadLocations = () => {
+    const [statusMessage, setStatusMessage] = useState("");
+    const [statusColor, setStatusColor] = useState("success");
+
+    const loadLocations = useCallback(() => {
         // Fetch locations when the modal is shown
         if (show) {
             fetch("/api/locations")
-                .then((response) => response.json())
-                .then((data) => {
-                    // Initialize each location with a 'selected' property
-                    const locationsWithSelection = data.map(location => ({...location, selected: false}));
-                    setLocations(locationsWithSelection);
-                })
-                .catch((error) => {
-                    console.error("Error fetching locations:", error);
-                });
+            .then((response) => response.json())
+            .then((data) => {
+                // Initialize each location with a 'selected' property
+                const locationsWithSelection = data.map(location => ({ ...location, selected: false }));
+                setLocations(locationsWithSelection);
+            })
+            .catch((error) => {
+                console.error("Error fetching locations:", error);
+            });
         }
-    }
+    }, [show]);
+
+
+
+    useEffect(() => {
+        loadLocations();
+    }, [show, loadLocations]);
+
     useEffect(() => {
         setFilteredLocations(
             locations.filter((location) =>
@@ -56,8 +64,6 @@ const LocationModal = (props) => {
     };
     const handleDelete = async () => {
         const selectedLocations = locations.filter(location => location.selected);
-        // Perform delete operation here
-        console.log("Deleting locations:", selectedLocations);
         for (const location of selectedLocations) {
             try {
                 const response = await fetch(`/api/locations/${location.location_id}`, {
@@ -69,14 +75,15 @@ const LocationModal = (props) => {
                 await response.json();
             } catch (error) {
                 console.error("Error deleting location:", error);
-                alert("Failed to delete: " + location.room + ". Check console for details.");
-                return; // Bail out if any deletion fails
+                setStatusMessage(`Failed to delete: ${location.room}`);
+                setStatusColor("danger");
+                return;
             }
         }
-        alert("Deleted: " + selectedLocations.map(location => location.room).join(", ") + " successfully");
+        setStatusMessage(`Deleted: ${selectedLocations.map(location => location.room).join(", ")} successfully`);
+        setStatusColor("success");
         setShowDelete(false);
         loadLocations();
-
     }
     return (
         <>
@@ -86,6 +93,7 @@ const LocationModal = (props) => {
                     <Modal.Title>Locations</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <StatusMessage statusMessage={statusMessage} color={statusColor} />
                     <Form className="d-flex">
                         <Form.Control
                             type="Filter"
@@ -117,12 +125,18 @@ const LocationModal = (props) => {
             <AddLocationModal
                 show={showAdd}
                 handleClose={handleCloseAdd}
+                onLocationChange={loadLocations}
+                setStatusMessage={setStatusMessage}
+                setStatusColor={setStatusColor}
             />
 
             <EditLocationModal
                 show={showEdit}
                 handleClose={handleCloseEdit}
                 locationData={editLocationData}
+                onLocationChange={loadLocations}
+                setStatusMessage={setStatusMessage}
+                setStatusColor={setStatusColor}
             />
 
             <DeleteLocationConfirmationModal
@@ -167,7 +181,7 @@ const LocationTable = ({locations, handleCheckboxChange, handleShowEdit}) => (
     </Table>
 );
 
-const AddLocationModal = ({show, handleClose}) => {
+const AddLocationModal = ({ show, handleClose, onLocationChange, setStatusMessage, setStatusColor }) => {
     const [room, setRoom] = useState("");
     const [building, setBuilding] = useState("");
 
@@ -185,11 +199,14 @@ const AddLocationModal = ({show, handleClose}) => {
                 throw new Error("Failed to add location");
             }
 
-            alert("Location added successfully");
             handleClose();
+            onLocationChange();
+            setStatusMessage("Location added successfully");
+            setStatusColor("success");
         } catch (error) {
             console.error("Error adding location:", error);
-            alert("Failed to add location. Check console for details.");
+            setStatusMessage("Failed to add location");
+            setStatusColor("danger");
         }
     };
 
@@ -234,7 +251,7 @@ const AddLocationModal = ({show, handleClose}) => {
     );
 };
 
-const EditLocationModal = ({show, handleClose, locationData}) => {
+const EditLocationModal = ({ show, handleClose, locationData, onLocationChange, setStatusMessage, setStatusColor }) => {
     const [room, setRoom] = useState(locationData?.room || "");
     const [building, setBuilding] = useState(locationData?.building || "");
 
@@ -257,11 +274,14 @@ const EditLocationModal = ({show, handleClose, locationData}) => {
                 throw new Error("Failed to update location");
             }
 
-            alert("Location updated successfully");
             handleClose();
+            onLocationChange();
+            setStatusMessage("Location updated successfully");
+            setStatusColor("success");
         } catch (error) {
             console.error("Error updating location:", error);
-            alert("Failed to update location. Check console for details.");
+            setStatusMessage("Failed to update location");
+            setStatusColor("danger");
         }
     };
 
