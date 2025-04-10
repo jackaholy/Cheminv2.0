@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+import Accordion from "react-bootstrap/Accordion";
 
 export const Sidebar = ({
                             query,
@@ -16,9 +17,6 @@ export const Sidebar = ({
     const [manufacturerFilterText, setManufacturerFilterText] = useState("");
     const [manufacturers, setManufacturers] = useState([]);
     const [filteredManufacturers, setFilteredManufacturers] = useState([]);
-
-    const [isRoomAccordionOpen, setIsRoomAccordionOpen] = useState(false);
-    const [isManufacturerAccordionOpen, setIsManufacturerAccordionOpen] = useState(false);
 
     useEffect(() => {
         if (manufacturerFilterText !== "") {
@@ -106,19 +104,10 @@ export const Sidebar = ({
             </div>
 
             {/* Room Accordion */}
-            <div className="tw-mt-4">
-                <div
-                    className="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-font-semibold"
-                    onClick={() => setIsRoomAccordionOpen((prev) => !prev)}
-                >
-                    Room Location
-                    <span className="material-icons">
-            {isRoomAccordionOpen ? "expand_less" : "expand_more"}
-          </span>
-                </div>
-
-                {isRoomAccordionOpen && (
-                    <>
+            <Accordion defaultActiveKey="0" className="tw-mt-4">
+                <Accordion.Item eventKey="0">
+                    <Accordion.Header>Room Location</Accordion.Header>
+                    <Accordion.Body>
                         <input
                             className="form-control tw-mt-2"
                             placeholder="Filter rooms"
@@ -148,24 +137,15 @@ export const Sidebar = ({
                                 </label>
                             ))}
                         </div>
-                    </>
-                )}
-            </div>
+                    </Accordion.Body>
+                </Accordion.Item>
+            </Accordion>
 
             {/* Manufacturer Accordion */}
-            <div className="tw-mt-4">
-                <div
-                    className="tw-flex tw-justify-between tw-items-center tw-cursor-pointer tw-font-semibold"
-                    onClick={() => setIsManufacturerAccordionOpen((prev) => !prev)}
-                >
-                    Manufacturers
-                    <span className="material-icons">
-            {isManufacturerAccordionOpen ? "expand_less" : "expand_more"}
-          </span>
-                </div>
-
-                {isManufacturerAccordionOpen && (
-                    <>
+            <Accordion defaultActiveKey="1" className="tw-mt-4">
+                <Accordion.Item eventKey="1">
+                    <Accordion.Header>Manufacturers</Accordion.Header>
+                    <Accordion.Body>
                         <input
                             className="form-control tw-mt-2"
                             placeholder="Filter manufacturers"
@@ -186,9 +166,9 @@ export const Sidebar = ({
                                 </label>
                             ))}
                         </div>
-                    </>
-                )}
-            </div>
+                    </Accordion.Body>
+                </Accordion.Item>
+            </Accordion>
         </div>
     );
 };
