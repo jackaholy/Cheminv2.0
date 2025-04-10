@@ -37,61 +37,41 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
         console.log("Entered Sticker Number:", sticker_number);
 
-      // Fetch the current sublocation of the entered sticker number
-      const response = await fetch(
-        `/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        // Check if the chemical is from a different sublocation
-        if (data.sub_location_id !== selectedSubLocation.sub_location_id) {
-          const confirmMove = window.confirm(
-            `This chemical was last found at: ${data.Location_ID} – ${data.sub_location_id}. 
-            Do you want to move it to the current location?`
+        // Check if the entered sticker number exists in the list
+        const matchingChemical = chemicals.find(
+          (chem) => chem.sticker_number === sticker_number
+        );
+        console.log("Chemical: " + matchingChemical);
+        if (matchingChemical) {
+          // Remove from displayed list
+          setChemicals((prevChemicals) =>
+            prevChemicals.filter(
+              (chem) => chem.sticker_number !== sticker_number
+            )
           );
 
-          if (confirmMove) {
-            // Update the location if user confirms
-            await fetch("/api/chemicals/update_location", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                inventory_id: data.inventory_id,
-                new_sub_location_id: selectedSubLocation.sub_location_id,
-              }),
-            }).then(() => {
-              // Update the list of chemicals if location is updated
-              setChemicals((prevChemicals) =>
-                prevChemicals.map((chem) => {
-                  if (chem.sticker_number === sticker_number) {
-                    chem.sub_location_id = selectedSubLocation.sub_location_id;
-                  }
-                  return chem;
-                })
-              );
-            });
-          }
+          // Add to entered set
+          setEnteredChemicals(
+            (prevEntered) => new Set([...prevEntered, sticker_number])
+          );
         } else {
-          // Remove from displayed list if already in the correct location
-          setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
+          console.log("No matching chemical found.");
         }
-      } else {
-        console.log("No matching chemical found.");
-      }
+
         // Clear input
         setInputValue("");
       }
       // Update the last time the user pressed Enter.
       lastEnterTimeRef.current = currentTime;
+      console.log("Available Chemicals:", chemicals);
     }
   };
 
   // Mark remaining chemicals as dead
   const handleCompleteSublocation = () => {
     const unenteredChemicals = chemicals
-      .filter((chem) => !enteredChemicals.has(chem["sticker"]))
-      .map((chem) => chem["sticker"]);
+      .filter((chem) => !enteredChemicals.has(chem.sticker_number))
+      .map((chem) => chem.sticker_number);
 
     if (unenteredChemicals.length === 0) {
       alert("No chemicals left to be marked dead.")
@@ -125,7 +105,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       .then((data) => setChemicals(data));
   }, [selectedSubLocation]);
 
-  console.log("Inventoried Chemicals:", removedChemicals);
+  // console.log("Inventoried Chemicals:", removedChemicals);
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
