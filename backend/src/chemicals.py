@@ -308,9 +308,7 @@ def mark_many_dead():
     if len(bottles_to_check) == 0:
         return jsonify({"error": "No chemicals marked as dead"}), 400
 
-    # Remove the ones that are not accounted for (provided in inventory_ids)
-    # unentered_inventory_ids = list(bottles_to_check - set(inventory_ids))
-
+    # Remove the ones that are not accounted for
     bottles_not_found = [
         bottle for bottle in bottles_to_check
         if bottle.Sticker_Number in inventory_ids
@@ -402,12 +400,12 @@ def sticker_lookup():
     return jsonify({
         "inventory_id": bottle.Inventory_ID,
         "sub_location_id": bottle.Sub_Location.Sub_Location_ID,
-        "location_name": bottle.Sub_Location.Location.Location_Name,
+        "location_name": bottle.Sub_Location.Location.Building + " " + bottle.Sub_Location.Location.Room,
         "sub_location_name": bottle.Sub_Location.Sub_Location_Name
     })
 
 
-@chemicals.route("/api/chemicals/update_location", methods=["POST"])
+@chemicals.route("/api/chemicals/update_chemical_location", methods=["POST"])
 @oidc.require_login
 def update_location():
     inventory_id = request.json.get("inventory_id")
