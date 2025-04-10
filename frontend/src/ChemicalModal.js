@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
-import {OverlayTrigger, Tooltip} from "react-bootstrap";
-import {StatusMessage} from "./StatusMessage";
-import {Accordion} from "react-bootstrap";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { StatusMessage } from "./StatusMessage";
+import { Accordion } from "react-bootstrap";
 import { InventoryEditModal } from "./InventoryEditModal"; // Import the InventoryEditModal
 
 export const ChemicalModal = ({
@@ -55,7 +55,10 @@ export const ChemicalModal = ({
         // Easy heuristic for "best" description
         let longestDescription = "";
         for (const info of data["InformationList"]["Information"]) {
-          if ("Description" in info && info["Description"].length > longestDescription.length) {
+          if (
+            "Description" in info &&
+            info["Description"].length > longestDescription.length
+          ) {
             longestDescription = info["Description"];
           }
         }
@@ -139,30 +142,30 @@ export const ChemicalModal = ({
 
   return (
     <>
-    <Modal show={show} onHide={handleModalClose} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>{chemical.chemical_name}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="container">
-          <div className="row">
-            {chemicalImage && (
-              <div className="col-md-4">
-                <img
-                  src={chemicalImage}
-                  alt={chemical.chemical_name}
-                  className="tw-max-w-full tw-h-auto"
-                  onError={() => setChemicalImage(null)}
+      <Modal show={show} onHide={handleModalClose} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>{chemical.chemical_name}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="container">
+            <div className="row">
+              {chemicalImage && (
+                <div className="col-md-4">
+                  <img
+                    src={chemicalImage}
+                    alt={chemical.chemical_name}
+                    className="tw-max-w-full tw-h-auto"
+                    onError={() => setChemicalImage(null)}
                   />
                 </div>
               )}
               <div className="col-md-8">
-              <p>
-                <b>Storage Class:</b> {chemical.storage_class}
-              </p>
-              <p>
-                <b>Chemical Formula:</b> {chemical.formula}
-              </p>
+                <p>
+                  <b>Storage Class:</b> {chemical.storage_class}
+                </p>
+                <p>
+                  <b>Chemical Formula:</b> {chemical.formula}
+                </p>
                 <p>
                   {chemicalDescription && <b>Description: </b>}
                   {chemicalDescription}
@@ -176,101 +179,148 @@ export const ChemicalModal = ({
           <table className="table mb-2">
             <thead>
               <tr>
-              <th>Sticker #</th>
-              <th>Product #</th>
-              <th>Location</th>
-              <th>Sub-Location</th>
-              <th>Manufacturer</th>
-              {["Editor", "Full Access"].includes(user.access) && <th>Edit</th>}
+                <th>Sticker #</th>
+                <th>Product #</th>
+                <th>Location</th>
+                <th>Sub-Location</th>
+                <th>Manufacturer</th>
+                {["Editor", "Full Access"].includes(user.access) && (
+                  <th>Edit</th>
+                )}
               </tr>
             </thead>
             <tbody>
-            {aliveInventory?.map((item, index) => (
-              <tr key={index}>
+              {aliveInventory?.map((item, index) => (
+                <tr key={index}>
                   <th scope="row">{item.sticker}</th>
                   <td>{item.product_number}</td>
                   <td>{item.location}</td>
                   <td>{item.sub_location}</td>
                   <td>{item.manufacturer}</td>
-                {["Editor", "Full Access"].includes(user.access) && (
+                  {["Editor", "Full Access"].includes(user.access) && (
                     <td>
-                     <OverlayTrigger
+                      <OverlayTrigger
                         placement="bottom"
-                        overlay={<Tooltip id="button-tooltip-edit">Edit</Tooltip>}
+                        overlay={
+                          <Tooltip id="button-tooltip-edit">Edit</Tooltip>
+                        }
                       >
                         <button
                           className="btn btn-secondary btn-sm me-1"
                           title="Edit"
                           onClick={() => handleEditClick(item)}
-                        ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                      </svg>
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            class="bi bi-pencil"
+                            viewBox="0 0 16 16"
+                          >
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+                          </svg>
                         </button>
                       </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="bottom"
-                      overlay={<Tooltip id="mark-dead">Mark as dead</Tooltip>}
-                    >
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        title="Mark as dead"
-                        onClick={() => markDead(item)}
+                      <OverlayTrigger
+                        placement="bottom"
+                        overlay={<Tooltip id="mark-dead">Mark as dead</Tooltip>}
                       >
-                        <i className="bi bi-clipboard-x"></i>
-                      </button>
-                    </OverlayTrigger>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          title="Mark as dead"
+                          onClick={() => markDead(item)}
+                        >
+                          <i className="bi bi-clipboard-x"></i>
+                        </button>
+                      </OverlayTrigger>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {deadInventory.length > 0 && (
-          <div className="px-0">
-            <Accordion flush className="w-100">
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>
-                  Show Dead Bottles ({deadInventory.length})
-                </Accordion.Header>
-                <Accordion.Body className="p-0">
-                  <table className="table mb-0">
-                    <tbody>
-                      {deadInventory.map((item, index) => (
-                        <tr key={index} className="tw-italic tw-line-through">
-                          <th scope="row">{item.sticker}</th>
-                          <td>{item.product_number}</td>
-                          <td>{item.location}</td>
-                          <td>{item.sub_location}</td>
-                          <td>{item.manufacturer}</td>
-                          {["Editor", "Full Access"].includes(user.access) && (
-                            <td>
-                              <OverlayTrigger
-                                placement="bottom"
-                                overlay={<Tooltip id="mark-alive">Mark as alive</Tooltip>}
-                              >
-                                <button
-                                  className="btn btn-secondary btn-sm"
-                                  title="Mark as alive"
-                                  onClick={() => markAlive(item)}
+          {deadInventory.length > 0 && (
+            <div className="px-0">
+              <Accordion flush className="w-100">
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>
+                    Show Dead Bottles ({deadInventory.length})
+                  </Accordion.Header>
+                  <Accordion.Body className="p-0">
+                    <table className="table mb-0">
+                      <tbody>
+                        {deadInventory.map((item, index) => (
+                          <tr key={index} className="tw-italic tw-line-through">
+                            <th scope="row">{item.sticker}</th>
+                            <td>{item.product_number}</td>
+                            <td>{item.location}</td>
+                            <td>{item.sub_location}</td>
+                            <td>{item.manufacturer}</td>
+                            {["Editor", "Full Access"].includes(
+                              user.access
+                            ) && (
+                              <td>
+                                <OverlayTrigger
+                                  placement="bottom"
+                                  overlay={
+                                    <Tooltip id="button-tooltip-edit">
+                                      Edit
+                                    </Tooltip>
+                                  }
                                 >
-                                  <i className="bi bi-clipboard-check"></i>
-                                </button>
-                              </OverlayTrigger>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          </div>
-        )}
+                                  <button
+                                    className="btn btn-secondary btn-sm me-1"
+                                    title="Edit"
+                                    onClick={() => handleEditClick(item)}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      fill="currentColor"
+                                      class="bi bi-pencil"
+                                      viewBox="0 0 16 16"
+                                    >
+                                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+                                    </svg>
+                                  </button>
+                                </OverlayTrigger>
+                                <OverlayTrigger
+                                  placement="bottom"
+                                  overlay={
+                                    <Tooltip id="mark-alive">
+                                      Mark as alive
+                                    </Tooltip>
+                                  }
+                                >
+                                  <button
+                                    className="btn btn-secondary btn-sm"
+                                    title="Mark as alive"
+                                    onClick={() => markAlive(item)}
+                                  >
+                                    <i className="bi bi-clipboard-check"></i>
+                                  </button>
+                                </OverlayTrigger>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
-        <button type="button" className="btn btn-secondary" onClick={handleClose}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleClose}
+          >
             Close
           </button>
         </Modal.Footer>
