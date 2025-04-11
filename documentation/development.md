@@ -13,19 +13,49 @@ If you have to sign in or run into weird auth issues, use `:5001`.
 
 Run `npx playwright test` in `frontend` to run the playwright tests. Make sure that the backend is _not_ running.
 
-To manually start a test server, run:
+Our integration tests use (Playwright)[https://playwright.dev/]. Take a look at their docs, but the general idea is this: Record yourself doing something using codegen. 
+Test for conditions like so:
+`expect(page.someLocator('someElement')).toMatchAriaSnapshot(``)`
+Run the tests once and it will fill in those blank snapshots. 
+```
+git apply test-results/rebaselines.patch
+```
+Apply their changes and it will add the snapshot directly into the code. 
 
+Seriously, take a look at the playwright docs, it's not as scary as it sounds. 
+#### Useful Commands
+##### Run tests on current docker build
+`npx playwright test`
+
+##### Record a new test
+`npx playwright codegen`
+
+##### View test results
+`npx playwright show-report`
+
+##### Manually start server with test configuration
+To manually start a test server, run:
 ```
 docker compose run --rm -p 5001:5000 -e CHEMINV_ENVIRONMENT=testing cheminv_backend
 ```
-Note: This will not rebuild the container, so if you make changes, make sure to run `docker compose up --build`.
-
 This will disable authentication, and connect to a sqlite database instead of the mysql container.
 
-If you want to generate a new test, you can use this handy one-liner:
+##### Stop testing server
+`docker compose down --remove-orphans`
 
+##### Rebuild container (so code changes show up)
+`docker compose up --build --no-start`
+
+#### Chaining commands
+It helps to have a few of these in your clipboard to run all at once
+
+Rebuild and test: 
 ```
-docker compose run -d --rm -p 5001:5000 -e CHEMINV_ENVIRONMENT=testing cheminv_backend; npx playwright codegen; docker compose down --remove-orphans 
+docker compose down --remove-orphans; docker compose up --build --no-start; npx playwright test; npx playwright show-results
 ```
 
+Rebuild and record a test
+```
+docker compose down --remove-orphans; docker compose up --build --no-start; docker compose run --rm -p 5001:5000 -e CHEMINV_ENVIRONMENT=testing cheminv_backend; npx playwright codegen
+```
 ### Unit Tests
