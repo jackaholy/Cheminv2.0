@@ -6,7 +6,7 @@ services:
 
     # Include the volume only in development
     volumes:
-      - ${CHEMINV_ENVIRONMENT:-development} == "development" ? "./backend/src:/cheminv" : ""
+      - ./backend/src:/cheminv
 
     build:
       context: .
