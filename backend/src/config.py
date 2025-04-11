@@ -52,6 +52,8 @@ class TestingConfig(ProdConfig):
         "nickname": "Anne Admin",
         "email": "anne-admin@example.com",
         "groups": [],
+        "preferred_username": "anne-admin@example.com",
+        "name": "Anne Admin",
     }
 
 
