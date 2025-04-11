@@ -16,7 +16,6 @@ from database import db
 def init_test_data(app):
     with app.app_context():
         db.create_all()
-        db.session.commit()
         # Permissions
         visitor = Permissions(
             Permissions_Name="Visitor", Permissions_Description="Read Only"
@@ -28,9 +27,14 @@ def init_test_data(app):
             Permissions_Name="Full-Access", Permissions_Description="Admin Access"
         )
         db.session.add_all([visitor, editor, full])
+        db.session.flush()  # Ensure we have Permissions_IDs
 
         # Users
-        anne = User(User_Name="anne-admin@example.com", Permissions_ID=full.Permissions_ID)
+        anne = User(
+            User_Name="anne-admin@example.com", 
+            Permissions_ID=full.Permissions_ID,
+            User_Password="Managed by Auth server"  # Add required password
+        )
         db.session.add(anne)
 
         # Units

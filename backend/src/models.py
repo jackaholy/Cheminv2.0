@@ -1,10 +1,9 @@
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean
+from database import db
 
-Base = declarative_base()
 
-
-class Chemical(Base):
+class Chemical(db.Model):
     """
     A kind of chemical. Acetone, water, whatever
     """
@@ -97,7 +96,7 @@ class Chemical(Base):
         }
 
 
-class Chemical_Manufacturer(Base):
+class Chemical_Manufacturer(db.Model):
     """
     Joiner table for a chemical and a manufacturer
     """
@@ -122,7 +121,7 @@ class Chemical_Manufacturer(Base):
     Inventory = relationship("Inventory", back_populates="Chemical_Manufacturer")
 
 
-class Inventory(Base):
+class Inventory(db.Model):
     """
     A bottle of a chemical, in a particular location
     """
@@ -171,7 +170,7 @@ class Inventory(Base):
     Unit = relationship("Unit", back_populates="Inventory")
 
 
-class Manufacturer(Base):
+class Manufacturer(db.Model):
     """
     Who actually makes/sells the chemical
     """
@@ -187,7 +186,7 @@ class Manufacturer(Base):
     )
 
 
-class Storage_Class(Base):
+class Storage_Class(db.Model):
     """
     How the chemical should be stored. I.e. "Flammable"
     """
@@ -201,7 +200,7 @@ class Storage_Class(Base):
     Chemicals = relationship("Chemical", back_populates="Storage_Class")
 
 
-class Location(Base):
+class Location(db.Model):
     """
     The building and room the chemical is in
     """
@@ -216,7 +215,7 @@ class Location(Base):
     Sub_Locations = relationship("Sub_Location", back_populates="Location")
 
 
-class Sub_Location(Base):
+class Sub_Location(db.Model):
     """
     The shelf/cabinet the chemical is in
     """
@@ -232,7 +231,7 @@ class Sub_Location(Base):
     Inventory = relationship("Inventory", back_populates="Sub_Location")
 
 
-class Unit(Base):
+class Unit(db.Model):
     """
     UNUSED. Always 1 bottle
     """
@@ -252,7 +251,7 @@ class Unit(Base):
     Inventory = relationship("Inventory", back_populates="Unit")
 
 
-class Permissions(Base):
+class Permissions(db.Model):
     __tablename__ = "Permissions"
 
     Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -263,7 +262,7 @@ class Permissions(Base):
     users = relationship("User", back_populates="permissions")
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "User"
 
     User_ID = Column(Integer, primary_key=True, autoincrement=True)
