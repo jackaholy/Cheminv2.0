@@ -1,10 +1,7 @@
 import pytest
 from app import create_app
 from config import TestingConfig
-from models import Chemical
-from database import db
-from sqlalchemy import text
-
+from testdata import init_test_data
 
 @pytest.fixture(scope="session")
 def app():
@@ -12,6 +9,9 @@ def app():
     This fixture will create a Flask app with the testing configuration
     """
     testing_app = create_app(TestingConfig)
+    init_test_data(testing_app)
+
+
     with testing_app.app_context():
         #db.create_all()
         yield testing_app

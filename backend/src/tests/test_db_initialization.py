@@ -1,7 +1,6 @@
 def test_get_chemicals(client):
     # Send GET request to the API endpoint
     response = client.get("/api/get_chemicals")
-
     # Ensure the response is successful
     assert response.status_code == 200
 
