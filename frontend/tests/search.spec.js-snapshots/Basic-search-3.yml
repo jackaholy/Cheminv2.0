@@ -1,0 +1,47 @@
+- navigation:
+  - link "Chemical Inventory"
+  - list:
+    - listitem:
+      - link "Safety Datasheets"
+  - list:
+    - listitem:
+      - button "Hi Anne Admin"
+- textbox "Search..."
+- button "search"
+- heading "Room Location" [level=2]:
+  - button "Room Location" [expanded]
+- textbox "Filter rooms"
+- radio "Any"
+- text: Any
+- radio /Science Hall \d+/
+- text: /Science Hall \d+/
+- radio /Science Hall \d+/
+- text: /Science Hall \d+/
+- radio "Science Hall G01"
+- text: Science Hall G01
+- radio /Science Hall \d+/
+- text: /Science Hall \d+/
+- radio /Science Hall \d+/
+- text: /Science Hall \d+/
+- heading "Manufacturers" [level=2]:
+  - button "Manufacturers" [expanded]
+- textbox "Filter manufacturers"
+- checkbox "Avantor Performance Materials"
+- text: Avantor Performance Materials
+- checkbox "BDB"
+- text: BDB
+- checkbox "Fisher Scientific"
+- text: Fisher Scientific
+- checkbox "Honeywell"
+- text: Honeywell
+- checkbox "Merck"
+- text: Merck
+- checkbox "Sigma-Aldrich"
+- text: Sigma-Aldrich
+- checkbox "VWR International"
+- text: VWR International Quantity Chemical Chemical Formula 1
+- button "Sodium Hydroxide"
+- text: NaOH
+- button "Edit":
+  - img: 
+- button "Expand Search"
