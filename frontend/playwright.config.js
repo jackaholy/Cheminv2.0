@@ -78,5 +78,9 @@ export default defineConfig({
     //stdout: "pipe",
     stderr: "pipe",
     reuseExistingServer: false,
+    gracefulShutdown: {
+      signal: "SIGTERM",
+      timeout: 5000, // wait for 5 seconds
+      }
   },
 });
