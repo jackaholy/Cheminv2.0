@@ -17,67 +17,55 @@ from models import (
     User,
 )
 from database import db
+from marshmallow import ValidationError
+from schemas import AddBottleSchema
 
 chemicals = Blueprint("chemicals", __name__)
-
 
 @chemicals.route("/api/add_bottle", methods=["POST"])
 @oidc.require_login
 @require_editor
 def add_bottle():
-    sticker_number = request.json.get("sticker_number")
-    chemical_id = request.json.get("chemical_id")
-    manufacturer_id = request.json.get("manufacturer_id")
-    location_id = request.json.get("location_id")
-    sub_location_id = request.json.get("sub_location_id")
-    product_number = request.json.get("product_number")
-    msds = request.json.get("msds")
-    
-    # Validate required fields
-    missing_fields = []
-    if not sticker_number or not isinstance(sticker_number, int):
-        missing_fields.append("sticker_number (must be a number)")
-    if not chemical_id or not isinstance(chemical_id, int):
-        missing_fields.append("chemical_id (must be a number)")
-    if not manufacturer_id or not isinstance(manufacturer_id, int):
-        missing_fields.append("manufacturer_id (must be a number)")
-    if not location_id or not isinstance(location_id, int):
-        missing_fields.append("location_id (must be a number)")
-    if not sub_location_id or not isinstance(sub_location_id, int):
-        missing_fields.append("sub_location_id (must be a number)")
-    if not product_number:
-        missing_fields.append("product_number")
-    
-    if missing_fields:
-        return jsonify({"error": f"Missing or invalid fields: {', '.join(missing_fields)}"}), 400
+    schema = AddBottleSchema()
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
+
+    # Check if sticker number is already taken
+    existing = Inventory.query.filter_by(Sticker_Number=data["sticker_number"]).first()
+    if existing:
+        return jsonify({"error": f"Sticker number {data['sticker_number']} is already in use."}), 400
 
     current_username = session["oidc_auth_profile"].get("preferred_username")
-    if msds:
-        msds = get_msds_url()
-    else:
-        msds = None
+
+    # MSDS URL generation
+    msds = get_msds_url() if data.get("msds") else None
+
+    # Check if Chemical_Manufacturer exists
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
-            Chemical_Manufacturer.Chemical_ID == chemical_id,
-            Chemical_Manufacturer.Manufacturer_ID == manufacturer_id,
+            Chemical_Manufacturer.Chemical_ID == data["chemical_id"],
+            Chemical_Manufacturer.Manufacturer_ID == data["manufacturer_id"],
         )
         .first()
     )
+
     if not chemical_manufacturer:
         chemical_manufacturer = Chemical_Manufacturer(
-            Chemical_ID=chemical_id,
-            Manufacturer_ID=manufacturer_id,
-            Product_Number=product_number,
+            Chemical_ID=data["chemical_id"],
+            Manufacturer_ID=data["manufacturer_id"],
+            Product_Number=data["product_number"],
         )
         db.session.add(chemical_manufacturer)
         db.session.commit()
 
     inventory = Inventory(
-        Sticker_Number=sticker_number,
+        Sticker_Number=data["sticker_number"],
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
-        Product_Number=product_number,
-        Sub_Location_ID=sub_location_id,
+        Product_Number=data["product_number"],
+        Sub_Location_ID=data["sub_location_id"],
         Last_Updated=datetime.now(),
         Who_Updated=current_username,
         Is_Dead=False,
@@ -85,10 +73,13 @@ def add_bottle():
     )
     db.session.add(inventory)
     db.session.commit()
+
     return {
         "message": "Bottle added successfully",
         "inventory_id": inventory.Inventory_ID,
     }
+
+
 
 
 @chemicals.route("/api/product-search", methods=["GET"])
