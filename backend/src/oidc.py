@@ -23,6 +23,6 @@ def init_oidc(app):
 
     # Additional settings
     app.config["OIDC_SCOPES"] = "openid email profile"
-    app.config.setdefault("OIDC_COOKIE_SECURE", False)
+    #app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
     oidc.init_app(app)

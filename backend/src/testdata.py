@@ -42,6 +42,7 @@ def init_test_data(app):
         bottle_unit = Unit(Unit_Name="Bottle", Multiply_By=1.0)
         gram_unit = Unit(Unit_Name="Gram", Multiply_By=0.001)
         db.session.add_all([bottle_unit, gram_unit])
+        db.session.flush()
 
         # Storage classes
         flammable = Storage_Class(Storage_Class_Name="Flammable")
@@ -49,7 +50,9 @@ def init_test_data(app):
         toxic = Storage_Class(Storage_Class_Name="Toxic")
         reactive = Storage_Class(Storage_Class_Name="Reactive")
         oxidizer = Storage_Class(Storage_Class_Name="Oxidizer")
-        db.session.add_all([flammable, corrosive, toxic, reactive, oxidizer])
+        unclassified = Storage_Class(Storage_Class_Name="Unclassified")
+        db.session.add_all([flammable, corrosive, toxic, reactive, oxidizer,unclassified])
+        db.session.flush()
 
         # Locations and sub-locations
         chem_lab = Location(Building="Science Hall", Room="101")
@@ -109,9 +112,6 @@ def init_test_data(app):
             Minimum_On_Hand=2.0,
             Minimum_Unit=bottle_unit,
         )
-        unclassified = Storage_Class(Storage_Class_Name="Unclassified")
-        db.session.add(unclassified)
-        db.session.flush()
         water = Chemical(
             Chemical_Name="Water",
             Chemical_Formula="H2O",
