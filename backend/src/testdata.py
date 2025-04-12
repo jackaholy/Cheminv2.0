@@ -346,6 +346,7 @@ def init_test_data(app):
             Is_Dead=False,
             Who_Updated="Anne",
             Last_Updated=date(2025, 3, 6),
+            MSDS="https://youtu.be/dQw4w9WgXcQ",
         )
         inv2 = Inventory(
             Sticker_Number=1002,

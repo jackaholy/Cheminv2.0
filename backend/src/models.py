@@ -1,16 +1,15 @@
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean
+from database import db
 
-Base = declarative_base()
 
-
-class Chemical(Base):
+class Chemical(db.Model):
     """
     A kind of chemical. Acetone, water, whatever
     """
 
     __tablename__ = "Chemical"
-    # Database ID for a type of chemical
+    # Datadb.Model ID for a type of chemical
     Chemical_ID = Column(Integer, primary_key=True, autoincrement=True)
     # Name for a type of chemical: I.E. Acetone
     Chemical_Name = Column(String(90), nullable=False)
@@ -97,7 +96,7 @@ class Chemical(Base):
         }
 
 
-class Chemical_Manufacturer(Base):
+class Chemical_Manufacturer(db.Model):
     """
     Joiner table for a chemical and a manufacturer
     """
@@ -122,13 +121,13 @@ class Chemical_Manufacturer(Base):
     Inventory = relationship("Inventory", back_populates="Chemical_Manufacturer")
 
 
-class Inventory(Base):
+class Inventory(db.Model):
     """
     A bottle of a chemical, in a particular location
     """
 
     __tablename__ = "Inventory"
-    # Database ID for an individual bottle of the chemical
+    # Datadb.Model ID for an individual bottle of the chemical
     Inventory_ID = Column(Integer, primary_key=True, autoincrement=True)
     # Sticker number for a bottle of the chemical
     Sticker_Number = Column(Integer, unique=True, nullable=False)
@@ -171,13 +170,13 @@ class Inventory(Base):
     Unit = relationship("Unit", back_populates="Inventory")
 
 
-class Manufacturer(Base):
+class Manufacturer(db.Model):
     """
     Who actually makes/sells the chemical
     """
 
     __tablename__ = "Manufacturer"
-    # Database ID for a manufacturer of a chemical
+    # Datadb.Model ID for a manufacturer of a chemical
     Manufacturer_ID = Column(Integer, primary_key=True, autoincrement=True)
     # The name of the manufacturer
     Manufacturer_Name = Column(String(30), nullable=False)
@@ -187,13 +186,13 @@ class Manufacturer(Base):
     )
 
 
-class Storage_Class(Base):
+class Storage_Class(db.Model):
     """
     How the chemical should be stored. I.e. "Flammable"
     """
 
     __tablename__ = "Storage_Class"
-    # Database ID for a storage class
+    # Datadb.Model ID for a storage class
     Storage_Class_ID = Column(Integer, primary_key=True, autoincrement=True)
     # How the chemical should be stored. I.e. "Flammable"
     Storage_Class_Name = Column(String(20), nullable=False)
@@ -201,7 +200,7 @@ class Storage_Class(Base):
     Chemicals = relationship("Chemical", back_populates="Storage_Class")
 
 
-class Location(Base):
+class Location(db.Model):
     """
     The building and room the chemical is in
     """
@@ -216,13 +215,13 @@ class Location(Base):
     Sub_Locations = relationship("Sub_Location", back_populates="Location")
 
 
-class Sub_Location(Base):
+class Sub_Location(db.Model):
     """
     The shelf/cabinet the chemical is in
     """
 
     __tablename__ = "Sub_Location"
-    # Database ID for a sub-location
+    # Datadb.Model ID for a sub-location
     Sub_Location_ID = Column(Integer, primary_key=True, autoincrement=True)
     # The name of the shelf/cabinet
     Sub_Location_Name = Column(String(35), nullable=False)
@@ -232,7 +231,7 @@ class Sub_Location(Base):
     Inventory = relationship("Inventory", back_populates="Sub_Location")
 
 
-class Unit(Base):
+class Unit(db.Model):
     """
     UNUSED. Always 1 bottle
     """
@@ -252,7 +251,7 @@ class Unit(Base):
     Inventory = relationship("Inventory", back_populates="Unit")
 
 
-class Permissions(Base):
+class Permissions(db.Model):
     __tablename__ = "Permissions"
 
     Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -263,7 +262,7 @@ class Permissions(Base):
     users = relationship("User", back_populates="permissions")
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "User"
 
     User_ID = Column(Integer, primary_key=True, autoincrement=True)
