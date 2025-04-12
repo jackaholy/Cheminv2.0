@@ -32,14 +32,30 @@ def add_bottle():
     sub_location_id = request.json.get("sub_location_id")
     product_number = request.json.get("product_number")
     msds = request.json.get("msds")
+    
+    # Validate required fields
+    missing_fields = []
+    if not sticker_number or not isinstance(sticker_number, int):
+        missing_fields.append("sticker_number (must be a number)")
+    if not chemical_id or not isinstance(chemical_id, int):
+        missing_fields.append("chemical_id (must be a number)")
+    if not manufacturer_id or not isinstance(manufacturer_id, int):
+        missing_fields.append("manufacturer_id (must be a number)")
+    if not location_id or not isinstance(location_id, int):
+        missing_fields.append("location_id (must be a number)")
+    if not sub_location_id or not isinstance(sub_location_id, int):
+        missing_fields.append("sub_location_id (must be a number)")
+    if not product_number:
+        missing_fields.append("product_number")
+    
+    if missing_fields:
+        return jsonify({"error": f"Missing or invalid fields: {', '.join(missing_fields)}"}), 400
 
     current_username = session["oidc_auth_profile"].get("preferred_username")
-    print(msds)
     if msds:
         msds = get_msds_url()
     else:
         msds = None
-    print(msds)
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
