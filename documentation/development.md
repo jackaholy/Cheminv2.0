@@ -7,6 +7,8 @@ Just make sure to leave the backend running.
 
 If you have to sign in or run into weird auth issues, use `:5001`.
 
+When using `:5001` if you continue to have problems with authentication try clearing cookies and refresh the page.
+
 ## Testing
 
 ### Integration Tests
@@ -59,3 +61,8 @@ Rebuild and record a test
 docker compose down --remove-orphans; docker compose up --build --no-start; docker compose run --rm -p 5001:5000 -e CHEMINV_ENVIRONMENT=testing cheminv_backend; npx playwright codegen
 ```
 ### Unit Tests
+
+## Backend Development
+
+This is where I will put some helpful developer information.
+
