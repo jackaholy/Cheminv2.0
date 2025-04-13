@@ -10,8 +10,6 @@ def app():
     """
     testing_app = create_app(TestingConfig)
     init_test_data(testing_app)
-
-
     with testing_app.app_context():
-        #db.create_all()
+        # db.create_all()
         yield testing_app

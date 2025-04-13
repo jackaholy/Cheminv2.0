@@ -16,6 +16,8 @@ def get_msds_url():
         .filter(Inventory.MSDS != None, Inventory.MSDS != "")
         .first()
     )
+    if not product:
+        return ""
     return product.MSDS
 
 

@@ -20,7 +20,8 @@ def require_editor(func):
         user = db.session.query(User).filter_by(User_Name=username).first()
         if not user:
             abort(403, "Access denied: User not found.")
-
+        if not user.permissions:
+            abort(403, "Access denied: User has no permissions.")
         # Check if the user has admin privileges.
         # In our permissions, a user with Permissions_ID of 1 has "Full Access".
         if (
@@ -41,7 +42,7 @@ def require_full_access(func):
         # Retrieve the username from the OIDC auth profile in the session
         profile = session.get("oidc_auth_profile", {})
         username = profile.get("preferred_username")
-
+        print(username)
         if not username:
             # No username found in session; reject the request.
             abort(403, "Access denied: No user information available.")
@@ -50,6 +51,8 @@ def require_full_access(func):
         user = db.session.query(User).filter_by(User_Name=username).first()
         if not user:
             abort(403, "Access denied: User not found.")
+        if not user.permissions:
+            abort(403, "Access denied: User has no permissions.")
 
         # Check if the user has admin privileges.
         # In our permissions, a user with Permissions_ID of 1 has "Full Access".

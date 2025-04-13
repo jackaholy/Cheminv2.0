@@ -70,7 +70,9 @@ if __name__ == "__main__":
         app = create_app(DevConfig)
         app.run(host="0.0.0.0", port=5000)
     elif os.getenv("CHEMINV_ENVIRONMENT") == "testing":
+        from testdata import init_test_data
         app = create_app(TestingConfig)
+        init_test_data(app)
         app.run(host="0.0.0.0", port=5000)
     elif os.getenv("CHEMINV_ENVIRONMENT") == "production":
         app = create_app(ProdConfig)

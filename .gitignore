@@ -31,3 +31,5 @@ db
 
 .idea/
 .vscode/
+frontend/tests/search.spec.js-snapshots/
+test-results/
