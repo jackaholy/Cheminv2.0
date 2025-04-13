@@ -114,7 +114,7 @@ export const Sidebar = ({
                             value={roomFilterText}
                             onChange={(e) => setRoomFilterText(e.target.value)}
                         />
-                        <div className="tw-mt-2 tw-space-y-1">
+                        <div className="tw-mt-2 tw-space-y-1" data-testid="room-filter">
                             <label key={0} className="tw-flex tw-items-center">
                                 <input
                                     type="radio"
@@ -152,7 +152,7 @@ export const Sidebar = ({
                             value={manufacturerFilterText}
                             onChange={(e) => setManufacturerFilterText(e.target.value)}
                         />
-                        <div className="tw-mt-2 tw-space-y-1">
+                        <div className="tw-mt-2 tw-space-y-1" data-testid="manufacturer-filter">
                             {filteredManufacturers.map((man, index) => (
                                 <label key={index} className="tw-flex tw-items-center">
                                     <input

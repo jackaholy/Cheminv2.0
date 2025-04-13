@@ -50,7 +50,7 @@ export const MainContent = ({
   };
 
   return (
-    <div className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
+    <div data-testid="MainContent" className="tw-w-3/4 tw-bg-white tw-ml-4 tw-p-4 tw-rounded-md tw-shadow-md">
       <div className="tw-flex tw-justify-between">
         {renderDownloadButton(user)}
       </div>
