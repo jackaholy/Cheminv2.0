@@ -9,7 +9,7 @@ class Chemical(db.Model):
     """
 
     __tablename__ = "Chemical"
-    # Database ID for a type of chemical
+    # Datadb.Model ID for a type of chemical
     Chemical_ID = Column(Integer, primary_key=True, autoincrement=True)
     # Name for a type of chemical: I.E. Acetone
     Chemical_Name = Column(String(90), nullable=False)
@@ -127,7 +127,7 @@ class Inventory(db.Model):
     """
 
     __tablename__ = "Inventory"
-    # Database ID for an individual bottle of the chemical
+    # Datadb.Model ID for an individual bottle of the chemical
     Inventory_ID = Column(Integer, primary_key=True, autoincrement=True)
     # Sticker number for a bottle of the chemical
     Sticker_Number = Column(Integer, unique=True, nullable=False)
@@ -176,7 +176,7 @@ class Manufacturer(db.Model):
     """
 
     __tablename__ = "Manufacturer"
-    # Database ID for a manufacturer of a chemical
+    # Datadb.Model ID for a manufacturer of a chemical
     Manufacturer_ID = Column(Integer, primary_key=True, autoincrement=True)
     # The name of the manufacturer
     Manufacturer_Name = Column(String(30), nullable=False)
@@ -192,7 +192,7 @@ class Storage_Class(db.Model):
     """
 
     __tablename__ = "Storage_Class"
-    # Database ID for a storage class
+    # Datadb.Model ID for a storage class
     Storage_Class_ID = Column(Integer, primary_key=True, autoincrement=True)
     # How the chemical should be stored. I.e. "Flammable"
     Storage_Class_Name = Column(String(20), nullable=False)
@@ -221,7 +221,7 @@ class Sub_Location(db.Model):
     """
 
     __tablename__ = "Sub_Location"
-    # Database ID for a sub-location
+    # Datadb.Model ID for a sub-location
     Sub_Location_ID = Column(Integer, primary_key=True, autoincrement=True)
     # The name of the shelf/cabinet
     Sub_Location_Name = Column(String(35), nullable=False)

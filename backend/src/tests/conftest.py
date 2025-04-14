@@ -3,7 +3,6 @@ from app import create_app
 from config import TestingConfig
 from testdata import init_test_data
 
-
 @pytest.fixture(scope="session")
 def app():
     """
