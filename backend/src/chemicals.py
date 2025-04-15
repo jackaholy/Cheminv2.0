@@ -316,6 +316,7 @@ def product_number_lookup():
 
 
 @chemicals.route("/api/chemicals/chemical_name_lookup", methods=["GET"])
+@oidc.require_login
 def chemical_name_lookup():
     """
     API Endpoint: /api/chemicals/chemical_name_lookup (GET)
@@ -368,10 +369,20 @@ def chemical_name_lookup():
 
 @chemicals.route("/api/chemicals/mark_dead", methods=["POST"])
 @oidc.require_login
+@require_editor
 def mark_dead():
     """
-    API to mark a chemical as dead.
-    :return: Message indicating the chemical has been marked as dead.
+    API to mark a chemical bottle as dead.
+
+    This endpoint allows users with editor permissions to mark a specific chemical bottle
+    in the inventory as "dead," indicating it is no longer in use.
+
+    JSON Payload:
+        inventory_id (int): The ID of the inventory record to mark as dead.
+
+    Returns:
+        - 200 OK: A success message indicating the chemical has been marked as dead.
+        - 400 Bad Request: An error message if `inventory_id` is missing or invalid.
     """
     inventory_id = request.json.get("inventory_id")
 
@@ -385,6 +396,7 @@ def mark_dead():
 
 @chemicals.route("/api/chemicals/mark_many_dead", methods=["POST"])
 @oidc.require_login
+@require_editor
 def mark_many_dead():
     """
     API to mark multiple chemicals as dead.
