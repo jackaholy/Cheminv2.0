@@ -180,8 +180,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                 <th scope="col">Name</th>
                 <th scope="col">Product #</th>
                 <th scope="col">Manufacturer</th>
-                <th scope="col">Last Updated</th>
                 <th scope="col">Who Updated</th>
+                <th scope="col">Last Updated</th>
                 <th></th>
               </tr>
             </thead>
@@ -200,8 +200,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                   <td>{item.name}</td>
                   <td>{item.product_number}</td>
                   <td>{item.manufacturer}</td>
-                  <td>{item.last_updated}</td>
                   <td>{item.who_updated}</td>
+                  <td>{item.last_updated}</td>
                   <td></td>
                 </tr>
               ))}
