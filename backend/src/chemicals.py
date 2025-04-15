@@ -323,6 +323,8 @@ def mark_many_dead():
 
     for bottle in bottles_not_found:
         bottle.Is_Dead = True
+        bottle.Last_Updated = datetime.now()
+        # bottle.Whole_Updated = session["oidc_auth_profile"].get("preferred_username")
 
     db.session.commit()
     return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
@@ -375,6 +377,7 @@ def get_chemicals_by_sublocation():
             "product_number": record.Chemical_Manufacturer.Product_Number,
             "manufacturer": record.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
             "sticker_number": record.Sticker_Number,
+            "last_updated": record.Last_Updated.strftime("%m/%d/%Y") if record.Last_Updated else None, # Format the date
         }
         for record in inventory_records
     ]
