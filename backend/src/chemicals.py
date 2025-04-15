@@ -301,6 +301,7 @@ def mark_many_dead():
     sub_location_id = request.json.get("sub_location_id")
     inventory_ids = request.json.get("inventory_id")
 
+    # Error handling
     if not sub_location_id or not isinstance(sub_location_id, int):
         return jsonify({"error": "Missing or invalid sub_location_id"}), 400
     if not inventory_ids or not isinstance(inventory_ids, list):
@@ -312,6 +313,7 @@ def mark_many_dead():
         Inventory.Is_Dead == False
     ).all()
 
+    # Error handling
     if len(bottles_to_check) == 0:
         return jsonify({"error": "No chemicals marked as dead"}), 400
 
@@ -320,11 +322,12 @@ def mark_many_dead():
         bottle for bottle in bottles_to_check
         if bottle.Sticker_Number in inventory_ids
     ]
-
+    # Get the current user doing an inventory
+    current_user = session["oidc_auth_profile"].get("preferred_username")
     for bottle in bottles_not_found:
         bottle.Is_Dead = True
         bottle.Last_Updated = datetime.now()
-        # bottle.Whole_Updated = session["oidc_auth_profile"].get("preferred_username")
+        bottle.Who_Updated = current_user
 
     db.session.commit()
     return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
@@ -378,6 +381,7 @@ def get_chemicals_by_sublocation():
             "manufacturer": record.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
             "sticker_number": record.Sticker_Number,
             "last_updated": record.Last_Updated.strftime("%m/%d/%Y") if record.Last_Updated else None, # Format the date
+            "who_updated": record.Who_Updated,
         }
         for record in inventory_records
     ]
