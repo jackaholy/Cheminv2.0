@@ -184,6 +184,8 @@ export const ChemicalModal = ({
                 <th>Location</th>
                 <th>Sub-Location</th>
                 <th>Manufacturer</th>
+                <th>Last Updated</th>
+                <th>Who Updated</th>
                 {["Editor", "Full Access"].includes(user.access) && (
                   <th>Edit</th>
                 )}
