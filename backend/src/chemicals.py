@@ -18,7 +18,7 @@ from models import (
 )
 from database import db
 from marshmallow import ValidationError
-from schemas import AddBottleSchema
+from schemas import AddBottleSchema, AddChemicalSchema
 
 chemicals = Blueprint("chemicals", __name__)
 
@@ -26,23 +26,42 @@ chemicals = Blueprint("chemicals", __name__)
 @oidc.require_login
 @require_editor
 def add_bottle():
+    """
+    API endpoint to add a new chemical bottle to the inventory.
+
+    Requires the user to be logged in and have editor permissions.
+
+    Expects JSON payload conforming to AddBottleSchema, which should include:
+    - sticker_number: Unique identifier for the bottle
+    - chemical_id: ID of the chemical
+    - manufacturer_id: ID of the manufacturer
+    - product_number: Manufacturer's product number
+    - sub_location_id: ID of the sub-location within the lab/storage
+    - msds: (optional) Whether to include a generated MSDS URL
+
+    Returns:
+        JSON response with success message and inventory ID,
+        or error message with HTTP 400 on validation or duplication error.
+    """
+    # Validate the incoming request against the schema
     schema = AddBottleSchema()
     try:
         data = schema.load(request.json)
     except ValidationError as err:
         return jsonify({"error": err.messages}), 400
 
-    # Check if sticker number is already taken
+    # Check if the provided sticker number already exists
     existing = Inventory.query.filter_by(Sticker_Number=data["sticker_number"]).first()
     if existing:
         return jsonify({"error": f"Sticker number {data['sticker_number']} is already in use."}), 400
 
+    # Get the current user's username from the session
     current_username = session["oidc_auth_profile"].get("preferred_username")
 
-    # MSDS URL generation
+    # Generate MSDS URL if requested
     msds = get_msds_url() if data.get("msds") else None
 
-    # Check if Chemical_Manufacturer exists
+    # Look for an existing Chemical_Manufacturer association
     chemical_manufacturer = (
         db.session.query(Chemical_Manufacturer)
         .filter(
@@ -52,6 +71,7 @@ def add_bottle():
         .first()
     )
 
+    # If it doesn't exist, create and save a new one
     if not chemical_manufacturer:
         chemical_manufacturer = Chemical_Manufacturer(
             Chemical_ID=data["chemical_id"],
@@ -61,6 +81,7 @@ def add_bottle():
         db.session.add(chemical_manufacturer)
         db.session.commit()
 
+    # Create and save the new inventory record
     inventory = Inventory(
         Sticker_Number=data["sticker_number"],
         Chemical_Manufacturer_ID=chemical_manufacturer.Chemical_Manufacturer_ID,
@@ -74,16 +95,29 @@ def add_bottle():
     db.session.add(inventory)
     db.session.commit()
 
+    # Return success response with the new inventory ID
     return {
         "message": "Bottle added successfully",
         "inventory_id": inventory.Inventory_ID,
     }
 
 
-
-
 @chemicals.route("/api/product-search", methods=["GET"])
+@oidc.require_login
 def product_search():
+    """
+    This endpoint allows clients to search for product numbers in the inventory
+    based on a query string provided as a URL parameter. The search is performed
+    in a case-insensitive manner.
+
+    Query Parameters:
+        query (str): The product number or partial product number to search for.
+                    Defaults to an empty string if not provided.
+
+    Returns:
+        Response: A JSON array of unique product numbers that match the query.
+                If the query is empty, an empty list is returned.
+    """
     # Get the query parameter; default to an empty string if not provided.
     query = request.args.get("query", "")
 
@@ -108,54 +142,69 @@ def product_search():
 @oidc.require_login
 @require_editor
 def add_chemical():
-    chemical_name = request.json.get("chemical_name")
-    chemical_formula = request.json.get("chemical_formula")
-    product_number = request.json.get("product_number")
-    storage_class_id = request.json.get("storage_class_id")
-    manufacturer_id = request.json.get("manufacturer_id")
+    """
+    Adds a new chemical to the database.
 
-    current_username = session["oidc_auth_profile"].get("preferred_username")
-    user = db.session.query(User).filter_by(User_Name=current_username).first()
+    This endpoint is protected and requires the user to be logged in and have editor privileges.
+    It accepts a JSON payload with details about the chemical, including its name, formula, 
+    product number, storage class, and manufacturer.
 
+    JSON Payload:
+        chemical_name (str): The name of the chemical.
+        chemical_formula (str): The formula of the chemical.
+        product_number (str): The product number associated with the chemical.
+        storage_class_id (int): The ID of the storage class for the chemical.
+        manufacturer_id (int): The ID of the manufacturer of the chemical.
+
+    Returns:
+        dict: A success message and the ID of the newly added chemical.
+    """
+    schema = AddChemicalSchema()
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
+
+    # Validate manufacturer_id
     manufacturer = (
         db.session.query(Manufacturer)
-        .filter_by(Manufacturer_ID=manufacturer_id)
+        .filter_by(Manufacturer_ID=data["manufacturer_id"])
         .first()
     )
+    if not manufacturer:
+        return jsonify({"error": "Invalid manufacturer_id"}), 400
+
+    # Validate storage_class_id
     storage_class = (
         db.session.query(Storage_Class)
-        .filter(Storage_Class.Storage_Class_ID == storage_class_id)
+        .filter(Storage_Class.Storage_Class_ID == data["storage_class_id"])
         .first()
     )
-    # order_more = request.json.get("order_more")
-    # order_description = request.json.get("order_description")
-    # who_requested = request.json.get("who_requested")
-    # date_requested = request.json.get("date_requested")
-    # who_ordered = request.json.get("who_ordered")
-    date_ordered = datetime.now()
+    if not storage_class:
+        return jsonify({"error": "Invalid storage_class_id"}), 400
 
-    # minimum_on_hand = request.json.get("minimum_on_hand")
+    # Check for existing chemical with the same product number and manufacturer
+    existing_chemical = (
+        db.session.query(Chemical_Manufacturer)
+        .filter_by(
+            Product_Number=data["product_number"],
+            Manufacturer_ID=data["manufacturer_id"],
+        )
+        .first()
+    )
+    if existing_chemical:
+        return jsonify({"error": "A chemical with the same product number and manufacturer already exists."}), 400
 
     chemical = Chemical(
-        Chemical_Name=chemical_name,
-        Alphabetical_Name=chemical_name,
-        Chemical_Formula=chemical_formula,
+        Chemical_Name=data["chemical_name"],
+        Alphabetical_Name=data["chemical_name"],
+        Chemical_Formula=data["chemical_formula"],
         Storage_Class_ID=storage_class,
-        # Manufacturer=manufacturer,
         Storage_Class=storage_class,
-        # When_Ordered=date_ordered,
-        # Order_More=order_more,
-        # Order_Description=order_description,
-        # Who_Requested=who_requested,
-        # When_Requested=date_requested,
-        # Who_Ordered=u,
-        # When_Ordered=date_ordered,
-        # Minimum_On_Hand=minimum_on_hand,
     )
     chemical_manufacturer = Chemical_Manufacturer(
-        Chemical=chemical, Manufacturer=manufacturer, Product_Number=product_number
+        Chemical=chemical, Manufacturer=manufacturer, Product_Number=data["product_number"]
     )
-    chemical.Storage_Class = storage_class
     db.session.add(chemical)
     db.session.add(chemical_manufacturer)
     db.session.commit()
@@ -168,8 +217,16 @@ def add_chemical():
 @chemicals.route("/api/storage_classes", methods=["GET"])
 def get_storage_classes():
     """
-    API to get storage classes from the database.
-    :return: A list of storage classes
+    This endpoint retrieves all storage classes from the database and returns 
+    them as a list of dictionaries, where each dictionary contains the 
+    storage class name and its corresponding ID.
+
+    :return: A JSON response containing a list of dictionaries. Each dictionary 
+            has the following structure:
+            {
+                "name": <Storage_Class_Name>,
+                "id": <Storage_Class_ID>
+            }
     """
     storage_classes = db.session.query(Storage_Class).all()
     return jsonify(
@@ -218,20 +275,35 @@ def get_chemicals():
 @oidc.require_login
 def product_number_lookup():
     """
-    API to get chemical details based on the product number.
-    :param product_number: The product number of the chemical.
-    :return: Details for the chemical with the given product number.
+    Look up chemical details by product number.
+
+    Query Parameters:
+        product_number (str): The product number to search for.
+
+    Returns:
+        JSON containing:
+            - chemical_id (int): The unique ID of the chemical.
+            - manufacturer (dict): Details of the manufacturer, including:
+                - name (str): Manufacturer's name.
+                - id (int): Manufacturer's unique ID.
+            - product_number (str): The product number of the chemical.
+
+        If no match is found or the product_number is missing, returns HTTP 404 with an empty JSON object.
     """
     product_number = request.args.get("product_number")
-    if product_number == "":
+    if not product_number:  # Ensure product_number is provided
         return jsonify({}), 404
+
+    # Query for the chemical manufacturer by product number
     query_result = (
         db.session.query(Chemical_Manufacturer)
         .filter(Chemical_Manufacturer.Product_Number.ilike(product_number))
         .first()
     )
-    if not query_result:
+    if not query_result:  # Return 404 if no match is found
         return jsonify({}), 404
+
+    # Build response with chemical and manufacturer details
     chemicals_data = {
         "chemical_id": query_result.Chemical.Chemical_ID,
         "manufacturer": {
@@ -246,8 +318,22 @@ def product_number_lookup():
 @chemicals.route("/api/chemicals/chemical_name_lookup", methods=["GET"])
 def chemical_name_lookup():
     """
-    API to get chemical details based on the chemical name.
-    :return: Details for the chemical with the given chemical name.
+    API Endpoint: /api/chemicals/chemical_name_lookup (GET)
+
+    Description:
+    This API endpoint retrieves the details of a chemical based on its name. 
+    It queries the database for the chemical's ID, name, formula, and associated storage class.
+
+    Query Parameters:
+    - chemical_name (str): The name of the chemical to look up.
+
+    Returns:
+    - 200 OK: A JSON object containing the following details of the chemical:
+        - chemical_id (int): The unique identifier of the chemical.
+        - chemical_name (str): The name of the chemical.
+        - chemical_formula (str): The chemical formula of the chemical.
+        - storage_class (str): The name of the storage class associated with the chemical.
+    - 404 Not Found: An empty JSON object if no chemical is found with the given name.
     """
     chemical_name = request.args.get("chemical_name")
     query_result = (
