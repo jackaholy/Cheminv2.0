@@ -334,8 +334,14 @@ def chemical_name_lookup():
         - chemical_formula (str): The chemical formula of the chemical.
         - storage_class (str): The name of the storage class associated with the chemical.
     - 404 Not Found: An empty JSON object if no chemical is found with the given name.
+    - 400 Bad Request: An error message if `chemical_name` is missing.
     """
     chemical_name = request.args.get("chemical_name")
+
+    if not chemical_name:  # Check if chemical_name is provided
+        return jsonify({"error": "Missing chemical_name"}), 400
+
+    chemical_name = chemical_name.strip()
     query_result = (
         db.session.query(
             Chemical.Chemical_ID,
