@@ -5,3 +5,4 @@ database-dump.sql
 .env
 db
 testing_database.db
+.coverage
