@@ -114,7 +114,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     fetch("/api/chemicals/mark_many_dead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inventory_id: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id}),
+      body: JSON.stringify({ inventory_id: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id, update_timestamp: true}),
     })
       .then((res) => {
       if (!res.ok) {
@@ -180,6 +180,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                 <th scope="col">Name</th>
                 <th scope="col">Product #</th>
                 <th scope="col">Manufacturer</th>
+                <th scope="col">Who Updated</th>
+                <th scope="col">Last Updated</th>
                 <th></th>
               </tr>
             </thead>
@@ -198,6 +200,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                   <td>{item.name}</td>
                   <td>{item.product_number}</td>
                   <td>{item.manufacturer}</td>
+                  <td>{item.who_updated}</td>
+                  <td>{item.last_updated}</td>
                   <td></td>
                 </tr>
               ))}
