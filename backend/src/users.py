@@ -87,3 +87,19 @@ def update_access():
     db.session.commit()
 
     return {"message": "Access updated successfully"}
+
+
+@users.route("/api/users/delete", methods=["DELETE"])
+@oidc.require_login
+@require_full_access
+def delete_user():
+    user_id = request.json.get("user_id")
+
+    user = db.session.query(User).filter_by(User_ID=user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return {"message": "User deleted successfully"}

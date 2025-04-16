@@ -52,6 +52,26 @@ export const ManageUsersModal = () => {
     });
   }
 
+  function deleteUser(user_id, username) {
+    if (window.confirm(`Are you sure you want to delete user ${username}?`)) {
+      fetch(`/api/users/delete`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            setUsers(users.filter((user) => user.id !== user_id));
+            setMessage(`User ${username} has been deleted.`);
+          }
+        })
+        .catch((error) => console.error(error));
+    }
+  }
+
   return (
     <div
       className="modal fade"
@@ -95,16 +115,12 @@ export const ManageUsersModal = () => {
                   <th scope="col">Visitor</th>
                   <th scope="col">Editor</th>
                   <th scope="col">Full Access</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    style={{
-                      color: user.access === "Visitor" ? "gray" : "inherit",
-                    }}
-                  >
+                  <tr key={user.id}>
                     <td>{user.username}</td>
                     <td>
                       <input
@@ -132,6 +148,14 @@ export const ManageUsersModal = () => {
                         checked={user.access === "Full Access"}
                         onChange={(e) => onAccessChange(e, user.id)}
                       />
+                    </td>
+                    <td>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => deleteUser(user.id, user.username)}
+                        >
+                          Delete
+                        </button>
                     </td>
                   </tr>
                 ))}
