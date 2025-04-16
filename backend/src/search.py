@@ -161,7 +161,7 @@ def search_route():
     else:
         chemical_list.sort(
             key=lambda x: (
-                x["quantity"] != 0,
+                x["quantity"] == 0,
                 re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
             ),
         )
