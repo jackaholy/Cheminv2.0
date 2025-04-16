@@ -390,6 +390,9 @@ def mark_dead():
         return jsonify({"error": "Missing inventory_id"}), 400
 
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    if not bottle:
+        return jsonify({"error": "Invalid inventory_id"}), 400
+
     bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
@@ -399,8 +402,27 @@ def mark_dead():
 @require_editor
 def mark_many_dead():
     """
-    API to mark multiple chemicals as dead.
-    :return: Message indicating the chemicals that have been marked as dead.
+    Marks multiple chemicals as dead in the inventory for a specified sub-location.
+
+    This endpoint expects a JSON payload with a `sub_location_id` and a list of 
+    `inventory_id` values. It updates the `Is_Dead` status of the specified chemicals 
+    in the database.
+
+    Returns:
+        - 400 Bad Request: If `sub_location_id` is missing, invalid, or not an integer.
+        - 400 Bad Request: If `inventory_id` is missing, invalid, or not a list.
+        - 400 Bad Request: If no chemicals are found to mark as dead.
+        - 200 OK: A success message with the count of chemicals marked as dead.
+
+    JSON Payload:
+        {
+            "sub_location_id": int,  # ID of the sub-location to filter chemicals
+            "inventory_id": list     # List of inventory sticker numbers to mark as dead
+        }
+
+    Response:
+        - Success: {"message": "<count> chemicals marked as dead"}
+        - Error: {"error": "<error_message>"}
     """
     sub_location_id = request.json.get("sub_location_id")
     inventory_ids = request.json.get("inventory_id")

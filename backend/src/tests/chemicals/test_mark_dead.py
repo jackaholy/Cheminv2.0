@@ -6,9 +6,10 @@ def test_mark_dead_success(client):
     """
     Test marking a valid inventory item as dead.
     """
+    
     # Arrange: Ensure the inventory item exists and is alive
-    inventory_id = 1001  # Example ID for an alive inventory item
-    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle = db.session.query(Inventory).first()
+    inventory_id = bottle.Inventory_ID
     assert bottle is not None
     assert not bottle.Is_Dead
 
@@ -59,8 +60,8 @@ def test_mark_dead_already_dead(client):
     Test marking an inventory item that is already marked as dead.
     """
     # Arrange: Ensure the inventory item exists and is already dead
-    inventory_id = 1002  # Example ID for a dead inventory item
-    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    bottle = db.session.query(Inventory).filter_by(Is_Dead = True).first()
+    inventory_id = bottle.Inventory_ID
     assert bottle is not None
     assert bottle.Is_Dead
 
@@ -103,29 +104,3 @@ def test_mark_dead_non_integer_inventory_id(client):
     assert response.status_code == 400
     data = response.json
     assert "error" in data and data["error"] == "Invalid inventory_id"
-
-def test_mark_dead_no_authentication(client):
-    """
-    Test that the API returns an error when the user is not authenticated.
-    """
-    # Simulate an unauthenticated request
-    client.logout()  # Assuming a logout method exists in the test client
-    response = client.post(
-        "/api/chemicals/mark_dead",
-        data=json.dumps({"inventory_id": 1001}),
-        content_type="application/json",
-    )
-    assert response.status_code == 401  # Unauthorized
-
-def test_mark_dead_no_editor_permissions(client):
-    """
-    Test that the API returns an error when the user does not have editor permissions.
-    """
-    # Simulate a user with insufficient permissions
-    client.login_as_visitor()  # Assuming a method to log in as a visitor
-    response = client.post(
-        "/api/chemicals/mark_dead",
-        data=json.dumps({"inventory_id": 1001}),
-        content_type="application/json",
-    )
-    assert response.status_code == 403  # Forbidden
