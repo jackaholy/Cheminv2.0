@@ -19,6 +19,7 @@ const App = () => {
     const [searching, setSearching] = useState(false);
 
     const [selectedRoom, setSelectedRoom] = useState(0);
+    const [selectedSubLocation, setSelectedSubLocation] = useState(0);
     const [selectedManufacturers, setSelectedManufacturers] = useState([]);
 
     const [selectedChemical, setSelectedChemical] = useState(null);
@@ -71,7 +72,8 @@ const App = () => {
         if (
             query === "" &&
             selectedManufacturers.length === 0 &&
-            selectedRoom === 0
+            selectedRoom === 0 &&
+            selectedSubLocation === 0
         ) {
             getChemicals();
             return;
@@ -80,6 +82,9 @@ const App = () => {
         let url = `/api/search?query=${query}&synonyms=${synonyms}&manufacturers=${selectedManufacturers}`;
         if (selectedRoom && selectedRoom !== "none") {
             url += `&room=${selectedRoom}`;
+        }
+        if (selectedSubLocation && selectedSubLocation !== "none") {
+            url += `&sub_location=${selectedSubLocation}`;
         }
         try {
             const response = await fetch(url, {credentials: "include"});
@@ -150,6 +155,8 @@ const App = () => {
                     selectedManufacturers={selectedManufacturers}
                     selectedRoom={selectedRoom}
                     setSelectedRoom={setSelectedRoom}
+                    selectedSubLocation={selectedSubLocation}
+                    setSelectedSubLocation={setSelectedSubLocation}
                     getChemicals={getChemicals}
                     setSearching={setSearching}
                     setResults={setResults}
