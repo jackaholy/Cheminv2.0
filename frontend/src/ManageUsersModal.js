@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
+
 export const ManageUsersModal = () => {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
-  const [query, setQuery] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [showVisitors, setShowVisitors] = useState(false);
 
   useEffect(() => {
     fetch("/api/get_users", {
@@ -16,20 +16,25 @@ export const ManageUsersModal = () => {
       .catch((error) => console.error(error));
   }, []);
 
-  useEffect(() => {
-    setFilteredUsers(
-      users.filter((user) =>
-        user.username.toLowerCase().includes(query.toLowerCase())
-      )
-    );
-  }, [query, users]);
+  const sortedUsers = [...users].sort((a, b) => {
+    const accessOrder = { Visitor: 0, Editor: 1, "Full Access": 2 };
+    if (accessOrder[a.access] !== accessOrder[b.access]) {
+      return accessOrder[b.access] - accessOrder[a.access];
+    }
+    return a.username.localeCompare(b.username);
+  });
+
+  const filteredUsers = sortedUsers.filter(
+    (user) => showVisitors || user.access !== "Visitor"
+  );
 
   function onAccessChange(e, user_id) {
     const access = e.target.value;
     const userIndex = users.findIndex((user) => user.id === user_id);
-    const updatedUsers = users;
+    const updatedUsers = [...users];
     updatedUsers[userIndex].access = access;
     setUsers(updatedUsers);
+
     fetch("/api/users/update_access", {
       method: "POST",
       credentials: "include",
@@ -42,17 +47,10 @@ export const ManageUsersModal = () => {
       }),
     }).then((response) => {
       if (response.ok) {
-        setMessage(`User ${users[userIndex].username} updated to ${access}`);
+        setMessage(`User ${updatedUsers[userIndex].username} updated to ${access}`);
       }
     });
   }
-
-  useEffect(() => {
-    const filtered = users.filter((user) =>
-      user.username.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredUsers(filtered);
-  }, [query]);
 
   return (
     <div
@@ -78,13 +76,18 @@ export const ManageUsersModal = () => {
             {message !== "" ? (
               <div className="alert alert-success">{message}</div>
             ) : null}
-            <input
-              className="form-control"
-              type="text"
-              placeholder="Filter users..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            <div className="form-check mb-3">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="showVisitorsCheckbox"
+                checked={showVisitors}
+                onChange={(e) => setShowVisitors(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="showVisitorsCheckbox">
+                Show Visitors
+              </label>
+            </div>
             <table className="table">
               <thead>
                 <tr>
@@ -98,10 +101,11 @@ export const ManageUsersModal = () => {
                 {filteredUsers.map((user) => (
                   <tr
                     key={user.id}
-                    onChange={(e) => onAccessChange(e, user.id)}
+                    style={{
+                      color: user.access === "Visitor" ? "gray" : "inherit",
+                    }}
                   >
                     <td>{user.username}</td>
-
                     <td>
                       <input
                         type="radio"
