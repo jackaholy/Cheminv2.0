@@ -18,7 +18,7 @@ from models import (
 )
 from database import db
 from marshmallow import ValidationError
-from schemas import AddBottleSchema, AddChemicalSchema
+from schemas import AddBottleSchema, AddChemicalSchema, MarkManyDeadSchema
 
 chemicals = Blueprint("chemicals", __name__)
 
@@ -389,9 +389,11 @@ def mark_dead():
     if not inventory_id:
         return jsonify({"error": "Missing inventory_id"}), 400
 
+    if not isinstance(inventory_id, int):
+        return jsonify({"error": "Invalid inventory_id"}), 400
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     if not bottle:
-        return jsonify({"error": "Invalid inventory_id"}), 400
+        return jsonify({"error": "Bottle not found"}), 404
 
     bottle.Is_Dead = True
     db.session.commit()
@@ -409,59 +411,77 @@ def mark_many_dead():
     in the database.
 
     Returns:
-        - 400 Bad Request: If `sub_location_id` is missing, invalid, or not an integer.
-        - 400 Bad Request: If `inventory_id` is missing, invalid, or not a list.
-        - 400 Bad Request: If no chemicals are found to mark as dead.
+        - 400 Bad Request: If validation fails or inventory IDs are not in the sub-location.
         - 200 OK: A success message with the count of chemicals marked as dead.
 
     JSON Payload:
         {
             "sub_location_id": int,  # ID of the sub-location to filter chemicals
-            "inventory_id": list     # List of inventory sticker numbers to mark as dead
+            "inventory_id": list     # List of inventory IDs to mark as dead
         }
 
     Response:
         - Success: {"message": "<count> chemicals marked as dead"}
         - Error: {"error": "<error_message>"}
     """
-    sub_location_id = request.json.get("sub_location_id")
-    inventory_ids = request.json.get("inventory_id")
+    schema = MarkManyDeadSchema()
+    try:
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
 
-    if not sub_location_id or not isinstance(sub_location_id, int):
-        return jsonify({"error": "Missing or invalid sub_location_id"}), 400
-    if not inventory_ids or not isinstance(inventory_ids, list):
-        return jsonify({"error": "Missing or invalid inventory_id"}), 400
+    sub_location_id = data["sub_location_id"]
+    inventory_ids = data["inventory_id"]
 
-    # Get all chemicals in the specified sublocation
+    # Query inventory records for the specified sub-location and inventory IDs
     bottles_to_check = db.session.query(Inventory).filter(
         Inventory.Sub_Location_ID == sub_location_id,
-        Inventory.Is_Dead == False
+        Inventory.Inventory_ID.in_(inventory_ids)
     ).all()
 
-    if len(bottles_to_check) == 0:
-        return jsonify({"error": "No chemicals marked as dead"}), 400
+    if len(bottles_to_check) != len(inventory_ids):
+        return jsonify({"error": "Some inventory IDs are not in the specified sub-location"}), 400
 
-    # Remove the ones that are not accounted for
-    bottles_not_found = [
-        bottle for bottle in bottles_to_check
-        if bottle.Sticker_Number in inventory_ids
-    ]
-
-    for bottle in bottles_not_found:
+    # Mark the bottles as dead
+    for bottle in bottles_to_check:
         bottle.Is_Dead = True
 
     db.session.commit()
-    return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
+    return {"message": f"{len(bottles_to_check)} chemicals marked as dead"}
 
 
 @chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
 @oidc.require_login
+@require_editor
 def mark_alive():
     """
-    API to mark a chemical as alive.
-    :return: Message indicating the chemical has been marked as alive.
+    Marks a chemical as alive by updating its status in the database.
+
+    This API endpoint is used to update the `Is_Dead` status of a chemical
+    in the inventory to `False`, indicating that the chemical is active or
+    usable. The endpoint requires the `inventory_id` of the chemical to be
+    provided in the request body.
+
+    Decorators:
+
+    Request Body:
+        inventory_id (int): The unique identifier of the chemical in the inventory.
+
+    Returns:
+        dict: A JSON object containing a success message.
+
     """
     inventory_id = request.json.get("inventory_id")
+
+    if not inventory_id:
+        return jsonify({"error": "Missing inventory_id"}), 400
+
+    if not isinstance(inventory_id, int):
+        return jsonify({"error": "Invalid inventory_id"}), 400
+    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    if not bottle:
+        return jsonify({"error": "Bottle not found"}), 404
+    
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     bottle.Is_Dead = False
     db.session.commit()
@@ -472,8 +492,31 @@ def mark_alive():
 @oidc.require_login
 def get_chemicals_by_sublocation():
     """
-    API to get chemicals by sublocation.
-    :return: A list of chemicals.
+    API Endpoint: /api/chemicals/by_sublocation (GET)
+
+    This endpoint retrieves a list of chemicals associated with a specific sublocation.
+
+    Parameters:
+        - sub_location_id (int, required): The ID of the sublocation for which to retrieve chemicals.
+
+    Returns:
+        - 400 Bad Request: If the `sub_location_id` parameter is missing or invalid.
+            Example response:
+                "error": "sub_location_id is required"
+
+        - 200 OK: A JSON array containing details of chemicals in the specified sublocation.
+            Example response:
+            [
+                    "name": "Chemical Name",
+                    "product_number": "Product Number",
+                    "manufacturer": "Manufacturer Name",
+                    "sticker_number": "Sticker Number"
+                },
+                ...
+
+    Notes:
+        - The endpoint requires the user to be logged in (OIDC authentication).
+        - Chemicals marked as "dead" (Is_Dead == True) are excluded from the results.
     """
     sub_location_id = request.args.get("sub_location_id", type=int)
 
@@ -512,7 +555,29 @@ def get_chemicals_by_sublocation():
 @oidc.require_login
 def sticker_lookup():
     """
-    Look up a chemical's current sublocation by sticker number.
+    This endpoint retrieves information about a chemical's inventory, sublocation, 
+    and location based on the provided sticker number. It requires the user to be 
+    logged in via OIDC.
+
+    Returns:
+        - 400 Bad Request: If the `sticker_number` parameter is missing.
+        - 404 Not Found: If no inventory item matches the provided sticker number.
+        - 200 OK: A JSON object containing the following details:
+            - inventory_id: The ID of the inventory item.
+            - sub_location_id: The ID of the sublocation where the item is stored.
+            - location_name: The name of the location (building and room).
+            - sub_location_name: The name of the sublocation.
+
+    Query Parameters:
+        sticker_number (str): The sticker number of the chemical to look up.
+
+    Example Response (200 OK):
+        {
+            "inventory_id": 123,
+            "sub_location_id": 456,
+            "location_name": "Building A Room 101",
+            "sub_location_name": "Shelf 3"
+        }
     """
     sticker_number = request.args.get("sticker_number")
 
@@ -540,11 +605,39 @@ def sticker_lookup():
 
 @chemicals.route("/api/chemicals/update_chemical_location", methods=["POST"])
 @oidc.require_login
+@require_editor
 def update_location():
+    """
+    Updates the location of a chemical bottle in the inventory.
+
+    This endpoint is used to update the sub-location of a specific chemical bottle
+    in the inventory database. The user must be logged in and have editor privileges
+    to access this endpoint.
+
+    Route:
+        POST /api/chemicals/update_chemical_location
+
+    Request JSON Parameters:
+        inventory_id (int): The ID of the inventory item (chemical bottle) to update.
+        new_sub_location_id (int): The ID of the new sub-location to assign to the bottle.
+
+    Returns:
+        JSON: A success message indicating that the location has been updated.
+    """
     inventory_id = request.json.get("inventory_id")
     new_sub_location_id = request.json.get("new_sub_location_id")
 
+    # Validate inventory_id
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    if not bottle:
+        return jsonify({"error": "Invalid inventory_id"}), 400
+
+    # Validate new_sub_location_id
+    sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_ID=new_sub_location_id).first()
+    if not sub_location:
+        return jsonify({"error": "Invalid new_sub_location_id"}), 400
+
+    # Update the sub-location
     bottle.Sub_Location_ID = new_sub_location_id
     db.session.commit()
     return jsonify({"message": "Location updated"})
@@ -555,10 +648,36 @@ def update_location():
 @require_editor
 def update_chemical(chemical_id):
     """
-    API to update chemical details.
-    :param chemical_id: ID of the chemical to update.
-    :return: Success or error message.
-    """
+    Updates the details of an existing chemical in the database.
+
+    Endpoint:
+    PUT /api/update_chemical/<int:chemical_id>
+
+    Args:
+    chemical_id (int): The unique identifier of the chemical to be updated.
+
+    Request Body (JSON):
+    {
+        "chemical_name" (optional, str): The new name of the chemical.
+        "chemical_formula" (optional, str): The new formula of the chemical.
+        "storage_class_id" (optional, int): The new storage class ID for the chemical.
+    }
+
+    Returns:
+    Response (JSON):
+        - On success:
+            {
+                "message": "Chemical updated successfully"
+            }
+            HTTP Status Code: 200
+        - On failure (e.g., chemical not found):
+            {
+                "error": "Chemical not found"
+            }
+            HTTP Status Code: 404
+
+
+    """    # Validate the incoming request against the schema`
     data = request.json
     chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
 
@@ -578,9 +697,28 @@ def update_chemical(chemical_id):
 @require_editor
 def delete_chemical(chemical_id):
     """
-    API to permanently delete a chemical.
-    :param chemical_id: ID of the chemical to delete.
-    :return: Success or error message.
+    API Endpoint: Delete a Chemical
+
+    This endpoint allows an authorized user to permanently delete a chemical 
+    from the database, along with all related records in the Chemical_Manufacturer 
+    and Inventory tables.
+
+    Args:
+        chemical_id (int): The ID of the chemical to be deleted.
+
+    Returns:
+        Response: A JSON response with a success message and HTTP status 200 
+                if the deletion is successful.
+                A JSON response with an error message and HTTP status 404 
+                if the chemical is not found.
+
+    Database Operations:
+        - Queries the Chemical table to find the chemical by its ID.
+        - Retrieves all related Chemical_Manufacturer IDs.
+        - Deletes all Inventory records associated with the retrieved 
+        Chemical_Manufacturer IDs.
+        - Deletes all Chemical_Manufacturer records associated with the chemical.
+        - Deletes the chemical record itself.
     """
     chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
 
@@ -609,6 +747,23 @@ def delete_chemical(chemical_id):
 @oidc.require_login
 @require_editor
 def update_inventory(inventory_id):
+    """
+    Update an inventory record in the database.
+    This endpoint allows an authenticated and authorized user to update an inventory record
+    identified by its `inventory_id`. The user must provide the updated data in JSON format.
+    Args:
+        inventory_id (int): The ID of the inventory record to be updated.
+    Request JSON:
+        sticker_number (str, optional): The new sticker number for the inventory.
+        product_number (str, optional): The new product number for the inventory.
+        sub_location_id (int, optional): The new sub-location ID for the inventory.
+        manufacturer_id (int, optional): The ID of the new manufacturer for the chemical.
+            If provided, a new `Chemical_Manufacturer` record will be created if it does not exist.
+    Returns:
+        Response: A JSON response indicating the success or failure of the operation.
+            - On success: {"message": "Inventory updated successfully"} with HTTP status 200.
+            - On failure: {"error": "Inventory not found"} with HTTP status 404.
+    """
     data = request.json
     inventory = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     

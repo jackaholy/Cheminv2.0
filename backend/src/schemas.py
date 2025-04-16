@@ -4,6 +4,7 @@ This module defines Marshmallow schemas for input validation.
 Schemas:
     - AddBottleSchema: Validates input for adding a new chemical bottle.
     - AddChemicalSchema: Validates input for adding a new chemical.
+    - MarkManyDeadSchema: Validates input for marking multiple chemicals as dead.
 """
 
 from marshmallow import Schema, fields, ValidationError
@@ -43,3 +44,13 @@ class AddChemicalSchema(Schema):
     product_number = fields.Str(required=True)
     storage_class_id = fields.Int(required=True)
     manufacturer_id = fields.Int(required=True)
+
+class MarkManyDeadSchema(Schema):
+    """
+    Schema for validating input when marking multiple chemicals as dead.
+    Fields:
+        - sub_location_id (int): ID of the sub-location (required).
+        - inventory_id (list): List of inventory IDs to mark as dead (required).
+    """
+    sub_location_id = fields.Int(required=True)
+    inventory_id = fields.List(fields.Int(), required=True)
