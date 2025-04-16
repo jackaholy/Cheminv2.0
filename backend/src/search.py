@@ -119,6 +119,7 @@ def search_route():
 
     # Filter by room name (comparing against Location.Room)
     if room:
+        room = int(room)
         filters.append(Location.Location_ID == room)
 
     # Filter by manufacturer IDs if provided
@@ -149,7 +150,32 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    # chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
+    # Filter inventory records if room filter is specified
+    if room:  # room is actually location_id
+        for chemical in chemical_list:
+            print(chemical["inventory"])
+            print(room)
+            chemical["inventory"] = [
+                inv for inv in chemical["inventory"]
+                if inv["location_id"] == room
+            ]
+            chemical["quantity"] = len([inv for inv in chemical["inventory"] if not inv["dead"]])
+        
+        # Remove chemicals that have no matching inventory
+        chemical_list = [chem for chem in chemical_list if chem["inventory"]]
+
+    # Filter inventory records if manufacturer filter is specified
+    if manufacturer_ids:
+        for chemical in chemical_list:
+            chemical["inventory"] = [
+                inv for inv in chemical["inventory"]
+                if str(inv["manufacturer_id"]) in manufacturer_ids
+            ]
+            chemical["quantity"] = len([inv for inv in chemical["inventory"] if not inv["dead"]])
+        
+        # Remove chemicals that have no matching inventory
+        chemical_list = [chem for chem in chemical_list if chem["inventory"]]
+
     if query:
         chemical_list.sort(
             key=lambda x: (
