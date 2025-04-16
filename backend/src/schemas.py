@@ -5,6 +5,7 @@ Schemas:
     - AddBottleSchema: Validates input for adding a new chemical bottle.
     - AddChemicalSchema: Validates input for adding a new chemical.
     - MarkManyDeadSchema: Validates input for marking multiple chemicals as dead.
+    - UpdateInventorySchema: Validates input for updating an inventory record.
 """
 
 from marshmallow import Schema, fields, ValidationError
@@ -54,3 +55,17 @@ class MarkManyDeadSchema(Schema):
     """
     sub_location_id = fields.Int(required=True)
     inventory_id = fields.List(fields.Int(), required=True)
+
+class UpdateInventorySchema(Schema):
+    """
+    Schema for validating input when updating an inventory record.
+    Fields:
+        - sticker_number (str): The new sticker number for the inventory (optional).
+        - product_number (str): The new product number for the inventory (optional).
+        - sub_location_id (int): The new sub-location ID for the inventory (optional).
+        - manufacturer_id (int): The ID of the new manufacturer for the chemical (optional).
+    """
+    sticker_number = fields.Str()
+    product_number = fields.Str()
+    sub_location_id = fields.Int()
+    manufacturer_id = fields.Int()

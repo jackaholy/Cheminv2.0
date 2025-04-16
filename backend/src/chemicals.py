@@ -770,8 +770,15 @@ def update_inventory(inventory_id):
     if not inventory:
         return jsonify({"error": "Inventory not found"}), 404
     
+    # Check if the new sticker number is already taken
+    new_sticker_number = data.get("sticker_number")
+    if new_sticker_number and new_sticker_number != inventory.Sticker_Number:
+        existing = db.session.query(Inventory).filter_by(Sticker_Number=new_sticker_number).first()
+        if existing:
+            return jsonify({"error": f"Sticker number {new_sticker_number} is already in use."}), 400
+
     # Update basic fields
-    inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
+    inventory.Sticker_Number = new_sticker_number or inventory.Sticker_Number
     inventory.Product_Number = data.get("product_number", inventory.Product_Number)
     inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
     
