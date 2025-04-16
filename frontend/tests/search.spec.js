@@ -79,6 +79,7 @@ test('Search by name', async ({ page }) => {
 test('Search by symbol', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Search...' }).fill('NaOH');
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
+    - link "Download CSV"
     - text: Quantity Chemical Chemical Formula 1
     - button "Sodium Hydroxide"
     - text: NaOH
