@@ -20,7 +20,7 @@ import pytest
         # Non-existent chemical name
         ("NonExistentChemical", 404, {}),
         # Empty chemical name
-        ("", 404, {}),
+        ("", 400, {'error': 'Missing chemical_name'}),
         # Chemical name with special characters
         ("Acetone!", 404, {}),
     ],

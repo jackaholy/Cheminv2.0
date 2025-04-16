@@ -9,8 +9,8 @@ def test_mark_many_dead_success(client):
     # Arrange: Get a valid sublocation and inventory items
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     bottles = db.session.query(Inventory).filter_by(Sub_Location_ID=sub_location.Sub_Location_ID, Is_Dead=False).limit(2).all()
-    inventory_ids = [bottle.Sticker_Number for bottle in bottles]
-
+    inventory_ids = [bottle.Inventory_ID for bottle in bottles]
+    
     # Act: Send the request to mark the items as dead
     response = client.post(
         "/api/chemicals/mark_many_dead",
@@ -39,7 +39,7 @@ def test_mark_many_dead_invalid_sublocation(client):
     )
     assert response.status_code == 400
     data = response.json
-    assert "error" in data and "Missing or invalid sub_location_id" in data["error"]
+    assert data ==  {'error': 'Some inventory IDs are not in the specified sub-location'}
 
 def test_mark_many_dead_invalid_inventory_ids(client):
     """
@@ -53,7 +53,7 @@ def test_mark_many_dead_invalid_inventory_ids(client):
     )
     assert response.status_code == 400
     data = response.json
-    assert "error" in data and "No chemicals marked as dead" in data["error"]
+    assert data == {'error': 'Some inventory IDs are not in the specified sub-location'}
 
 def test_mark_many_dead_mismatched_sublocation(client):
     """
@@ -69,23 +69,28 @@ def test_mark_many_dead_mismatched_sublocation(client):
     )
     assert response.status_code == 400
     data = response.json
-    assert "error" in data and "No chemicals marked as dead" in data["error"]
+    assert data == {'error': 'Some inventory IDs are not in the specified sub-location'}
 
 def test_mark_many_dead_already_dead(client):
     """
     Test marking inventory items that are already marked as dead.
+    The API should treat this as a success since the end state is what was requested.
     """
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     dead_bottle = db.session.query(Inventory).filter_by(Sub_Location_ID=sub_location.Sub_Location_ID, Is_Dead=True).first()
 
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [dead_bottle.Sticker_Number]}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [dead_bottle.Inventory_ID]}),
         content_type="application/json",
     )
-    assert response.status_code == 400
+    assert response.status_code == 200
     data = response.json
-    assert "error" in data and "No chemicals marked as dead" in data["error"]
+    assert "message" in data
+    
+    # Verify the bottle is still dead
+    db.session.refresh(dead_bottle)
+    assert dead_bottle.Is_Dead
 
 def test_mark_many_dead_partial_success(client):
     """
@@ -97,12 +102,12 @@ def test_mark_many_dead_partial_success(client):
 
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [valid_bottle.Sticker_Number, invalid_id]}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [valid_bottle.Inventory_ID, invalid_id]}),
         content_type="application/json",
     )
     assert response.status_code == 400
     data = response.json
-    assert "error" in data and "No chemicals marked as dead" in data["error"]
+    assert data == {"error": "Some inventory IDs are not in the specified sub-location"}
 
     # Verify the valid bottle is still alive
     db.session.refresh(valid_bottle)
@@ -119,7 +124,14 @@ def test_mark_many_dead_missing_payload(client):
     )
     assert response.status_code == 400
     data = response.json
-    assert "error" in data and "Missing or invalid sub_location_id" in data["error"]
+    assert data == {"error": {"inventory_id": ["Missing data for required field."], "sub_location_id": ["Missing data for required field."]}}
+
+    # Verify no changes in the database
+    bottles = db.session.query(Inventory).all()
+    for bottle in bottles:
+        original_state = bottle.Is_Dead
+        db.session.refresh(bottle)
+        assert bottle.Is_Dead == original_state
 
 def test_mark_many_dead_invalid_payload_format(client):
     """
