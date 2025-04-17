@@ -26,7 +26,16 @@ chemicals = Blueprint("chemicals", __name__)
 @oidc.require_login
 @require_editor
 def add_bottle():
+    """
+       API endpoint to add a new bottle to the inventory.
+       Validates input using schema, checks for existing sticker number, associates the
+       chemical and manufacturer (creating the Chemical_Manufacturer if needed), and
+       inserts a new Inventory record with optional MSDS URL.
+
+       :return: JSON with success message and inventory ID or an error message.
+       """
     schema = AddBottleSchema()
+    # Try to load in data
     try:
         data = schema.load(request.json)
     except ValidationError as err:
@@ -84,6 +93,10 @@ def add_bottle():
 
 @chemicals.route("/api/product-search", methods=["GET"])
 def product_search():
+    """
+    API to search for product numbers matching a query.
+    :return: A JSON list of matching product numbers.
+    """
     # Get the query parameter; default to an empty string if not provided.
     query = request.args.get("query", "")
 
@@ -108,6 +121,10 @@ def product_search():
 @oidc.require_login
 @require_editor
 def add_chemical():
+    """
+    API to add a new chemical to the database, along with its manufacturer and product number.
+    :return: JSON message confirming chemical creation and the chemical ID.
+    """
     chemical_name = request.json.get("chemical_name")
     chemical_formula = request.json.get("chemical_formula")
     product_number = request.json.get("product_number")
@@ -204,10 +221,13 @@ def get_chemicals():
 
     chemical_list = [chem.to_dict() for chem in chemicals]
     # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+    # Sort the list of chemicals
     chemical_list = sorted(
         chemical_list,
         key=lambda x: (
+            # Chemicals that have a quantity of 'zero' are pushed to the end
             x["quantity"] == 0,
+            # Sort alphabetically by chemical name
             re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
         ),
     )
@@ -223,6 +243,7 @@ def product_number_lookup():
     :return: Details for the chemical with the given product number.
     """
     product_number = request.args.get("product_number")
+    # Check if product number has a value.
     if product_number == "":
         return jsonify({}), 404
     query_result = (
@@ -232,6 +253,7 @@ def product_number_lookup():
     )
     if not query_result:
         return jsonify({}), 404
+    # Get different chemical data.
     chemicals_data = {
         "chemical_id": query_result.Chemical.Chemical_ID,
         "manufacturer": {
@@ -250,6 +272,7 @@ def chemical_name_lookup():
     :return: Details for the chemical with the given chemical name.
     """
     chemical_name = request.args.get("chemical_name")
+    # Query the database for a chemical name that matches the input.
     query_result = (
         db.session.query(
             Chemical.Chemical_ID,
@@ -263,8 +286,11 @@ def chemical_name_lookup():
         .filter(Chemical.Chemical_Name == chemical_name)
         .first()
     )
+    # If not chemical is found with the given name, return an empty JSON response.
     if not query_result:
         return jsonify({}), 404
+
+    # Get different chemical data from each part of the database query.
     chemicals_data = {
         "chemical_id": query_result[0],
         "chemical_name": query_result[1],
@@ -282,11 +308,12 @@ def mark_dead():
     :return: Message indicating the chemical has been marked as dead.
     """
     inventory_id = request.json.get("inventory_id")
-
+    # Check if this bottle exists.
     if not inventory_id:
         return jsonify({"error": "Missing inventory_id"}), 400
 
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    # Set the bottle to being dead.
     bottle.Is_Dead = True
     db.session.commit()
     return {"message": "Chemical marked as dead"}
@@ -340,8 +367,6 @@ def mark_many_dead():
         bottle.Last_Updated = datetime.now()
         bottle.Who_Updated = current_user
 
-
-
     db.session.commit()
     return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
 
@@ -355,6 +380,7 @@ def mark_alive():
     """
     inventory_id = request.json.get("inventory_id")
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    # Set the bottle state as being not-dead.
     bottle.Is_Dead = False
     db.session.commit()
     return {"message": "Chemical marked as alive"}
@@ -368,7 +394,7 @@ def get_chemicals_by_sublocation():
     :return: A list of chemicals.
     """
     sub_location_id = request.args.get("sub_location_id", type=int)
-
+    # Check if the sub-location exists.
     if not sub_location_id:
         return jsonify({"error": "sub_location_id is required"}), 400
 
@@ -407,12 +433,14 @@ def get_chemicals_by_sublocation():
 def sticker_lookup():
     """
     Look up a chemical's current sublocation by sticker number.
+    :return: Details about a bottle with a specific sticker number.
     """
     sticker_number = request.args.get("sticker_number")
-
+    # Check if the sticker number exists.
     if not sticker_number:
         return jsonify({"error": "Missing sticker_number"}), 400
 
+    # Query the inventory for a bottle with that sticker number.
     bottle = (
         db.session.query(Inventory)
         .filter_by(Sticker_Number=sticker_number)
@@ -420,10 +448,10 @@ def sticker_lookup():
         .join(Location)
         .first()
     )
-
+    # Check if the bottle exists
     if not bottle:
         return jsonify({"error": "Sticker not found"}), 404
-
+    # If the bottle exists, return location details.
     return jsonify({
         "inventory_id": bottle.Inventory_ID,
         "sub_location_id": bottle.Sub_Location.Sub_Location_ID,
@@ -435,6 +463,10 @@ def sticker_lookup():
 @chemicals.route("/api/chemicals/update_chemical_location", methods=["POST"])
 @oidc.require_login
 def update_location():
+    """
+    API to update the sublocation of a chemical bottle in inventory.
+    :return: JSON message confirming the update.
+    """
     inventory_id = request.json.get("inventory_id")
     new_sub_location_id = request.json.get("new_sub_location_id")
 
@@ -455,10 +487,10 @@ def update_chemical(chemical_id):
     """
     data = request.json
     chemical = db.session.query(Chemical).filter_by(Chemical_ID=chemical_id).first()
-
+    # Check if the chemical exists.
     if not chemical:
         return jsonify({"error": "Chemical not found"}), 404
-
+    # Changes the details about a chemical.
     chemical.Chemical_Name = data.get("chemical_name", chemical.Chemical_Name)
     chemical.Chemical_Formula = data.get("chemical_formula", chemical.Chemical_Formula)
     chemical.Storage_Class_ID = data.get("storage_class_id", chemical.Storage_Class_ID)
@@ -503,6 +535,11 @@ def delete_chemical(chemical_id):
 @oidc.require_login
 @require_editor
 def update_inventory(inventory_id):
+    """
+    API to update an existing inventory record with new details like sticker number, location, and manufacturer.
+    :param inventory_id: ID of the inventory record to update.
+    :return: JSON message confirming the update or error if not found.
+    """
     data = request.json
     inventory = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     
@@ -526,7 +563,7 @@ def update_inventory(inventory_id):
             .filter_by(Chemical_ID=chemical_id, Manufacturer_ID=manufacturer_id)
             .first()
         )
-        
+        # Check if the chemical manufacturer record exists.
         if not chem_man:
             chem_man = Chemical_Manufacturer(
                 Chemical_ID=chemical_id,
