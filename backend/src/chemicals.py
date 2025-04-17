@@ -737,16 +737,15 @@ def delete_chemical(chemical_id):
     if not chemical:
         return jsonify({"error": "Chemical not found"}), 404
 
-    # Get all related Chemical_Manufacturer IDs
-    chemical_manufacturer_ids = db.session.query(Chemical_Manufacturer.Chemical_Manufacturer_ID).filter_by(Chemical_ID=chemical_id).all()
+    # Delete related Inventory records in bulk
+    db.session.query(Inventory).filter(
+        Inventory.Chemical_Manufacturer_ID.in_(
+            db.session.query(Chemical_Manufacturer.Chemical_Manufacturer_ID)
+            .filter_by(Chemical_ID=chemical_id)
+        )
+    ).delete(synchronize_session=False)
 
-    # Flatten the list of tuples
-    chemical_manufacturer_ids = [cm_id[0] for cm_id in chemical_manufacturer_ids]
-
-    # Delete related Inventory records
-    db.session.query(Inventory).filter(Inventory.Chemical_Manufacturer_ID.in_(chemical_manufacturer_ids)).delete(synchronize_session=False)
-
-    # Delete related Chemical_Manufacturer records
+    # Delete related Chemical_Manufacturer records in bulk
     db.session.query(Chemical_Manufacturer).filter_by(Chemical_ID=chemical_id).delete(synchronize_session=False)
 
     # Delete the chemical itself
@@ -853,7 +852,6 @@ def update_inventory(inventory_id):
             db.session.add(chem_man)
             db.session.flush()  # Ensure chem_man is persisted before using its ID
         
-        inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
         inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
     
     # Update timestamp and user
