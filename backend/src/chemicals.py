@@ -396,17 +396,17 @@ def mark_many_dead():
     Marks multiple chemicals as dead in the inventory for a specified sub-location.
 
     This endpoint expects a JSON payload with a `sub_location_id` and a list of
-    `inventory_id` values. It updates the `Is_Dead` status of the specified chemicals
+    sticker number values. It updates the `Is_Dead` status of the specified chemicals
     in the database.
 
     Returns:
-        - 400 Bad Request: If validation fails or inventory IDs are not in the sub-location.
+        - 400 Bad Request: If validation fails or sticker numbers are not in the sub-location.
         - 200 OK: A success message with the count of chemicals marked as dead.
 
     JSON Payload:
         {
             "sub_location_id": int,  # ID of the sub-location to filter chemicals
-            "inventory_id": list     # List of inventory IDs to mark as dead
+            "sticker_numbers": list     # List of sticker numbers to mark as dead
         }
 
     Response:
@@ -420,21 +420,21 @@ def mark_many_dead():
         return jsonify({"error": err.messages}), 400
 
     sub_location_id = data["sub_location_id"]
-    inventory_ids = data["inventory_id"]
+    sticker_numbers = data["sticker_numbers"]
 
     # Query inventory records for the specified sub-location and inventory IDs
     bottles_to_check = db.session.query(Inventory).filter(
         Inventory.Sub_Location_ID == sub_location_id,
-        Inventory.Inventory_ID.in_(inventory_ids)
+        Inventory.Sticker_Number.in_(sticker_numbers)
     ).all()
 
-    if len(bottles_to_check) != len(inventory_ids):
-        return jsonify({"error": "Some inventory IDs are not in the specified sub-location"}), 400
+    if len(bottles_to_check) != len(sticker_numbers):
+        return jsonify({"error": "Some sticker numbers are not in the specified sub-location"}), 400
 
     # Remove the ones that are not accounted for
     bottles_not_found = [
         bottle for bottle in bottles_to_check
-        if bottle.Sticker_Number in inventory_ids
+        if bottle.Sticker_Number in sticker_numbers
     ]
     # Get the current user doing an inventory
     current_user = session["oidc_auth_profile"].get("preferred_username")
@@ -447,7 +447,7 @@ def mark_many_dead():
     # Mark the rest of the bottles as alive
     alive_bottles = [
         bottle for bottle in bottles_to_check
-        if bottle.Sticker_Number not in inventory_ids
+        if bottle.Sticker_Number not in sticker_numbers
     ]
     # Update Who Updated and Last Updated fields for inventoried bottles
     for bottle in alive_bottles:

@@ -139,7 +139,7 @@ class MarkManyDeadSchema(Schema):
     """
 
     sub_location_id = fields.Int(required=True)
-    inventory_id = fields.List(fields.Int(), required=True)
+    sticker_numbers = fields.List(fields.Int(), required=True)
 
 
 class UpdateInventorySchema(Schema):
