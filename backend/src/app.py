@@ -1,3 +1,11 @@
+"""
+ChemInv 2.0 - Main application entry point.
+
+Initializes the Flask app with appropriate configuration based on the environment.
+Sets up logging, authentication, database, CORS, blueprints, and routes.
+Supports development, testing, and production deployment modes.
+"""
+
 import os
 import sys
 import logging
@@ -27,6 +35,12 @@ load_dotenv()
 
 
 def create_app(config=ProdConfig):
+    """
+    Create and configure the Flask application.
+
+    :param config: The configuration class to use (default is ProdConfig).
+    :return: Configured Flask app instance.
+    """
     logger.info("Starting application")
     app = Flask(
         __name__,
@@ -43,15 +57,23 @@ def create_app(config=ProdConfig):
 
     @app.route("/api/health")
     def health():
+        """
+        Health check endpoint.
+
+        :return: A simple "OK" string to indicate the app is running.
+        """
         return "OK"
 
     @app.route("/")
-    # Important: The auth redirect must
-    # occur in the browser, not a fetch request.
-    # The apis need to be protected, but can't actually
-    # redirect to the login page.
+    # Important: The auth redirect must occur in the browser, not a fetch request.
+    # The apis need to be protected, but can't actually redirect to the login page.
     @oidc.require_login
     def index():
+        """
+        Main entry point of the frontend application, requires login.
+
+        :return: Renders the frontends index.html template.
+        """
         return render_template("index.html")
 
     app.register_blueprint(chemicals)
@@ -65,6 +87,10 @@ def create_app(config=ProdConfig):
     return app
 
 
+"""
+Determine which environment config to use and start the Flask app.
+In production, the app is served via Waitress; otherwise, Flask's built-in server is used.
+"""
 if __name__ == "__main__":
     if os.getenv("CHEMINV_ENVIRONMENT") == "development":
         app = create_app(DevConfig)
