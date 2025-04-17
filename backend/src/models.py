@@ -66,7 +66,17 @@ class Chemical(db.Model):
                             if inv.Sub_Location
                             else None
                         ),
+                        "sub_location_id": (
+                            inv.Sub_Location.Sub_Location_ID
+                            if inv.Sub_Location
+                            else None
+                        ),
                         "location": location,
+                        "location_id": (
+                            inv.Sub_Location.Location.Location_ID
+                            if inv.Sub_Location and inv.Sub_Location.Location
+                            else None
+                        ),
                         "manufacturer": (
                             chem_man.Manufacturer.Manufacturer_Name
                             if chem_man.Manufacturer
@@ -78,6 +88,8 @@ class Chemical(db.Model):
                             else None
                         ),
                         "dead": inv.Is_Dead,
+                        # Boolean, true if it has it, false if not
+                        "msds": inv.MSDS != None and inv.MSDS != "",
                     }
                 )
         return {

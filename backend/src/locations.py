@@ -22,7 +22,7 @@ def get_locations():
         )
     else:
         location_list = db.session.query(Location).all()
-    return [
+    return sorted([
         {
             "location_id": location.Location_ID,
             "building": location.Building,
@@ -36,7 +36,7 @@ def get_locations():
             ],
         }
         for location in location_list
-    ]
+    ], key=lambda x: (x["building"], x["room"]))
 
 
 @locations.route("/api/get_chemical_location_data", methods=["GET"])

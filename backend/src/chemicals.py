@@ -57,7 +57,6 @@ def add_bottle():
     # Get the current user's username from the session
     current_username = session["oidc_auth_profile"].get("preferred_username")
 
-    # Generate MSDS URL if requested
     msds = get_msds_url() if data.get("msds") else None
 
     # Look for an existing Chemical_Manufacturer association
@@ -145,7 +144,7 @@ def add_chemical():
     Adds a new chemical to the database.
 
     This endpoint is protected and requires the user to be logged in and have editor privileges.
-    It accepts a JSON payload with details about the chemical, including its name, formula, 
+    It accepts a JSON payload with details about the chemical, including its name, formula,
     product number, storage class, and manufacturer.
 
     JSON Payload:
@@ -207,11 +206,11 @@ def add_chemical():
 @chemicals.route("/api/storage_classes", methods=["GET"])
 def get_storage_classes():
     """
-    This endpoint retrieves all storage classes from the database and returns 
-    them as a list of dictionaries, where each dictionary contains the 
+    This endpoint retrieves all storage classes from the database and returns
+    them as a list of dictionaries, where each dictionary contains the
     storage class name and its corresponding ID.
 
-    :return: A JSON response containing a list of dictionaries. Each dictionary 
+    :return: A JSON response containing a list of dictionaries. Each dictionary
             has the following structure:
             {
                 "name": <Storage_Class_Name>,
@@ -312,7 +311,7 @@ def chemical_name_lookup():
     API Endpoint: /api/chemicals/chemical_name_lookup (GET)
 
     Description:
-    This API endpoint retrieves the details of a chemical based on its name. 
+    This API endpoint retrieves the details of a chemical based on its name.
     It queries the database for the chemical's ID, name, formula, and associated storage class.
 
     Query Parameters:
@@ -396,8 +395,8 @@ def mark_many_dead():
     """
     Marks multiple chemicals as dead in the inventory for a specified sub-location.
 
-    This endpoint expects a JSON payload with a `sub_location_id` and a list of 
-    `inventory_id` values. It updates the `Is_Dead` status of the specified chemicals 
+    This endpoint expects a JSON payload with a `sub_location_id` and a list of
+    `inventory_id` values. It updates the `Is_Dead` status of the specified chemicals
     in the database.
 
     Returns:
@@ -432,12 +431,33 @@ def mark_many_dead():
     if len(bottles_to_check) != len(inventory_ids):
         return jsonify({"error": "Some inventory IDs are not in the specified sub-location"}), 400
 
-    # Mark the bottles as dead
-    for bottle in bottles_to_check:
+    # Remove the ones that are not accounted for
+    bottles_not_found = [
+        bottle for bottle in bottles_to_check
+        if bottle.Sticker_Number in inventory_ids
+    ]
+    # Get the current user doing an inventory
+    current_user = session["oidc_auth_profile"].get("preferred_username")
+    # Mark dead bottles as dead and update appropriate fields
+    for bottle in bottles_not_found:
         bottle.Is_Dead = True
+        bottle.Last_Updated = datetime.now()
+        bottle.Who_Updated = current_user
+
+    # Mark the rest of the bottles as alive
+    alive_bottles = [
+        bottle for bottle in bottles_to_check
+        if bottle.Sticker_Number not in inventory_ids
+    ]
+    # Update Who Updated and Last Updated fields for inventoried bottles
+    for bottle in alive_bottles:
+        bottle.Last_Updated = datetime.now()
+        bottle.Who_Updated = current_user
+
+
 
     db.session.commit()
-    return {"message": f"{len(bottles_to_check)} chemicals marked as dead"}
+    return {"message": f"{len(bottles_not_found)} chemicals marked as dead"}
 
 
 @chemicals.route("/api/chemicals/mark_alive", methods=["POST"])
@@ -471,7 +491,7 @@ def mark_alive():
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     if not bottle:
         return jsonify({"error": "Bottle not found"}), 404
-    
+
     bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     bottle.Is_Dead = False
     db.session.commit()
@@ -534,6 +554,8 @@ def get_chemicals_by_sublocation():
             "product_number": record.Chemical_Manufacturer.Product_Number,
             "manufacturer": record.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
             "sticker_number": record.Sticker_Number,
+            "last_updated": record.Last_Updated.strftime("%m/%d/%Y") if record.Last_Updated else None, # Format the date
+            "who_updated": record.Who_Updated,
         }
         for record in inventory_records
     ]
@@ -545,8 +567,8 @@ def get_chemicals_by_sublocation():
 @oidc.require_login
 def sticker_lookup():
     """
-    This endpoint retrieves information about a chemical's inventory, sublocation, 
-    and location based on the provided sticker number. It requires the user to be 
+    This endpoint retrieves information about a chemical's inventory, sublocation,
+    and location based on the provided sticker number. It requires the user to be
     logged in via OIDC.
 
     Returns:
@@ -689,23 +711,23 @@ def delete_chemical(chemical_id):
     """
     API Endpoint: Delete a Chemical
 
-    This endpoint allows an authorized user to permanently delete a chemical 
-    from the database, along with all related records in the Chemical_Manufacturer 
+    This endpoint allows an authorized user to permanently delete a chemical
+    from the database, along with all related records in the Chemical_Manufacturer
     and Inventory tables.
 
     Args:
         chemical_id (int): The ID of the chemical to be deleted.
 
     Returns:
-        Response: A JSON response with a success message and HTTP status 200 
+        Response: A JSON response with a success message and HTTP status 200
                 if the deletion is successful.
-                A JSON response with an error message and HTTP status 404 
+                A JSON response with an error message and HTTP status 404
                 if the chemical is not found.
 
     Database Operations:
         - Queries the Chemical table to find the chemical by its ID.
         - Retrieves all related Chemical_Manufacturer IDs.
-        - Deletes all Inventory records associated with the retrieved 
+        - Deletes all Inventory records associated with the retrieved
         Chemical_Manufacturer IDs.
         - Deletes all Chemical_Manufacturer records associated with the chemical.
         - Deletes the chemical record itself.
@@ -753,7 +775,7 @@ def update_inventory(inventory_id):
         Response: A JSON response indicating the success or failure of the operation.
             - On success: {"message": "Inventory updated successfully"} with HTTP status 200.
             - On failure: {"error": "Inventory not found"} with HTTP status 404.
-    Note: 
+    Note:
         Updating product number for a chemical will also update all associated inventory records.
     """
     try:
@@ -799,7 +821,10 @@ def update_inventory(inventory_id):
     inventory.Product_Number = product_number
     inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
     inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
-    
+
+    if "msds" in data:
+        inventory.MSDS = get_msds_url() if data.get("msds") == True else None
+
     # Update chemical manufacturer if manufacturer changed
     if "manufacturer_id" in data:
         chemical_id = inventory.Chemical_Manufacturer.Chemical_ID
@@ -811,13 +836,14 @@ def update_inventory(inventory_id):
             .filter_by(Chemical_ID=chemical_id, Manufacturer_ID=manufacturer_id)
             .first()
         )
+
         if chem_man and data.get("product_number") is not None and chem_man.Product_Number != data.get("product_number"):
             chem_man.Product_Number = product_number
             # Update all associated inventory records
             db.session.query(Inventory).filter_by(Chemical_Manufacturer_ID=chem_man.Chemical_Manufacturer_ID).update(
                 {"Product_Number": product_number}
             )
-        
+
         if not chem_man:
             chem_man = Chemical_Manufacturer(
                 Chemical_ID=chemical_id,

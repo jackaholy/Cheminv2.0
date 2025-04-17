@@ -60,6 +60,7 @@ def search_route():
     # Get parameters from request
     query = request.args.get("query", "")
     room = request.args.get("room", None)
+    sub_location = request.args.get("sub_location", None)
     manufacturers_param = request.args.get("manufacturers", "")
     synonym_search_enabled = request.args.get("synonyms", "false").lower() == "true"
 
@@ -119,7 +120,13 @@ def search_route():
 
     # Filter by room name (comparing against Location.Room)
     if room:
+        room = int(room)
         filters.append(Location.Location_ID == room)
+
+    # Add sub-location filter if specified
+    if sub_location:
+        sub_location = int(sub_location)
+        filters.append(Sub_Location.Sub_Location_ID == sub_location)
 
     # Filter by manufacturer IDs if provided
     if manufacturer_ids:
@@ -149,7 +156,37 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    # chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
+    # Filter inventory records
+    for chemical in chemical_list:
+        filtered_inventory = chemical["inventory"]
+        
+        # Apply room filter
+        if room:
+            filtered_inventory = [
+                inv for inv in filtered_inventory
+                if inv["location_id"] == int(room)
+            ]
+
+        # Apply sub-location filter
+        if sub_location:
+            filtered_inventory = [
+                inv for inv in filtered_inventory
+                if inv["sub_location_id"] == int(sub_location)
+            ]
+
+        # Apply manufacturer filter
+        if manufacturer_ids:
+            filtered_inventory = [
+                inv for inv in filtered_inventory
+                if str(inv["manufacturer_id"]) in manufacturer_ids
+            ]
+
+        chemical["inventory"] = filtered_inventory
+        chemical["quantity"] = len([inv for inv in filtered_inventory if not inv["dead"]])
+
+    # Remove chemicals with no matching inventory
+    chemical_list = [chem for chem in chemical_list if chem["inventory"]]
+
     if query:
         chemical_list.sort(
             key=lambda x: (
@@ -161,7 +198,7 @@ def search_route():
     else:
         chemical_list.sort(
             key=lambda x: (
-                x["quantity"] != 0,
+                x["quantity"] == 0,
                 re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
             ),
         )

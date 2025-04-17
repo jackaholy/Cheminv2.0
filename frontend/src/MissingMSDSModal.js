@@ -9,7 +9,7 @@ export const MissingMSDSModal = ({ show, handleClose }) => {
   const [addedChemical, setAddedChemical] = useState(null);
   useEffect(() => {
     getMissingMSDS();
-  }, []);
+  }, [show]);
   function getMissingMSDS() {
     fetch("/api/get_missing_msds")
       .then((response) => response.json())
