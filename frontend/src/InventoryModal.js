@@ -114,7 +114,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     fetch("/api/chemicals/mark_many_dead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inventory_id: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id, update_timestamp: true}),
+      body: JSON.stringify({ sticker_numbers: unenteredChemicals , sub_location_id: selectedSubLocation.sub_location_id}),
     })
       .then((res) => {
       if (!res.ok) {

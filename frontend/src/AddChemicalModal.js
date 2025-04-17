@@ -232,7 +232,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
       body: JSON.stringify({
         chemical_id: chemicalID,
         manufacturer_id: selectedManufacturer?.id,
-        location_id: selectedLocation?.location_id,
+        //location_id: selectedLocation?.location_id,
         sub_location_id: selectedSubLocation?.sub_location_id,
         sticker_number: stickerNumber,
         product_number: productNumber,

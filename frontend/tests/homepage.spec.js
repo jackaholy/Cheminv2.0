@@ -2,11 +2,18 @@ import { test, expect } from "@playwright/test";
 
 test("test", async ({ page }) => {
   await page.goto("http://localhost:5001/");
-  await expect(page.locator("#root")).toMatchAriaSnapshot(
-    `
+  await expect(page.locator("#root")).toMatchAriaSnapshot(`
     - navigation:
       - link "Chemical Inventory"
       - list:
+        - listitem:
+          - link "Add Chemical"
+        - listitem:
+          - link "Inventory"
+        - listitem:
+          - link "Missing MSDS"
+        - listitem:
+          - button "Manage Database"
         - listitem:
           - link "Safety Datasheets"
       - list:
@@ -19,6 +26,16 @@ test("test", async ({ page }) => {
     - textbox "Filter rooms"
     - radio "Any"
     - text: Any
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
+    - radio "Science Hall G01"
+    - text: Science Hall G01
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
     - heading "Manufacturers" [level=2]:
       - button "Manufacturers" [expanded]
     - textbox "Filter manufacturers"
@@ -35,7 +52,9 @@ test("test", async ({ page }) => {
     - checkbox "Sigma-Aldrich"
     - text: Sigma-Aldrich
     - checkbox "VWR International"
-    - text: VWR International Quantity Chemical Chemical Formula 1
+    - text: VWR International
+    - link "Download CSV"
+    - text: Quantity Chemical Chemical Formula 1
     - button "Acetone"
     - text: C3H6O
     - button "Edit":
@@ -90,7 +109,5 @@ test("test", async ({ page }) => {
     - text: AgNO3
     - button "Edit":
       - img: 
-  `
-  );
-
+  `);
 });
