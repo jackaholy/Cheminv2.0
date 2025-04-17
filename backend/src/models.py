@@ -78,6 +78,8 @@ class Chemical(db.Model):
                             else None
                         ),
                         "dead": inv.Is_Dead,
+                        # Boolean, true if it has it, false if not
+                        "msds": inv.MSDS != None and inv.MSDS != "",
                     }
                 )
         return {

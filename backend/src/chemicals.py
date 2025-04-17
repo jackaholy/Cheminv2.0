@@ -513,7 +513,8 @@ def update_inventory(inventory_id):
     inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
     inventory.Product_Number = data.get("product_number", inventory.Product_Number)
     inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
-    
+    inventory.MSDS = get_msds_url() if data.get("msds") == True else None
+
     # Update chemical manufacturer if manufacturer changed
     if "manufacturer_id" in data:
         chemical_id = inventory.Chemical_Manufacturer.Chemical_ID

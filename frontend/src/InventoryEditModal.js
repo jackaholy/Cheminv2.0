@@ -24,7 +24,7 @@ export const InventoryEditModal = ({
   const [manufacturerId, setManufacturerId] = useState(
     inventory?.manufacturer_id || null
   );
-
+  const [msds, setMsds] = useState(inventory?.msds || false);
   const handleSave = async () => {
     try {
       const response = await fetch(`/api/update_inventory/${inventory.id}`, {
@@ -38,6 +38,7 @@ export const InventoryEditModal = ({
           product_number: productNumber,
           sub_location_id: subLocation.sub_location_id,
           manufacturer_id: manufacturerId,
+          msds: msds,
         }),
       });
 
@@ -100,6 +101,19 @@ export const InventoryEditModal = ({
                 setManufacturerId(selectedManufacturer?.id || null);
               }}
             />
+          </div>
+          <div className="mb-3">
+            <input
+              type="checkbox"
+              className="form-check-input me-1"
+              checked={msds}
+              onChange={(e) => setMsds(e.target.checked)}
+              id="msds_check"
+        
+            />
+            <label className="form-check-label" for="msds_check">
+              Safety data sheet added
+            </label>
           </div>
         </form>
       </Modal.Body>
