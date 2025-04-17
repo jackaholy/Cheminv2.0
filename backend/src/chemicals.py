@@ -18,7 +18,7 @@ from models import (
 )
 from database import db
 from marshmallow import ValidationError
-from schemas import AddBottleSchema, AddChemicalSchema, MarkManyDeadSchema
+from schemas import AddBottleSchema, AddChemicalSchema, MarkManyDeadSchema, UpdateInventorySchema
 
 chemicals = Blueprint("chemicals", __name__)
 
@@ -43,17 +43,16 @@ def add_bottle():
         JSON response with success message and inventory ID,
         or error message with HTTP 400 on validation or duplication error.
     """
-    # Validate the incoming request against the schema
-    schema = AddBottleSchema()
     try:
-        data = schema.load(request.json)
+        data = AddBottleSchema().load(request.json)
     except ValidationError as err:
         return jsonify({"error": err.messages}), 400
 
-    # Check if the provided sticker number already exists
-    existing = Inventory.query.filter_by(Sticker_Number=data["sticker_number"]).first()
-    if existing:
-        return jsonify({"error": f"Sticker number {data['sticker_number']} is already in use."}), 400
+    sticker_number_claimed = db.session.query(Inventory).filter(
+        Inventory.Sticker_Number == data["sticker_number"]
+    ).first()
+    if sticker_number_claimed:
+        return jsonify({"error": "Sticker number already exists"}), 400
 
     # Get the current user's username from the session
     current_username = session["oidc_auth_profile"].get("preferred_username")
@@ -159,51 +158,42 @@ def add_chemical():
     Returns:
         dict: A success message and the ID of the newly added chemical.
     """
-    schema = AddChemicalSchema()
     try:
-        data = schema.load(request.json)
+        data = AddChemicalSchema().load(request.json)
     except ValidationError as err:
         return jsonify({"error": err.messages}), 400
 
-    # Validate manufacturer_id
-    manufacturer = (
-        db.session.query(Manufacturer)
-        .filter_by(Manufacturer_ID=data["manufacturer_id"])
-        .first()
-    )
-    if not manufacturer:
-        return jsonify({"error": "Invalid manufacturer_id"}), 400
-
-    # Validate storage_class_id
-    storage_class = (
-        db.session.query(Storage_Class)
-        .filter(Storage_Class.Storage_Class_ID == data["storage_class_id"])
-        .first()
-    )
-    if not storage_class:
-        return jsonify({"error": "Invalid storage_class_id"}), 400
-
-    # Check for existing chemical with the same product number and manufacturer
-    existing_chemical = (
-        db.session.query(Chemical_Manufacturer)
-        .filter_by(
-            Product_Number=data["product_number"],
-            Manufacturer_ID=data["manufacturer_id"],
+    # Check for duplicate sticker number
+    if "sticker_number" in data:
+        duplicate_sticker = (
+            db.session.query(Inventory)
+            .filter(Inventory.Sticker_Number == data["sticker_number"])
+            .first()
         )
+        if duplicate_sticker:
+            return jsonify({"error": "Sticker number already exists"}), 400
+
+    # Check if a different chemical with the same product number and manufacturer exists
+    existing_chemical_manufacturer = (
+        db.session.query(Chemical_Manufacturer)
+        .filter(
+            Chemical_Manufacturer.Product_Number == data["product_number"],
+            Chemical_Manufacturer.Manufacturer_ID == data["manufacturer_id"]
+        )
+        .join(Chemical)
         .first()
     )
-    if existing_chemical:
-        return jsonify({"error": "A chemical with the same product number and manufacturer already exists."}), 400
+    if existing_chemical_manufacturer:
+        return jsonify({"error": "A different chemical with the same product number and manufacturer already exists"}), 400
 
     chemical = Chemical(
         Chemical_Name=data["chemical_name"],
         Alphabetical_Name=data["chemical_name"],
         Chemical_Formula=data["chemical_formula"],
-        Storage_Class_ID=storage_class,
-        Storage_Class=storage_class,
+        Storage_Class_ID=data["storage_class_id"],
     )
     chemical_manufacturer = Chemical_Manufacturer(
-        Chemical=chemical, Manufacturer=manufacturer, Product_Number=data["product_number"]
+        Chemical=chemical, Manufacturer_ID=data["manufacturer_id"], Product_Number=data["product_number"]
     )
     db.session.add(chemical)
     db.session.add(chemical_manufacturer)
@@ -763,23 +753,51 @@ def update_inventory(inventory_id):
         Response: A JSON response indicating the success or failure of the operation.
             - On success: {"message": "Inventory updated successfully"} with HTTP status 200.
             - On failure: {"error": "Inventory not found"} with HTTP status 404.
+    Note: 
+        Updating product number for a chemical will also update all associated inventory records.
     """
-    data = request.json
+    try:
+        data = UpdateInventorySchema().load(request.json)
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), 400
+
     inventory = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     
     if not inventory:
         return jsonify({"error": "Inventory not found"}), 404
-    
-    # Check if the new sticker number is already taken
-    new_sticker_number = data.get("sticker_number")
-    if new_sticker_number and new_sticker_number != inventory.Sticker_Number:
-        existing = db.session.query(Inventory).filter_by(Sticker_Number=new_sticker_number).first()
-        if existing:
-            return jsonify({"error": f"Sticker number {new_sticker_number} is already in use."}), 400
+
+    # Check for duplicate sticker number
+    if "sticker_number" in data:
+        duplicate_sticker = (
+            db.session.query(Inventory)
+            .filter(Inventory.Sticker_Number == data["sticker_number"], Inventory.Inventory_ID != inventory_id)
+            .first()
+        )
+        if duplicate_sticker:
+            return jsonify({"error": "Sticker number already exists"}), 400
+
+    # Check for duplicate product number
+    if "product_number" in data:
+        duplicate_product = (
+            db.session.query(Inventory)
+            .join(Chemical_Manufacturer)
+            .filter(
+                Inventory.Product_Number == data["product_number"],
+                Inventory.Inventory_ID != inventory_id,
+                ~(
+                    (Chemical_Manufacturer.Chemical_ID == inventory.Chemical_Manufacturer.Chemical_ID) &
+                    (Chemical_Manufacturer.Manufacturer_ID == inventory.Chemical_Manufacturer.Manufacturer_ID)
+                )
+            )
+            .first()
+        )
+        if duplicate_product:
+            return jsonify({"error": "Product number already exists for a different chemical or manufacturer"}), 400
 
     # Update basic fields
-    inventory.Sticker_Number = new_sticker_number or inventory.Sticker_Number
-    inventory.Product_Number = data.get("product_number", inventory.Product_Number)
+    product_number = data.get("product_number", inventory.Product_Number)
+    inventory.Product_Number = product_number
+    inventory.Sticker_Number = data.get("sticker_number", inventory.Sticker_Number)
     inventory.Sub_Location_ID = data.get("sub_location_id", inventory.Sub_Location_ID)
     
     # Update chemical manufacturer if manufacturer changed
@@ -793,16 +811,23 @@ def update_inventory(inventory_id):
             .filter_by(Chemical_ID=chemical_id, Manufacturer_ID=manufacturer_id)
             .first()
         )
+        if chem_man and data.get("product_number") is not None and chem_man.Product_Number != data.get("product_number"):
+            chem_man.Product_Number = product_number
+            # Update all associated inventory records
+            db.session.query(Inventory).filter_by(Chemical_Manufacturer_ID=chem_man.Chemical_Manufacturer_ID).update(
+                {"Product_Number": product_number}
+            )
         
         if not chem_man:
             chem_man = Chemical_Manufacturer(
                 Chemical_ID=chemical_id,
                 Manufacturer_ID=manufacturer_id,
-                Product_Number=data.get("product_number")
+                Product_Number=product_number
             )
             db.session.add(chem_man)
-            db.session.flush()
+            db.session.flush()  # Ensure chem_man is persisted before using its ID
         
+        inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
         inventory.Chemical_Manufacturer_ID = chem_man.Chemical_Manufacturer_ID
     
     # Update timestamp and user
