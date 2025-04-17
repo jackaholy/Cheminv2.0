@@ -19,8 +19,7 @@ def test_add_bottle_success(client):
         "sticker_number": 1005,
         "chemical_id": 1,
         "manufacturer_id": 1,
-        "location_id": 1,
-        "sub_location_id": 101,
+        "sub_location_id": 1,
         "product_number": "A123",
         "msds": True
     }
@@ -84,8 +83,7 @@ def test_add_bottle_no_msds(client):
         "sticker_number": 1010,
         "chemical_id": 3,
         "manufacturer_id": 1,
-        "location_id": 1,
-        "sub_location_id": 102,
+        "sub_location_id": 2,
         "product_number": "E002",
         "msds": False
     }
@@ -111,8 +109,7 @@ def test_add_bottle_missing_required_field(client):
         "sticker_number": 1006,
         # "chemical_id": 1,  # intentionally omitted
         "manufacturer_id": 1,
-        "location_id": 1,
-        "sub_location_id": 102,
+        "sub_location_id": 1,
         "product_number": "A124",
         "msds": False
     }
@@ -131,8 +128,7 @@ def test_add_bottle_invalid_types(client):
         "sticker_number": "not_a_number",
         "chemical_id": 1,
         "manufacturer_id": 1,
-        "location_id": 1,
-        "sub_location_id": 103,
+        "sub_location_id": 1,
         "product_number": "A125",
         "msds": True
     }
@@ -150,10 +146,9 @@ def test_add_bottle_duplicate_sticker_number(client):
     # Define a payload with a unique sticker number
     payload = {
         "sticker_number": 14564,  # example sticker number
-        "chemical_id": 2,
+        "chemical_id": 1,
         "manufacturer_id": 1,
-        "location_id": 1,
-        "sub_location_id": 105,
+        "sub_location_id": 2,
         "product_number": "W001",
         "msds": False
     }

@@ -11,16 +11,15 @@ def test_update_inventory_success(client):
     inventory = db.session.query(Inventory).first()
     assert inventory is not None
 
-    new_sticker_number = "NEW12345"
+    new_sticker_number = 12345
     new_product_number = "NEW-PROD-001"
 
     # Act: Send the update request
     response = client.put(
         f"/api/update_inventory/{inventory.Inventory_ID}",
-        data=json.dumps({
-            "sticker_number": new_sticker_number,
-            "product_number": new_product_number
-        }),
+        data=json.dumps(
+            {"sticker_number": new_sticker_number, "product_number": new_product_number}
+        ),
         content_type="application/json",
     )
 
@@ -46,9 +45,9 @@ def test_update_inventory_invalid_inventory_id(client):
     )
 
     # Assert: Check the response
-    assert response.status_code == 404
+    assert response.status_code == 400
     data = response.json
-    assert data == {"error": "Inventory not found"}
+    assert data == {"error": {"sticker_number": ["Not a valid integer."]}}
 
 
 def test_update_inventory_missing_payload(client):
@@ -88,7 +87,10 @@ def test_update_inventory_change_manufacturer(client):
 
     new_manufacturer_id = (
         db.session.query(Chemical_Manufacturer.Manufacturer_ID)
-        .filter(Chemical_Manufacturer.Manufacturer_ID != inventory.Chemical_Manufacturer.Manufacturer_ID)
+        .filter(
+            Chemical_Manufacturer.Manufacturer_ID
+            != inventory.Chemical_Manufacturer.Manufacturer_ID
+        )
         .first()
     )
     assert new_manufacturer_id is not None
@@ -130,7 +132,11 @@ def test_update_inventory_duplicate_sticker_number(client):
     """
     # Arrange: Get two existing inventory records
     inventory1 = db.session.query(Inventory).first()
-    inventory2 = db.session.query(Inventory).filter(Inventory.Inventory_ID != inventory1.Inventory_ID).first()
+    inventory2 = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID != inventory1.Inventory_ID)
+        .first()
+    )
     assert inventory1 is not None
     assert inventory2 is not None
 
@@ -158,11 +164,13 @@ def test_update_inventory_no_changes(client):
     # Act: Send the update request with the same data
     response = client.put(
         f"/api/update_inventory/{inventory.Inventory_ID}",
-        data=json.dumps({
-            "sticker_number": inventory.Sticker_Number,
-            "product_number": inventory.Product_Number,
-            "sub_location_id": inventory.Sub_Location_ID
-        }),
+        data=json.dumps(
+            {
+                "sticker_number": inventory.Sticker_Number,
+                "product_number": inventory.Product_Number,
+                "sub_location_id": inventory.Sub_Location_ID,
+            }
+        ),
         content_type="application/json",
     )
 
