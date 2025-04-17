@@ -7,6 +7,7 @@ import io
 
 csv_export = Blueprint("csv_export", __name__)
 
+
 @csv_export.route("/api/export_inventory_csv", methods=["GET"])
 def export_inventory_csv():
     """
