@@ -7,11 +7,11 @@ import io
 
 csv_export = Blueprint("csv_export", __name__)
 
-
 @csv_export.route("/api/export_inventory_csv", methods=["GET"])
 def export_inventory_csv():
     """
     Export the inventory to a CSV file.
+    :return: CSV file.
     """
     output = io.StringIO()
     writer = csv.writer(output)
@@ -41,7 +41,7 @@ def export_inventory_csv():
             "Dead?",
         ]
     )
-
+    # Get the inventory records.
     inventory_items = db.session.query(Inventory).all()
 
     # Write each row to the CSV file
