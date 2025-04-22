@@ -162,6 +162,13 @@ def update_manufacturer(manufacturer_id):
     if not manufacturer:
         return jsonify({"message": "Manufacturer not found."}), 404
 
+    # Check if the new name is already taken by another manufacturer
+    if db.session.query(Manufacturer).filter(
+        Manufacturer.Manufacturer_Name == name, 
+        Manufacturer.Manufacturer_ID != manufacturer_id
+    ).first():
+        return jsonify({"message": "Manufacturer with this name already exists."}), 400
+
     manufacturer.Manufacturer_Name = name
     db.session.commit()
 
