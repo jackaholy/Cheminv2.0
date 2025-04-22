@@ -3,7 +3,7 @@ from app import create_app
 from config import TestingConfig
 from testdata import init_test_data
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def app():
     """
     This fixture will create a Flask app with the testing configuration
