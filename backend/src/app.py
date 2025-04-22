@@ -23,16 +23,16 @@ from logging_config import setup_logging
 
 load_dotenv()
 
-
 def create_app(config=ProdConfig):
-    logger = setup_logging(app)
-    logger.info("Starting application")
+
     app = Flask(
         __name__,
         static_url_path="",
         static_folder="../frontend/build",
         template_folder="../frontend/build",
     )
+    logger = setup_logging(app)
+    logger.info("Starting application")
     app.config.from_object(config)
     init_db(app)
     init_oidc(app)

@@ -6,3 +6,4 @@ database-dump.sql
 db
 testing_database.db
 .coverage
+logs/

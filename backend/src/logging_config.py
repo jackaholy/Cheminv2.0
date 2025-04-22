@@ -6,13 +6,14 @@ def setup_logging(app):
     """
     Configure logging for the application
     """
-    # Create logs directory if it doesn't exist
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    # Create logs directory as a sibling to src/ if it doesn't exist
+    logs_dir = os.path.join(os.path.dirname(__file__), '../logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
 
     # Set up file handler for general logs
     file_handler = RotatingFileHandler(
-        'logs/app.log',
+        os.path.join(logs_dir, 'app.log'),
         maxBytes=1024 * 1024,  # 1MB
         backupCount=10
     )
