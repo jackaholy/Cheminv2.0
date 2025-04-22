@@ -7,6 +7,7 @@ manufacturers = Blueprint("manufacturers", __name__)
 
 
 @manufacturers.route("/api/manufacturers", methods=["GET"])
+@oidc.require_login
 def get_manufacturers():
     """
     Handles the GET request to retrieve a list of manufacturers.
@@ -80,6 +81,11 @@ def create_manufacturer():
             - name (str): The name of the newly created manufacturer.
     """
     name = request.json.get("name")
+    if not name:
+        return jsonify({"message": "Manufacturer name is required."}), 400
+    if db.session.query(Manufacturer).filter(Manufacturer.Manufacturer_Name == name).first():
+        return jsonify({"message": "Manufacturer with this name already exists."}), 400
+
     new_manufacturer = Manufacturer(Manufacturer_Name=name)
     db.session.add(new_manufacturer)
     db.session.commit()
