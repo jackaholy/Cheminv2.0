@@ -18,7 +18,7 @@ import pytest
         # Non-existent product number
         ("INVALID123", 404, {}),
         # Empty product number
-        ("", 404, {}),
+        ("", 400, {}),
         # Product number with special characters
         ("A123!", 404, {}),
     ],
@@ -37,7 +37,7 @@ def test_product_number_lookup_missing_param(client):
     Test the product number lookup endpoint when the parameter is missing.
     """
     response = client.get("/api/chemicals/product_number_lookup")
-    assert response.status_code == 404
+    assert response.status_code == 400
     assert response.json == {}
 
 

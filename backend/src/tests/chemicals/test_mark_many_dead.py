@@ -9,19 +9,19 @@ def test_mark_many_dead_success(client):
     # Arrange: Get a valid sublocation and inventory items
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     bottles = db.session.query(Inventory).filter_by(Sub_Location_ID=sub_location.Sub_Location_ID, Is_Dead=False).limit(2).all()
-    inventory_ids = [bottle.Inventory_ID for bottle in bottles]
+    sticker_numbers = [bottle.Sticker_Number for bottle in bottles]
     
     # Act: Send the request to mark the items as dead
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": inventory_ids}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "sticker_numbers": sticker_numbers}),
         content_type="application/json",
     )
 
     # Assert: Check the response and database state
     assert response.status_code == 200
     data = response.json
-    assert "message" in data and f"{len(inventory_ids)} chemicals marked as dead" in data["message"]
+    assert "message" in data and f"{len(sticker_numbers)} chemicals marked as dead" in data["message"]
 
     # Verify the database state
     for bottle in bottles:
@@ -34,42 +34,42 @@ def test_mark_many_dead_invalid_sublocation(client):
     """
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": 9999, "inventory_id": [1001, 1002]}),  # Non-existent sub_location_id
+        data=json.dumps({"sub_location_id": 9999, "sticker_numbers": [1001, 1002]}),  # Non-existent sub_location_id
         content_type="application/json",
     )
     assert response.status_code == 400
     data = response.json
-    assert data ==  {'error': 'Some inventory IDs are not in the specified sub-location'}
+    assert data ==  {'error': 'Some sticker numbers are not in the specified sub-location'}
 
 def test_mark_many_dead_invalid_inventory_ids(client):
     """
-    Test that the API returns an error when invalid inventory IDs are provided.
+    Test that the API returns an error when invalid sticker numbers are provided.
     """
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [9999, 8888]}),  # Non-existent inventory IDs
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "sticker_numbers": [9999, 8888]}),  # Non-existent sticker numbers
         content_type="application/json",
     )
     assert response.status_code == 400
     data = response.json
-    assert data == {'error': 'Some inventory IDs are not in the specified sub-location'}
+    assert data == {'error': 'Some sticker numbers are not in the specified sub-location'}
 
 def test_mark_many_dead_mismatched_sublocation(client):
     """
-    Test that the API ignores inventory IDs that do not belong to the given sublocation.
+    Test that the API ignores sticker numbers that do not belong to the given sublocation.
     """
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     mismatched_bottle = db.session.query(Inventory).filter(Inventory.Sub_Location_ID != sub_location.Sub_Location_ID).first()
 
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [mismatched_bottle.Sticker_Number]}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "sticker_numbers": [mismatched_bottle.Sticker_Number]}),
         content_type="application/json",
     )
     assert response.status_code == 400
     data = response.json
-    assert data == {'error': 'Some inventory IDs are not in the specified sub-location'}
+    assert data == {'error': 'Some sticker numbers are not in the specified sub-location'}
 
 def test_mark_many_dead_already_dead(client):
     """
@@ -81,7 +81,7 @@ def test_mark_many_dead_already_dead(client):
 
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [dead_bottle.Inventory_ID]}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "sticker_numbers": [dead_bottle.Sticker_Number]}),
         content_type="application/json",
     )
     assert response.status_code == 200
@@ -94,7 +94,7 @@ def test_mark_many_dead_already_dead(client):
 
 def test_mark_many_dead_partial_success(client):
     """
-    Test marking a mix of valid and invalid inventory IDs.
+    Test marking a mix of valid and invalid sticker numbers.
     """
     sub_location = db.session.query(Sub_Location).filter_by(Sub_Location_Name="Shelf A").first()
     valid_bottle = db.session.query(Inventory).filter_by(Sub_Location_ID=sub_location.Sub_Location_ID, Is_Dead=False).first()
@@ -102,12 +102,12 @@ def test_mark_many_dead_partial_success(client):
 
     response = client.post(
         "/api/chemicals/mark_many_dead",
-        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "inventory_id": [valid_bottle.Inventory_ID, invalid_id]}),
+        data=json.dumps({"sub_location_id": sub_location.Sub_Location_ID, "sticker_numbers": [valid_bottle.Inventory_ID, invalid_id]}),
         content_type="application/json",
     )
     assert response.status_code == 400
     data = response.json
-    assert data == {"error": "Some inventory IDs are not in the specified sub-location"}
+    assert data == {"error": "Some sticker numbers are not in the specified sub-location"}
 
     # Verify the valid bottle is still alive
     db.session.refresh(valid_bottle)
@@ -124,7 +124,7 @@ def test_mark_many_dead_missing_payload(client):
     )
     assert response.status_code == 400
     data = response.json
-    assert data == {"error": {"inventory_id": ["Missing data for required field."], "sub_location_id": ["Missing data for required field."]}}
+    assert data == {"error": {"sticker_numbers": ["Missing data for required field."], "sub_location_id": ["Missing data for required field."]}}
 
     # Verify no changes in the database
     bottles = db.session.query(Inventory).all()
