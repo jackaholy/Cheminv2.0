@@ -18,15 +18,14 @@ from msds import msds
 from database import db, init_db
 from oidc import init_oidc, oidc
 from storage_class import storage_class
+from logging_config import setup_logging
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 load_dotenv()
 
 
 def create_app(config=ProdConfig):
+    logger = setup_logging(app)
     logger.info("Starting application")
     app = Flask(
         __name__,
