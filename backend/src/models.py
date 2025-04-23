@@ -47,8 +47,11 @@ class Chemical(db.Model):
         return self.Chemical_ID == other.Chemical_ID
 
     def to_dict(self):
-        # Build the inventory list by iterating over each manufacturer record
-        # and its associated inventory rows.
+        """
+        Build the inventory list by iterating over each manufacturer record
+        and its associated inventory rows.
+        :return: A dictionary of the inventory data.
+        """
         inventory_list = []
         for chem_man in self.Chemical_Manufacturers:
             for inv in chem_man.Inventory:
@@ -264,6 +267,9 @@ class Unit(db.Model):
 
 
 class Permissions(db.Model):
+    """
+    Handles which permissions a user has
+    """
     __tablename__ = "Permissions"
 
     Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -275,6 +281,9 @@ class Permissions(db.Model):
 
 
 class User(db.Model):
+    """
+    The user using the database
+    """
     __tablename__ = "User"
 
     User_ID = Column(Integer, primary_key=True, autoincrement=True)

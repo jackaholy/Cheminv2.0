@@ -10,6 +10,11 @@ locations = Blueprint("locations", __name__)
 @locations.route("/api/locations", methods=["GET"])
 @oidc.require_login
 def get_locations():
+    """
+    API to get all locations in the database.
+    :return: A sorted list of location data.
+    """
+    # Get optional search query from request arguments
     query = request.args.get("query")
     if query:
         location_list = (
@@ -20,8 +25,10 @@ def get_locations():
             )
             .all()
         )
+    # If no query is provided, retrieve all locations from the database
     else:
         location_list = db.session.query(Location).all()
+    # Return a JSON list of locations with their sub-locations and sort them.
     return sorted([
         {
             "location_id": location.Location_ID,
@@ -53,11 +60,11 @@ def get_chemical_location_data():
         chemical = (
             session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
         )
-
+        # Look at all the manufacturers and their inventory records for a chemical
         for manufacturer in chemical.Chemical_Manufacturers:
             for inventory in manufacturer.Inventory:
                 # Add the appropriate chemical detail to the chemical list
-                # We can add more chemical attributes below if needed
+                # More chemical attributes can be added below if needed
                 location_list.append(
                     {
                         "location": inventory.Sub_Location.Sub_Location_Name,
@@ -82,10 +89,9 @@ def delete_location(location_id):
     Args:
         location_id (int): The ID of the location to delete.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the deletion.
-                 Returns a 200 status code on success, 404 if the location is not found,
-                 and 500 for internal server errors.
+    :return: jsonify: A JSON response indicating the success or failure of the deletion.
+                Returns a 200 status code on success, 404 if the location is not found,
+                and 500 for internal server errors.
     """
     try:
         # Query the database for the location with the given ID
@@ -119,14 +125,13 @@ def create_location():
     """
     Creates a new location in the database.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the creation.
+    :return: jsonify: A JSON response indicating the success or failure of the creation.
     """
     try:
         data = request.get_json()
         room = data.get("room")
         building = data.get("building")
-
+        # Check if room and building are provided.
         if not room or not building:
             return jsonify({"message": "Room and building are required."}), 400
 
@@ -150,19 +155,18 @@ def update_location(location_id):
     Args:
         location_id (int): The ID of the location to update.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the update.
+    :return: A JSON response indicating the success or failure of the update.
     """
     try:
         data = request.get_json()
         room = data.get("room")
         building = data.get("building")
-
+        # Check if room and building are provided.
         if not room or not building:
             return jsonify({"message": "Room and building are required."}), 400
 
         location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
-
+        # Check if location exists.
         if not location:
             return jsonify({"message": "Location not found"}), 404
 
@@ -182,9 +186,9 @@ def get_sublocations():
     """
     Fetches all sublocations as a flat list with their parent location details.
 
-    Returns:
-        jsonify: A JSON response containing a flat list of sublocations.
+    :return: jsonify: A JSON response containing a flat list of sublocations.
     """
+    # Query the database for sub-location data.
     sublocations = db.session.query(
         Sub_Location.Sub_Location_ID,
         Sub_Location.Sub_Location_Name,
@@ -211,20 +215,19 @@ def delete_sublocations():
     """
     Deletes multiple sublocations from the database.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the deletion.
+    :return: A JSON response indicating the success or failure of the deletion.
     """
     try:
         data = request.get_json()
         sublocation_ids = data.get("ids")
-
+        # Check if a sub-location id is provided.
         if not sublocation_ids:
             return jsonify({"message": "No sublocation IDs provided."}), 400
 
-        # Delete inventory records associated with the sublocations
+        # Delete inventory records associated with the sub-locations
         db.session.query(Inventory).filter(Inventory.Sub_Location_ID.in_(sublocation_ids)).delete(synchronize_session=False)
 
-        # Delete the sublocations themselves
+        # Delete the sub-locations themselves
         db.session.query(Sub_Location).filter(
             Sub_Location.Sub_Location_ID.in_(sublocation_ids)
         ).delete(synchronize_session=False)
@@ -243,18 +246,17 @@ def create_sublocation():
     """
     Creates a new sublocation in the database.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the creation.
+    :return: A JSON response indicating the success or failure of the creation.
     """
     data = request.get_json()
     name = data.get("name")
     location_id = data.get("locationId")
-
+    # Make sure sublocation name and id are provided.
     if not name or not location_id:
         return jsonify({"message": "Name and location ID are required."}), 400
 
     location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
-
+    # Check if the location that the sublocation lives in exists.
     if not location:
         return jsonify({"message": "Parent location not found."}), 404
 
@@ -275,12 +277,11 @@ def update_sublocation(sublocation_id):
     Args:
         sublocation_id (int): The ID of the sublocation to update.
 
-    Returns:
-        jsonify: A JSON response indicating the success or failure of the update.
+    :return: A JSON response indicating the success or failure of the update.
     """
     data = request.get_json()
     name = data.get("name")
-
+    # Check if a name is given for a sub-location.
     if not name:
         return jsonify({"message": "Name is required."}), 400
 
@@ -289,7 +290,7 @@ def update_sublocation(sublocation_id):
         .filter_by(Sub_Location_ID=sublocation_id)
         .first()
     )
-
+    # Can you find the sub-location?
     if not sublocation:
         return jsonify({"message": "Sublocation not found."}), 404
 
