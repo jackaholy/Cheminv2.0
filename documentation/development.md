@@ -98,21 +98,24 @@ def create_manufacturer():
 ## Testing
 This project has integration tests using playwright and unit tests using pytest. The testing config is specified in `config.py`. It disables auth and connects to an in-memory database. There's also `testdata.py` which adds some dummy data to the database. 
 
-If you run into an issue where you're being redirected to the SSO provider when running tests, make sure that you're running `flask-oidc` version >= 2.3.1, the `OIDC_ENABLED` flag doesn't come in previous version. Also make certain that you are running the server with the testing configuration. 
+If you run into an issue where you're being redirected to the SSO provider when running tests, make sure that you're running `flask-oidc` version >= 2.3.1, the `OIDC_ENABLED` flag doesn't come in previous version. Also, be sure you are running the server with the testing configuration. 
 
 ### Integration Tests
 
 Run `npx playwright test` in `frontend` to run the playwright tests. Make sure that the backend is _not_ running.
 
-Our integration tests use (Playwright)[https://playwright.dev/]. Take a look at their docs, but the general idea is this: Record yourself doing something using codegen. 
-Test for conditions like so:
-`expect(page.someLocator('someElement')).toMatchAriaSnapshot(``)`
-Run the tests once and it will fill in those blank snapshots. 
-```
-git apply test-results/rebaselines.patch
-```
-Apply their changes and it will add the snapshot directly into the code. 
-Seriously, take a look at the playwright docs, it's not as scary as it sounds. 
+Our integration tests use (Playwright)[https://playwright.dev/]. Take a look at their docs, but the general idea is this:
+
+- Record yourself doing something using codegen. 
+- Test for conditions like so:
+   `expect(page.someLocator('someElement')).toMatchAriaSnapshot(``)`
+- Run the tests once and it will fill in those blank snapshots. 
+
+  ```
+   git apply test-results/rebaselines.patch
+   ```
+- Apply their changes and it will add the snapshot directly into the code. Seriously, take a look at the playwright docs, it's not as scary as it sounds.
+
 #### Useful Commands
 ##### Run tests on current docker build
 `npx playwright test`
