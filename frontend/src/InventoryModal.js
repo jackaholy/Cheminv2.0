@@ -96,6 +96,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
     if (unenteredChemicals.length === 0) {
       alert("No chemicals left to be marked dead.")
+      handleClose();
       return;
     }
 
@@ -112,6 +113,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       })
       .then((data) => alert(data.message))
       .catch((error) => console.error("Error marking chemicals as dead:", error));
+      handleClose();
       };
 
   // Fetch all chemicals in the sub-location
@@ -225,13 +227,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           className="btn btn-secondary"
         >
           Complete Sub Location
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          data-bs-dismiss="modal"
-        >
-          Finish
         </button>
       </Modal.Footer>
     </Modal>
