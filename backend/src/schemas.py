@@ -6,6 +6,7 @@ Schemas:
     - AddChemicalSchema: Validates input for adding a new chemical.
     - MarkManyDeadSchema: Validates input for marking multiple chemicals as dead.
     - UpdateInventorySchema: Validates input for updating an inventory record.
+    - SearchParamsSchema: Validates input for search parameters.
 """
 
 from marshmallow import Schema, fields, ValidationError
@@ -117,3 +118,23 @@ class UpdateInventorySchema(Schema):
     manufacturer_id = fields.Int(
         validate=validate_id_exists(Manufacturer, "Manufacturer_ID")
     )
+
+
+class SearchParamsSchema(Schema):
+    """
+    Schema for validating search parameters.
+    Fields:
+        - query (str): The search query (optional).
+        - room (int): The room ID (optional).
+        - sub_location (int): The sub-location ID (optional).
+        - manufacturers (list): List of manufacturer IDs (optional).
+        - synonyms (bool): Whether to enable synonym search (optional).
+    """
+    query = fields.Str()
+    room = fields.Int(validate=validate_id_exists(Location, "Location_ID"), required=False, allow_none=True)
+    sub_location = fields.Int(validate=validate_id_exists(Sub_Location, "Sub_Location_ID"), required=False, allow_none=True)
+    manufacturers = fields.List(
+        fields.Int(validate=validate_id_exists(Manufacturer, "Manufacturer_ID")),
+        required=False
+    )
+    synonyms = fields.Bool()
