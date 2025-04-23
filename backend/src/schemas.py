@@ -10,6 +10,7 @@ Schemas:
     - UpdateLocationSchema: Validates input for updating a location.
     - CreateSubLocationSchema: Validates input for creating a new sublocation.
     - UpdateSubLocationSchema: Validates input for updating a sublocation.
+    - SearchParamsSchema: Validates input for search parameters.
 """
 
 from marshmallow import Schema, fields, ValidationError
@@ -163,3 +164,21 @@ class UpdateSubLocationSchema(Schema):
         - name (str): The updated sublocation name (required).
     """
     name = fields.Str(required=True)
+class SearchParamsSchema(Schema):
+    """
+    Schema for validating search parameters.
+    Fields:
+        - query (str): The search query (optional).
+        - room (int): The room ID (optional).
+        - sub_location (int): The sub-location ID (optional).
+        - manufacturers (list): List of manufacturer IDs (optional).
+        - synonyms (bool): Whether to enable synonym search (optional).
+    """
+    query = fields.Str()
+    room = fields.Int(validate=validate_id_exists(Location, "Location_ID"), required=False, allow_none=True)
+    sub_location = fields.Int(validate=validate_id_exists(Sub_Location, "Sub_Location_ID"), required=False, allow_none=True)
+    manufacturers = fields.List(
+        fields.Int(validate=validate_id_exists(Manufacturer, "Manufacturer_ID")),
+        required=False
+    )
+    synonyms = fields.Bool()
