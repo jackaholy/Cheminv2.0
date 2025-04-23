@@ -26,10 +26,7 @@ from msds import msds
 from database import db, init_db
 from oidc import init_oidc, oidc
 from storage_class import storage_class
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+from logging_config import configure_logging
 
 load_dotenv()
 
@@ -41,13 +38,13 @@ def create_app(config=ProdConfig):
     :param config: The configuration class to use (default is ProdConfig).
     :return: Configured Flask app instance.
     """
-    logger.info("Starting application")
     app = Flask(
         __name__,
         static_url_path="",
         static_folder="../frontend/build",
         template_folder="../frontend/build",
     )
+    logger = configure_logging(app)
     app.config.from_object(config)
     init_db(app)
     init_oidc(app)
@@ -97,6 +94,7 @@ if __name__ == "__main__":
         app.run(host="0.0.0.0", port=5000)
     elif os.getenv("CHEMINV_ENVIRONMENT") == "testing":
         from testdata import init_test_data
+
         app = create_app(TestingConfig)
         init_test_data(app)
         app.run(host="0.0.0.0", port=5000)
