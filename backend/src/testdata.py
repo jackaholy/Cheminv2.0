@@ -342,6 +342,7 @@ def init_test_data(app):
         inv1 = Inventory(
             Sticker_Number=1001,
             Chemical_Manufacturer=acetone_fisher,
+            Product_Number="A123",
             Sub_Location=shelf_a,
             Is_Dead=False,
             Who_Updated="Anne",
@@ -351,6 +352,7 @@ def init_test_data(app):
         inv2 = Inventory(
             Sticker_Number=1002,
             Chemical_Manufacturer=acetone_fisher,
+            Product_Number="A123",
             Sub_Location=cabinet_b,
             Is_Dead=True,
             Who_Updated="Anne",
@@ -359,6 +361,7 @@ def init_test_data(app):
         inv3 = Inventory(
             Sticker_Number=2001,
             Chemical_Manufacturer=water_sigma,
+            Product_Number="W001",
             Sub_Location=cabinet_b,
             Is_Dead=False,
             Who_Updated="Dr. Brown",
