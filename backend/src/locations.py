@@ -3,6 +3,7 @@ from permission_requirements import require_editor
 from database import db
 from oidc import oidc
 from models import Inventory, Location, Chemical, Sub_Location
+from schemas import CreateLocationSchema, UpdateLocationSchema, CreateSubLocationSchema, UpdateSubLocationSchema
 
 locations = Blueprint("locations", __name__)
 
@@ -129,13 +130,18 @@ def create_location():
     """
     try:
         data = request.get_json()
-        room = data.get("room")
-        building = data.get("building")
-        # Check if room and building are provided.
-        if not room or not building:
-            return jsonify({"message": "Room and building are required."}), 400
+        errors = CreateLocationSchema().validate(data)
+        if errors:
+            return jsonify({"message": "Validation errors", "errors": errors}), 400
 
-        new_location = Location(Room=room, Building=building)
+        # Check if a location with the same building and room already exists
+        existing_location = db.session.query(Location).filter_by(
+            Building=data["building"], Room=data["room"]
+        ).first()
+        if existing_location:
+            return jsonify({"message": "Location with the same building and room already exists."}), 400
+
+        new_location = Location(Room=data["room"], Building=data["building"])
         db.session.add(new_location)
         db.session.commit()
 
@@ -159,25 +165,30 @@ def update_location(location_id):
     """
     try:
         data = request.get_json()
-        room = data.get("room")
-        building = data.get("building")
-        # Check if room and building are provided.
-        if not room or not building:
-            return jsonify({"message": "Room and building are required."}), 400
+        errors = UpdateLocationSchema().validate(data)
+        if errors:
+            return jsonify({"message": "Validation errors", "errors": errors}), 400
+
+        # Check if a location with the same building and room already exists
+        existing_location = db.session.query(Location).filter_by(
+            Building=data["building"], Room=data["room"]
+        ).filter(Location.Location_ID != location_id).first()
+        if existing_location:
+            return jsonify({"message": "Location with the same building and room already exists."}), 400
 
         location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
-        # Check if location exists.
         if not location:
             return jsonify({"message": "Location not found"}), 404
 
-        location.Room = room
-        location.Building = building
+        location.Room = data["room"]
+        location.Building = data["building"]
         db.session.commit()
 
         return jsonify({"message": "Location updated successfully"}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Error updating location", "error": str(e)}), 500
+
 
 @locations.route("/api/sublocations", methods=["GET"])
 @oidc.require_login
@@ -208,6 +219,7 @@ def get_sublocations():
 
     return jsonify(result), 200
 
+
 @locations.route("/api/sublocations", methods=["DELETE"])
 @oidc.require_login
 @require_editor
@@ -224,6 +236,19 @@ def delete_sublocations():
         if not sublocation_ids:
             return jsonify({"message": "No sublocation IDs provided."}), 400
 
+        # Validate that all IDs are integers
+        if not all(isinstance(id, int) for id in sublocation_ids):
+            return jsonify({"message": "Invalid input for sublocation IDs."}), 400
+
+        # Check if all provided IDs exist in the database
+        existing_ids = db.session.query(Sub_Location.Sub_Location_ID).filter(
+            Sub_Location.Sub_Location_ID.in_(sublocation_ids)
+        ).all()
+        existing_ids = {id[0] for id in existing_ids}  # Extract IDs from query results
+        invalid_ids = set(sublocation_ids) - existing_ids
+        if invalid_ids:
+            return jsonify({"message": "Some sublocation IDs do not exist.", "invalid_ids": list(invalid_ids)}), 400
+
         # Delete inventory records associated with the sub-locations
         db.session.query(Inventory).filter(Inventory.Sub_Location_ID.in_(sublocation_ids)).delete(synchronize_session=False)
 
@@ -239,6 +264,7 @@ def delete_sublocations():
         db.session.rollback()
         return jsonify({"message": "Error deleting sublocations", "error": str(e)}), 500
 
+
 @locations.route("/api/sublocations", methods=["POST"])
 @oidc.require_login
 @require_editor
@@ -248,24 +274,32 @@ def create_sublocation():
 
     :return: A JSON response indicating the success or failure of the creation.
     """
-    data = request.get_json()
-    name = data.get("name")
-    location_id = data.get("locationId")
-    # Make sure sublocation name and id are provided.
-    if not name or not location_id:
-        return jsonify({"message": "Name and location ID are required."}), 400
+    try:
+        data = request.get_json()
+        errors = CreateSubLocationSchema().validate(data)
+        if errors:
+            return jsonify({"message": "Validation errors", "errors": errors}), 400
 
-    location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
-    # Check if the location that the sublocation lives in exists.
-    if not location:
-        return jsonify({"message": "Parent location not found."}), 404
+        location = db.session.query(Location).filter(Location.Location_ID == data["locationId"]).first()
+        if not location:
+            return jsonify({"message": "Parent location not found."}), 404
 
-    # Correctly instantiate the Sub_Location model
-    new_sublocation = Sub_Location(Sub_Location_Name=name, Location_ID=location_id)
-    db.session.add(new_sublocation)
-    db.session.commit()
+        # Check if a sublocation with the same name already exists for the location
+        existing_sublocation = db.session.query(Sub_Location).filter_by(
+            Sub_Location_Name=data["name"], Location_ID=data["locationId"]
+        ).first()
+        if existing_sublocation:
+            return jsonify({"message": "Sublocation with the same name already exists for this location."}), 400
 
-    return jsonify({"message": "Sublocation created successfully", "id": new_sublocation.Sub_Location_ID}), 201
+        new_sublocation = Sub_Location(Sub_Location_Name=data["name"], Location_ID=data["locationId"])
+        db.session.add(new_sublocation)
+        db.session.commit()
+
+        return jsonify({"message": "Sublocation created successfully", "id": new_sublocation.Sub_Location_ID}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error creating sublocation", "error": str(e)}), 500
+
 
 @locations.route("/api/sublocations/<int:sublocation_id>", methods=["PUT"])
 @oidc.require_login
@@ -279,22 +313,27 @@ def update_sublocation(sublocation_id):
 
     :return: A JSON response indicating the success or failure of the update.
     """
-    data = request.get_json()
-    name = data.get("name")
-    # Check if a name is given for a sub-location.
-    if not name:
-        return jsonify({"message": "Name is required."}), 400
+    try:
+        data = request.get_json()
+        errors = UpdateSubLocationSchema().validate(data)
+        if errors:
+            return jsonify({"message": "Validation errors", "errors": errors}), 400
 
-    sublocation = (
-        db.session.query(Sub_Location)
-        .filter_by(Sub_Location_ID=sublocation_id)
-        .first()
-    )
-    # Can you find the sub-location?
-    if not sublocation:
-        return jsonify({"message": "Sublocation not found."}), 404
+        # Check if a sublocation with the same name already exists for the location
+        existing_sublocation = db.session.query(Sub_Location).filter_by(
+            Sub_Location_Name=data["name"], Location_ID=data["locationId"]
+        ).filter(Sub_Location.Sub_Location_ID != sublocation_id).first()
+        if existing_sublocation:
+            return jsonify({"message": "Sublocation with the same name already exists for this location."}), 400
 
-    sublocation.Sub_Location_Name = name
-    db.session.commit()
+        sublocation = db.session.query(Sub_Location).filter_by(Sub_Location_ID=sublocation_id).first()
+        if not sublocation:
+            return jsonify({"message": "Sublocation not found."}), 404
 
-    return jsonify({"message": "Sublocation updated successfully."}), 200
+        sublocation.Sub_Location_Name = data["name"]
+        db.session.commit()
+
+        return jsonify({"message": "Sublocation updated successfully."}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error updating sublocation", "error": str(e)}), 500
