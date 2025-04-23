@@ -40,8 +40,7 @@ def init_test_data(app):
 
         # Units
         bottle_unit = Unit(Unit_Name="Bottle", Multiply_By=1.0)
-        gram_unit = Unit(Unit_Name="Gram", Multiply_By=0.001)
-        db.session.add_all([bottle_unit, gram_unit])
+        db.session.add_all([bottle_unit])
         db.session.flush()
 
         # Storage classes
@@ -207,7 +206,7 @@ def init_test_data(app):
             Alphabetical_Name="Copper(II) Sulfate",
             Order_More=False,
             Minimum_On_Hand=0.5,
-            Minimum_Unit=gram_unit,
+            Minimum_Unit=bottle_unit,
         )
         ammonia = Chemical(
             Chemical_Name="Ammonia",
@@ -235,7 +234,7 @@ def init_test_data(app):
             Date_Ordered=date(2025, 6, 5),
             Who_Ordered="Anne",
             Minimum_On_Hand=0.2,
-            Minimum_Unit=gram_unit,
+            Minimum_Unit=bottle_unit,
         )
         db.session.add_all(
             [

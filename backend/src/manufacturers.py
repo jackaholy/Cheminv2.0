@@ -7,7 +7,32 @@ manufacturers = Blueprint("manufacturers", __name__)
 
 
 @manufacturers.route("/api/manufacturers", methods=["GET"])
+@oidc.require_login
 def get_manufacturers():
+    """
+    Handles the GET request to retrieve a list of manufacturers.
+
+    Endpoint:
+        /api/manufacturers
+
+    Query Parameters:
+        - active (optional): A boolean query parameter ("true" or "false") that determines
+        whether to filter manufacturers based on their association with active inventory.
+        Defaults to "true".
+
+    Returns:
+        - A JSON response containing a sorted list of manufacturers. Each manufacturer is
+        represented as a dictionary with the following keys:
+            - "name": The name of the manufacturer.
+            - "id": The unique identifier of the manufacturer.
+
+    Behavior:
+        - If the "active" query parameter is set to "true" (default), the response will
+        include only manufacturers associated with active inventory.
+        - If the "active" query parameter is set to "false", the response will include all
+        manufacturers.
+        - The list of manufacturers is sorted alphabetically by name (case-insensitive).
+    """
     active = request.args.get("active", "true").lower() == "true"
     query = db.session.query(Manufacturer)
 
@@ -39,7 +64,28 @@ def get_manufacturers():
 @oidc.require_login
 @require_editor
 def create_manufacturer():
+    """
+    Creates a new manufacturer and adds it to the database.
+
+    Endpoint:
+        POST /api/add_manufacturer
+
+    Request Body:
+        JSON object containing:
+            - name (str): The name of the manufacturer to be created.
+
+    Returns:
+        JSON response containing:
+            - message (str): Confirmation message indicating success.
+            - id (int): The unique ID of the newly created manufacturer.
+            - name (str): The name of the newly created manufacturer.
+    """
     name = request.json.get("name")
+    if not name:
+        return jsonify({"message": "Manufacturer name is required."}), 400
+    if db.session.query(Manufacturer).filter(Manufacturer.Manufacturer_Name == name).first():
+        return jsonify({"message": "Manufacturer with this name already exists."}), 400
+
     new_manufacturer = Manufacturer(Manufacturer_Name=name)
     db.session.add(new_manufacturer)
     db.session.commit()
@@ -115,6 +161,13 @@ def update_manufacturer(manufacturer_id):
 
     if not manufacturer:
         return jsonify({"message": "Manufacturer not found."}), 404
+
+    # Check if the new name is already taken by another manufacturer
+    if db.session.query(Manufacturer).filter(
+        Manufacturer.Manufacturer_Name == name, 
+        Manufacturer.Manufacturer_ID != manufacturer_id
+    ).first():
+        return jsonify({"message": "Manufacturer with this name already exists."}), 400
 
     manufacturer.Manufacturer_Name = name
     db.session.commit()
