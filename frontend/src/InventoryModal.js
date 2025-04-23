@@ -53,31 +53,41 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         // If not found, check if the chemical exists elsewhere and offer to update location
         try {
           const locationResponse = await fetch(`/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`);
-          if (!locationResponse.ok) throw new Error("Unable to fetch sticker location");
+          if (!locationResponse.ok)
+            alert("Sticker number does not exist in the database.");
+            console.error("Sticker number does not exist in the database.");
+
           const location_data = await locationResponse.json();
 
           if (
               location_data.location_id !== selectedLocation?.location_id ||
               location_data.sub_location_id !== selectedSubLocation?.sub_location_id
           ) {
-            const confirmMove = window.confirm(
-                `This chemical was last found at:  "${location_data.location_name} - ${location_data.sub_location_name}".\nDo you want to move it to the current location?`
-            );
-            if (confirmMove) {
-              await fetch(`api/chemicals/update_chemical_location`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  inventory_id: location_data.inventory_id,
-                  new_sub_location_id: selectedSubLocation?.sub_location_id,
-                }),
-              });
-              alert("Location updated successfully.");
-              // Reload list
-              fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
-                  .then((res) => res.json())
-                  .then((data) => setChemicals(data));
-            }
+          await fetch(`api/chemicals/update_chemical_location`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              inventory_id: location_data.inventory_id,
+              new_sub_location_id: selectedSubLocation?.sub_location_id,
+            }),
+          });
+
+          // // Remove from displayed list if present
+          // setChemicals((prevChemicals) =>
+          //   prevChemicals.filter(
+          //       (chem) => chem.sticker_number !== sticker_number
+          //   )
+          // );
+          //
+          // // Add to entered set
+          // setEnteredChemicals(
+          //     (prevEntered) => new Set([...prevEntered, sticker_number])
+          // )
+
+          // Reload list
+          fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+              .then((res) => res.json())
+              .then((data) => setChemicals(data));
           }
         } catch (err) {
           console.error("Error checking or moving chemical:", err);
