@@ -26,7 +26,7 @@ from msds import msds
 from database import db, init_db
 from oidc import init_oidc, oidc
 from storage_class import storage_class
-from logging_config import configure_logging
+from logging_config import setup_logging
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ def create_app(config=ProdConfig):
         static_folder="../frontend/build",
         template_folder="../frontend/build",
     )
-    logger = configure_logging(app)
+    logger = setup_logging(app)
     app.config.from_object(config)
     init_db(app)
     init_oidc(app)
