@@ -6,6 +6,7 @@ Schemas:
     - AddChemicalSchema: Validates input for adding a new chemical.
     - MarkManyDeadSchema: Validates input for marking multiple chemicals as dead.
     - UpdateInventorySchema: Validates input for updating an inventory record.
+    - SearchParamsSchema: Validates input for search parameters.
 """
 
 from marshmallow import Schema, fields, ValidationError
@@ -35,49 +36,6 @@ def validate_id_exists(model, field_name):
             raise ValidationError(f"{field_name} with ID {value} does not exist.")
 
     return validator
-
-
-# def validate_unique_sticker_number(value, ignored_bottles=[]):
-#     """
-#     Custom validator to ensure the sticker number is unique, excluding ignored bottles.
-#     """
-#     exists = (
-#         db.session.query(Inventory)
-#         .filter(
-#             Inventory.Sticker_Number == value,
-#             Inventory.Inventory_ID.notin_(ignored_bottles),  # Exclude ignored bottles
-#         )
-#         .first()
-#     )
-#     if exists:
-#         raise ValidationError(f"Sticker number {value} is already in use.")
-
-
-# def validate_unique_product_number(value, ignored_bottles=[], ignored_manufacturers=[]):
-#     """
-#     Custom validator to ensure the product number is unique, excluding ignored bottles.
-#     """
-#     # Get the Chemical_Manufacturer_IDs for the ignored bottles
-#     ignored_manufacturer_ids = (
-#         db.session.query(Inventory.Chemical_Manufacturer_ID)
-#         .filter(Inventory.Inventory_ID.in_(ignored_bottles))
-#         .subquery()
-#     )
-#     ignored_manufacturer_ids = ignored_manufacturer_ids.union(ignored_manufacturers)
-
-#     other_manufacturer_with_product_number = (
-#         db.session.query(Chemical_Manufacturer)
-#         .filter(
-#             Chemical_Manufacturer.Product_Number == value,
-#             Chemical_Manufacturer.Chemical_Manufacturer_ID.notin_(
-#                 ignored_manufacturer_ids
-#             ),
-#         )
-#         .first()
-#     )
-
-#     if other_manufacturer_with_product_number:
-#         raise ValidationError(f"Product number {value} is already in use")
 
 
 class AddBottleSchema(Schema):
@@ -160,3 +118,23 @@ class UpdateInventorySchema(Schema):
     manufacturer_id = fields.Int(
         validate=validate_id_exists(Manufacturer, "Manufacturer_ID")
     )
+
+
+class SearchParamsSchema(Schema):
+    """
+    Schema for validating search parameters.
+    Fields:
+        - query (str): The search query (optional).
+        - room (int): The room ID (optional).
+        - sub_location (int): The sub-location ID (optional).
+        - manufacturers (list): List of manufacturer IDs (optional).
+        - synonyms (bool): Whether to enable synonym search (optional).
+    """
+    query = fields.Str()
+    room = fields.Int(validate=validate_id_exists(Location, "Location_ID"), required=False, allow_none=True)
+    sub_location = fields.Int(validate=validate_id_exists(Sub_Location, "Sub_Location_ID"), required=False, allow_none=True)
+    manufacturers = fields.List(
+        fields.Int(validate=validate_id_exists(Manufacturer, "Manufacturer_ID")),
+        required=False
+    )
+    synonyms = fields.Bool()

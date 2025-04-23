@@ -8,6 +8,12 @@ storage_class = Blueprint('storage_class', __name__)
 
 @storage_class.route('/api/storage_classes/', methods=['GET'])
 def get_storage_classes():
+    """
+    Retrieves all storage classes from the database.
+
+    Returns:
+        A JSON list of storage class objects, each with an 'id' and 'name'.
+    """
     storage_classes = db.session.query(Storage_Class).all()
     return jsonify([{"id": sc.Storage_Class_ID, "name": sc.Storage_Class_Name} for sc in storage_classes])
 
@@ -15,6 +21,14 @@ def get_storage_classes():
 @oidc.require_login
 @require_editor
 def delete_storage_classes():
+    """
+    Deletes specified storage classes and reassigns associated chemicals to the 'Unknown' class.
+
+    Returns:
+        400 if input is invalid or "Unknown" is specified.
+        404 if no storage classes were found for deletion.
+        200 with a success message otherwise.
+    """
     data = request.get_json()
     if not data or 'storageClasses' not in data:
         return jsonify({'error': 'No storage classes specified'}), 400
@@ -57,6 +71,13 @@ def delete_storage_classes():
 @oidc.require_login
 @require_editor
 def create_storage_class():
+    """
+    Creates a new storage class.
+
+    Returns:
+        400 if name is missing or already exists.
+        201 with a success message if created successfully.
+    """
     data = request.get_json()
     if not data or 'name' not in data:
         return jsonify({'error': 'Storage class name is required'}), 400
@@ -75,6 +96,17 @@ def create_storage_class():
 @oidc.require_login
 @require_editor
 def update_storage_class(storage_class_id):
+    """
+    Updates the name of an existing storage class.
+
+    Parameters:
+        storage_class_id (int): The ID of the storage class to update.
+
+    Returns:
+        400 if name is missing.
+        404 if the storage class is not found.
+        200 with a success message if updated.
+    """
     data = request.get_json()
     if not data or 'name' not in data:
         return jsonify({'error': 'Storage class name is required'}), 400
