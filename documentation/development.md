@@ -1,4 +1,4 @@
-## Frontend Development
+## Building an Environment
 
 The react code is automatically built and served when you run `docker compose up --build`.
 However, this builds a full production container, and can be a little slow for general development.
@@ -13,7 +13,7 @@ When using `:5001` if you continue to have problems with authentication try clea
 
 ### General Structure
 
-We use a serious of APIs in our python files (/backend/src/) to communicate with the frontend. This guide explains how to add new API endpoints to the Flask application in this project. All endpoints are implemented using Blueprints and follow standard practices for RESTful design and security.
+We use a serious of APIs in our python files (`backend/src/`) to communicate with the frontend. This guide explains how to add new API endpoints to the Flask application in this project. All endpoints are implemented using Blueprints and follow standard practices for RESTful design and security.
 
 - API routes are defined within a Blueprint, e.g., `manufacturers = Blueprint("manufacturers", __name__)`. This is defined in `app.py`.
 - Each route is decorated with the appropriate HTTP method and URL path.
@@ -95,6 +95,99 @@ def create_manufacturer():
     )
 ```
 
+## Frontend Development
+
+### Overview
+
+The frontend communicates with the backend using `fetch()` to make HTTP requests to defined API routes.
+
+### Example
+
+Here's an example of how we use APIs in `ManufacturerSelector.js` The `ManufacturerSelector` component allows users to select or create a manufacturer using data fetched from the backend.
+
+#### Key Components
+
+- Uses `useEffect` to fetch manufacturers from `/api/manufacturers?active=false` on component mount.
+- Uses `fetch` to POST a new manufacturer using `/api/add_manufacturer`.
+- Manages local loading state with `useState`.
+
+#### Fetching Data
+
+```javascript
+useEffect(() => {
+    fetch(`/api/manufacturers?active=false`, { credentials: "include" })
+      .then((response) => response.json())
+      .then((data) => {
+        setManufacturers(data);
+        if (!value && data.length > 0) {
+          onChange(data[0]);
+        }
+      })
+      .catch(console.error);
+  }, []);
+```
+
+- `credentials: "include"` ensures cookies or tokens are sent with the request (for OIDC auth).
+- `setManufacturers` stores the list for use in the dropdown.
+- If no value is selected, the first manufacturer is automatically chosen.
+
+### Creating a New Entry
+
+```javascript
+const handleCreate = (inputValue) => {
+  setIsLoading(true);
+  fetch("/api/add_manufacturer", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name: inputValue }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setIsLoading(false);
+      setManufacturers((prev) => [
+        ...prev,
+        { value: data.id, label: data.name },
+      ]);
+      onChange({ id: data.id, name: data.name });
+    });
+};
+```
+- Sets loading to true during the request.
+- Sends a JSON body with the new manufacturer's name.
+- On success, adds the new option to the list and selects it.
+
+### Integrating with React
+
+```javascript
+<CreatableSelect
+  isClearable
+  isDisabled={isLoading}
+  isLoading={isLoading}
+  options={manufacturers.map((m) => ({
+    value: m.id,
+    label: m.name,
+  }))}
+  value={value?.id ? { value: value.id, label: value.name } : null}
+  onChange={(value) => {
+    if (!value) {
+      onChange(null);
+      return;
+    }
+    onChange({ id: value.value, name: value.label });
+  }}
+  onCreateOption={handleCreate}
+/>
+```
+
+### Notes
+
+- Always handle errors using `.catch()` to prevent uncaught promise rejections.
+- Keep your `fetch()` logic minimal inside components—consider extracting to utility functions for larger applications.
+- Make sure to include authentication headers or credentials where required.
+
 ## Testing
 This project has integration tests using playwright and unit tests using pytest. The testing config is specified in `config.py`. It disables auth and connects to an in-memory database. There's also `testdata.py` which adds some dummy data to the database. 
 
@@ -104,7 +197,7 @@ If you run into an issue where you're being redirected to the SSO provider when 
 
 Run `npx playwright test` in `frontend` to run the playwright tests. Make sure that the backend is _not_ running.
 
-Our integration tests use (Playwright)[https://playwright.dev/]. Take a look at their docs, but the general idea is this:
+Our integration tests use (Playwright) https://playwright.dev/. Take a look at their docs, but the general idea is this:
 
 - Record yourself doing something using codegen. 
 - Test for conditions like so:
