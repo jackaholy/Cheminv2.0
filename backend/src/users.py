@@ -8,19 +8,20 @@ from oidc import oidc
 users = Blueprint("users", __name__)
 
 
-def on_authorize(sender, token, return_to):
+def on_authorize(token):
+    """
+    Signal handler for user authorization via OIDC.
+
+    If the user does not already exist in the database, creates a new user with
+    'Visitor' permissions and marks them as active.
+
+    Parameters:
+        token: The token returned by the OIDC provider.
+    """
     user_info = token.get("userinfo")
     visitor_permission = (
         db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
     )
-    # admin_permission = (
-    #    db.session.query(Permissions).filter_by(Permissions_Name="Full Access").first()
-    # )
-
-    # if db.session.query(User).count() == 0:
-    #    permission_level = admin_permission
-    # else:
-    #    permission_level = visitor_permission
 
     if (
         not db.session.query(User)
@@ -44,6 +45,13 @@ after_authorize.connect(on_authorize)
 @users.route("/api/user", methods=["GET"])
 @oidc.require_login
 def get_current_user():
+    """
+    Retrieves the currently authenticated user's name and access level.
+
+    Returns:
+        JSON response with user's name and permission level.
+        401 if user is not found in the database.
+    """
     current_username = session["oidc_auth_profile"].get("preferred_username")
     user = db.session.query(User).filter_by(User_Name=current_username).first()
     if not user:
@@ -60,6 +68,12 @@ def get_current_user():
 @oidc.require_login
 @require_full_access
 def get_users():
+    """
+    Retrieves a list of all active users and their access levels.
+
+    Returns:
+        JSON array with user ID, username, and access level.
+    """
     users = db.session.query(User).filter_by(Is_Active=True).all()
     return jsonify(
         [
@@ -77,6 +91,12 @@ def get_users():
 @oidc.require_login
 @require_full_access
 def update_access():
+    """
+    Updates a user's access level based on the provided user ID and new access name.
+
+    Returns:
+        JSON message indicating success.
+    """
     user_id = request.json.get("user_id")
     access = request.json.get("access")
 
@@ -93,6 +113,13 @@ def update_access():
 @oidc.require_login
 @require_full_access
 def delete_user():
+    """
+    Deletes a user based on the provided user ID.
+
+    Returns:
+        404 if the user is not found.
+        JSON message indicating success otherwise.
+    """
     user_id = request.json.get("user_id")
 
     user = db.session.query(User).filter_by(User_ID=user_id).first()

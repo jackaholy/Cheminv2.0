@@ -15,6 +15,16 @@ from database import db
 
 
 def init_test_data(app):
+    """
+    Initializes test data for the application.
+
+    This function sets up a complete test environment including permissions,
+    users, units, storage classes, locations and sub-locations, manufacturers,
+    chemicals, chemical-manufacturer associations, and inventory entries.
+
+    Parameters:
+        app: The Flask application instance with the app context used for database operations.
+    """
     with app.app_context():
         db.create_all()
         # Permissions
