@@ -30,72 +30,60 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   // Detect double space
   const handleKeyDown = async (e) => {
     if (e.key === "Enter") {
-      const currentTime = Date.now();
-      const DOUBLE_ENTER_THRESHOLD = 500;
       const sticker_number = parseInt(inputValue.trim());
 
-      if (currentTime - lastEnterTimeRef.current <= DOUBLE_ENTER_THRESHOLD) {
-        if (!sticker_number) return;
-
-
-        console.log("Entered Sticker Number:", sticker_number);
-
-        // Check if the entered sticker number exists in the list
-        const matchingChemical = chemicals.find(
+      if (!sticker_number) return;
+      console.log("Entered Sticker Number:", sticker_number);
+      const matchingChemical = chemicals.find(
           (chem) => chem.sticker_number === sticker_number
-        );
-        if (matchingChemical) {
-          // Remove from displayed list
-          setChemicals((prevChemicals) =>
+      );
+      if (matchingChemical) {
+        // Remove from displayed list
+        setChemicals((prevChemicals) =>
             prevChemicals.filter(
-              (chem) => chem.sticker_number !== sticker_number
+                (chem) => chem.sticker_number !== sticker_number
             )
-          );
+        );
 
-          // Add to entered set
-          setEnteredChemicals(
+        // Add to entered set
+        setEnteredChemicals(
             (prevEntered) => new Set([...prevEntered, sticker_number])
-          );
-        } else {
-          // If not found, check if the chemical exists elsewhere and offer to update location
-          try {
-            const locationResponse = await fetch(`/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`);
-            if (!locationResponse.ok) throw new Error("Unable to fetch sticker location");
-            const location_data = await locationResponse.json();
+        );
+      } else {
+        // If not found, check if the chemical exists elsewhere and offer to update location
+        try {
+          const locationResponse = await fetch(`/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`);
+          if (!locationResponse.ok) throw new Error("Unable to fetch sticker location");
+          const location_data = await locationResponse.json();
 
-            if (
+          if (
               location_data.location_id !== selectedLocation?.location_id ||
               location_data.sub_location_id !== selectedSubLocation?.sub_location_id
-            ) {
-              const confirmMove = window.confirm(
+          ) {
+            const confirmMove = window.confirm(
                 `This chemical was last found at:  "${location_data.location_name} - ${location_data.sub_location_name}".\nDo you want to move it to the current location?`
-              );
-              if (confirmMove) {
-                await fetch(`api/chemicals/update_chemical_location`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    inventory_id: location_data.inventory_id,
-                    new_sub_location_id: selectedSubLocation?.sub_location_id,
-                  }),
-                });
-                alert("Location updated successfully.");
-                // Reload list
-                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+            );
+            if (confirmMove) {
+              await fetch(`api/chemicals/update_chemical_location`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                  inventory_id: location_data.inventory_id,
+                  new_sub_location_id: selectedSubLocation?.sub_location_id,
+                }),
+              });
+              alert("Location updated successfully.");
+              // Reload list
+              fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
                   .then((res) => res.json())
                   .then((data) => setChemicals(data));
-              }
             }
-          } catch (err) {
-            console.error("Error checking or moving chemical:", err);
           }
+        } catch (err) {
+          console.error("Error checking or moving chemical:", err);
         }
-
-        // Clear input
-        setInputValue("");
       }
-      // Update the last time the user pressed Enter.
-      lastEnterTimeRef.current = currentTime;
+      setInputValue("");
       console.log("Available Chemicals:", chemicals);
     }
   };
@@ -160,7 +148,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             onWheel={(e) => e.target.blur()}
             type="number"
             className="form-control"
-            placeholder="Type in sticker number then press Enter twice..."
+            placeholder="Type in sticker number then press Enter to record chemical being found..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
