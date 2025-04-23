@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, request, jsonify
 from permission_requirements import require_editor
 from database import db
@@ -5,12 +6,15 @@ from oidc import oidc
 from models import Inventory, Location, Chemical, Sub_Location
 from schemas import CreateLocationSchema, UpdateLocationSchema, CreateSubLocationSchema, UpdateSubLocationSchema
 
+logger = logging.getLogger(__name__)
+
 locations = Blueprint("locations", __name__)
 
 
 @locations.route("/api/locations", methods=["GET"])
 @oidc.require_login
 def get_locations():
+    logger.info("GET /api/locations called")
     """
     API to get all locations in the database.
     :return: A sorted list of location data.
@@ -18,6 +22,7 @@ def get_locations():
     # Get optional search query from request arguments
     query = request.args.get("query")
     if query:
+        logger.info(f"Query parameter provided: {query}")
         location_list = (
             db.session.query(Location)
             .filter(
@@ -30,6 +35,7 @@ def get_locations():
     else:
         location_list = db.session.query(Location).all()
     # Return a JSON list of locations with their sub-locations and sort them.
+    logger.info("Returning sorted list of locations")
     return sorted([
         {
             "location_id": location.Location_ID,
@@ -50,40 +56,47 @@ def get_locations():
 @locations.route("/api/get_chemical_location_data", methods=["GET"])
 @oidc.require_login
 def get_chemical_location_data():
+    logger.info("GET /api/get_chemical_location_data called")
     """
     API to get location, manufacturer, and other chemical information from the database.
     :return: A list of locations and other chemical details.
     """
     chemical_id = request.args.get("chemical_id")
     location_list = []
-    # Search through the entire database
-    with db.session() as session:
-        chemical = (
-            session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
-        )
-        # Look at all the manufacturers and their inventory records for a chemical
-        for manufacturer in chemical.Chemical_Manufacturers:
-            for inventory in manufacturer.Inventory:
-                # Add the appropriate chemical detail to the chemical list
-                # More chemical attributes can be added below if needed
-                location_list.append(
-                    {
-                        "location": inventory.Sub_Location.Sub_Location_Name,
-                        "sub-location": inventory.Sub_Location.Location.Building
-                        + " "
-                        + inventory.Sub_Location.Location.Room,
-                        "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
-                        "sticker-number": inventory.Sticker_Number,
-                    }
-                )
-
-    return jsonify(location_list)
+    try:
+        # Search through the entire database
+        with db.session() as session:
+            logger.info(f"Chemical ID: {chemical_id}")
+            chemical = (
+                session.query(Chemical).filter(Chemical.Chemical_ID == chemical_id).first()
+            )
+            # Look at all the manufacturers and their inventory records for a chemical
+            for manufacturer in chemical.Chemical_Manufacturers:
+                for inventory in manufacturer.Inventory:
+                    # Add the appropriate chemical detail to the chemical list
+                    # More chemical attributes can be added below if needed
+                    location_list.append(
+                        {
+                            "location": inventory.Sub_Location.Sub_Location_Name,
+                            "sub-location": inventory.Sub_Location.Location.Building
+                            + " "
+                            + inventory.Sub_Location.Location.Room,
+                            "manufacturer": manufacturer.Manufacturer.Manufacturer_Name,
+                            "sticker-number": inventory.Sticker_Number,
+                        }
+                    )
+        logger.info("Returning chemical location data")
+        return jsonify(location_list)
+    except Exception as e:
+        logger.error(f"Error fetching chemical location data: {e}")
+        return jsonify({"message": "Error fetching data", "error": str(e)}), 500
 
 
 @locations.route("/api/locations/<location_id>", methods=["DELETE"])
 @oidc.require_login
 @require_editor
 def delete_location(location_id):
+    logger.info(f"DELETE /api/locations/{location_id} called")
     """
     Deletes a location from the database.
 
@@ -98,6 +111,7 @@ def delete_location(location_id):
         # Query the database for the location with the given ID
         location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
         if location:
+            logger.info(f"Deleting location with ID: {location_id}")
             # Check if there are any inventory records associated with the sublocations
             for sub_location in location.Sub_Locations:
                 # Delete inventory records associated with the sublocation
@@ -109,11 +123,14 @@ def delete_location(location_id):
             # Then, delete the location itself
             db.session.delete(location)
             db.session.commit()  # Commit the changes to persist the deletion
+            logger.info("Location and associated data deleted successfully")
             return jsonify({"message": "Location and associated data deleted successfully"}), 200
         else:
+            logger.warning(f"Location with ID {location_id} not found")
             # If the location does not exist, return a 404 error
             return jsonify({"message": "Location not found"}), 404
     except Exception as e:
+        logger.error(f"Error deleting location: {e}")
         # If any error occurs during the process, rollback the changes
         db.session.rollback()
         return jsonify({"message": "Error deleting location", "error": str(e)}), 500
@@ -123,6 +140,7 @@ def delete_location(location_id):
 @oidc.require_login
 @require_editor
 def create_location():
+    logger.info("POST /api/locations called")
     """
     Creates a new location in the database.
 
@@ -139,14 +157,17 @@ def create_location():
             Building=data["building"], Room=data["room"]
         ).first()
         if existing_location:
+            logger.warning("Location with the same building and room already exists")
             return jsonify({"message": "Location with the same building and room already exists."}), 400
 
         new_location = Location(Room=data["room"], Building=data["building"])
         db.session.add(new_location)
         db.session.commit()
 
+        logger.info(f"Location created successfully with ID: {new_location.Location_ID}")
         return jsonify({"message": "Location created successfully", "location_id": new_location.Location_ID}), 201
     except Exception as e:
+        logger.error(f"Error creating location: {e}")
         db.session.rollback()
         return jsonify({"message": "Error creating location", "error": str(e)}), 500
 
@@ -155,6 +176,7 @@ def create_location():
 @oidc.require_login
 @require_editor
 def update_location(location_id):
+    logger.info(f"PUT /api/locations/{location_id} called")
     """
     Updates an existing location in the database.
 
@@ -178,14 +200,17 @@ def update_location(location_id):
 
         location = db.session.query(Location).filter(Location.Location_ID == location_id).first()
         if not location:
+            logger.warning(f"Location with ID {location_id} not found")
             return jsonify({"message": "Location not found"}), 404
 
         location.Room = data["room"]
         location.Building = data["building"]
         db.session.commit()
 
+        logger.info(f"Location with ID {location_id} updated successfully")
         return jsonify({"message": "Location updated successfully"}), 200
     except Exception as e:
+        logger.error(f"Error updating location: {e}")
         db.session.rollback()
         return jsonify({"message": "Error updating location", "error": str(e)}), 500
 
@@ -194,6 +219,7 @@ def update_location(location_id):
 @oidc.require_login
 @require_editor
 def get_sublocations():
+    logger.info("GET /api/sublocations called")
     """
     Fetches all sublocations as a flat list with their parent location details.
 
@@ -217,6 +243,7 @@ def get_sublocations():
         for sublocation in sublocations
     ]
 
+    logger.info("Returning list of sublocations")
     return jsonify(result), 200
 
 
@@ -224,6 +251,7 @@ def get_sublocations():
 @oidc.require_login
 @require_editor
 def delete_sublocations():
+    logger.info("DELETE /api/sublocations called")
     """
     Deletes multiple sublocations from the database.
 
@@ -247,6 +275,7 @@ def delete_sublocations():
         existing_ids = {id[0] for id in existing_ids}  # Extract IDs from query results
         invalid_ids = set(sublocation_ids) - existing_ids
         if invalid_ids:
+            logger.warning(f"Invalid sublocation IDs: {invalid_ids}")
             return jsonify({"message": "Some sublocation IDs do not exist.", "invalid_ids": list(invalid_ids)}), 400
 
         # Delete inventory records associated with the sub-locations
@@ -259,8 +288,10 @@ def delete_sublocations():
 
         db.session.commit()
 
+        logger.info("Sublocations deleted successfully")
         return jsonify({"message": "Sublocations deleted successfully."}), 200
     except Exception as e:
+        logger.error(f"Error deleting sublocations: {e}")
         db.session.rollback()
         return jsonify({"message": "Error deleting sublocations", "error": str(e)}), 500
 
@@ -269,6 +300,7 @@ def delete_sublocations():
 @oidc.require_login
 @require_editor
 def create_sublocation():
+    logger.info("POST /api/sublocations called")
     """
     Creates a new sublocation in the database.
 
@@ -289,14 +321,17 @@ def create_sublocation():
             Sub_Location_Name=data["name"], Location_ID=data["locationId"]
         ).first()
         if existing_sublocation:
+            logger.warning("Sublocation with the same name already exists for this location")
             return jsonify({"message": "Sublocation with the same name already exists for this location."}), 400
 
         new_sublocation = Sub_Location(Sub_Location_Name=data["name"], Location_ID=data["locationId"])
         db.session.add(new_sublocation)
         db.session.commit()
 
+        logger.info(f"Sublocation created successfully with ID: {new_sublocation.Sub_Location_ID}")
         return jsonify({"message": "Sublocation created successfully", "id": new_sublocation.Sub_Location_ID}), 201
     except Exception as e:
+        logger.error(f"Error creating sublocation: {e}")
         db.session.rollback()
         return jsonify({"message": "Error creating sublocation", "error": str(e)}), 500
 
@@ -305,6 +340,7 @@ def create_sublocation():
 @oidc.require_login
 @require_editor
 def update_sublocation(sublocation_id):
+    logger.info(f"PUT /api/sublocations/{sublocation_id} called")
     """
     Updates an existing sublocation in the database.
 
@@ -328,12 +364,15 @@ def update_sublocation(sublocation_id):
 
         sublocation = db.session.query(Sub_Location).filter_by(Sub_Location_ID=sublocation_id).first()
         if not sublocation:
+            logger.warning(f"Sublocation with ID {sublocation_id} not found")
             return jsonify({"message": "Sublocation not found."}), 404
 
         sublocation.Sub_Location_Name = data["name"]
         db.session.commit()
 
+        logger.info(f"Sublocation with ID {sublocation_id} updated successfully")
         return jsonify({"message": "Sublocation updated successfully."}), 200
     except Exception as e:
+        logger.error(f"Error updating sublocation: {e}")
         db.session.rollback()
         return jsonify({"message": "Error updating sublocation", "error": str(e)}), 500
