@@ -310,7 +310,7 @@ def get_chemicals():
         )
 
         chemical_list = [chem.to_dict() for chem in chemicals]
-        # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
+        chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
         chemical_list = sorted(
             chemical_list,
             key=lambda x: (
@@ -323,21 +323,6 @@ def get_chemicals():
     except Exception as e:
         logger.error(f"Failed to retrieve chemicals: {e}", exc_info=True)
         return jsonify({"error": "Failed to retrieve chemicals"}), 500
-
-    chemical_list = [chem.to_dict() for chem in chemicals]
-    # chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
-    chemical_list = sorted(
-        chemical_list,
-        key=lambda x: (
-            x["quantity"] == 0,
-            re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
-        ),
-    )
-    logger.debug(f"Returning chemicals: {chemical_list}")
-    return_value = jsonify(chemical_list)
-    logger.debug(f"Returning: {return_value}")
-    return return_value
-
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
 @oidc.require_login
