@@ -285,6 +285,7 @@ def add_chemical():
         "chemical_id": chemical.Chemical_ID,
     }
 
+
 @chemicals.route("/api/get_chemicals", methods=["GET"])
 @oidc.require_login
 def get_chemicals():
@@ -323,6 +324,7 @@ def get_chemicals():
     except Exception as e:
         logger.error(f"Failed to retrieve chemicals: {e}", exc_info=True)
         return jsonify({"error": "Failed to retrieve chemicals"}), 500
+
 
 @chemicals.route("/api/chemicals/product_number_lookup", methods=["GET"])
 @oidc.require_login
