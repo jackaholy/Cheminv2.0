@@ -48,7 +48,6 @@ def create_app(config=ProdConfig):
     app.config.from_object(config)
     init_db(app)
     init_oidc(app)
-    # app.config.setdefault("OIDC_COOKIE_SECURE", False)
 
     cors = CORS(app)
 

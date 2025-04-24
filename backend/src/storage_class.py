@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Storage_Class, Chemical
@@ -6,16 +7,34 @@ from permission_requirements import require_editor
 
 storage_class = Blueprint('storage_class', __name__)
 
-@storage_class.route('/api/storage_classes/', methods=['GET'])
+logger = logging.getLogger(__name__)
+
+@storage_class.route("/api/storage_classes", methods=["GET"])
 def get_storage_classes():
     """
-    Retrieves all storage classes from the database.
+    This endpoint retrieves all storage classes from the database and returns
+    them as a list of dictionaries, where each dictionary contains the
+    storage class name and its corresponding ID.
 
-    Returns:
-        A JSON list of storage class objects, each with an 'id' and 'name'.
+    :return: A JSON response containing a list of dictionaries. Each dictionary
+            has the following structure:
+            {
+                "name": <Storage_Class_Name>,
+                "id": <Storage_Class_ID>
+            }
     """
-    storage_classes = db.session.query(Storage_Class).all()
-    return jsonify([{"id": sc.Storage_Class_ID, "name": sc.Storage_Class_Name} for sc in storage_classes])
+    logger.info("Retrieving all storage classes")
+    try:
+        storage_classes = db.session.query(Storage_Class).all()
+        storage_class_list = [
+            {"name": sc.Storage_Class_Name, "id": sc.Storage_Class_ID}
+            for sc in storage_classes
+        ]
+        logger.debug(f"Storage classes: {storage_class_list}")
+        return jsonify(storage_class_list)
+    except Exception as e:
+        logger.error(f"Failed to retrieve storage classes: {e}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve storage classes"}), 500
 
 @storage_class.route('/api/storage_classes/', methods=['DELETE'])
 @oidc.require_login
