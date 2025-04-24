@@ -1,8 +1,13 @@
+import logging
 from flask import Blueprint, request, jsonify
 from database import db
 from models import Manufacturer, Chemical_Manufacturer, Inventory
 from oidc import oidc
 from permission_requirements import require_editor
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 manufacturers = Blueprint("manufacturers", __name__)
 
 
@@ -33,6 +38,7 @@ def get_manufacturers():
         manufacturers.
         - The list of manufacturers is sorted alphabetically by name (case-insensitive).
     """
+    logger.info("Fetching manufacturers list.")
     active = request.args.get("active", "true").lower() == "true"
     query = db.session.query(Manufacturer)
 
@@ -46,6 +52,7 @@ def get_manufacturers():
         )
 
     manufacturer_list = query.all()
+    logger.info(f"Retrieved {len(manufacturer_list)} manufacturers.")
     return jsonify(
         sorted(
             [
@@ -80,15 +87,19 @@ def create_manufacturer():
             - id (int): The unique ID of the newly created manufacturer.
             - name (str): The name of the newly created manufacturer.
     """
+    logger.info("Attempting to create a new manufacturer.")
     name = request.json.get("name")
     if not name:
+        logger.warning("Manufacturer name is missing in the request.")
         return jsonify({"message": "Manufacturer name is required."}), 400
     if db.session.query(Manufacturer).filter(Manufacturer.Manufacturer_Name == name).first():
+        logger.warning(f"Manufacturer with name '{name}' already exists.")
         return jsonify({"message": "Manufacturer with this name already exists."}), 400
 
     new_manufacturer = Manufacturer(Manufacturer_Name=name)
     db.session.add(new_manufacturer)
     db.session.commit()
+    logger.info(f"Manufacturer '{new_manufacturer.Manufacturer_Name}' created successfully with ID {new_manufacturer.Manufacturer_ID}.")
     return jsonify(
         {
             "message": "Manufacturer created successfully",
@@ -108,10 +119,12 @@ def delete_manufacturers():
     Returns:
         jsonify: A JSON response indicating the success or failure of the deletion.
     """
+    logger.info("Attempting to delete manufacturers.")
     data = request.get_json()
     manufacturer_ids = data.get("ids")
 
     if not manufacturer_ids:
+        logger.warning("No manufacturer IDs provided for deletion.")
         return jsonify({"message": "No manufacturer IDs provided."}), 400
 
     # Delete related records in Inventory
@@ -135,6 +148,7 @@ def delete_manufacturers():
     
     db.session.commit()
 
+    logger.info(f"Deleted manufacturers with IDs: {manufacturer_ids}.")
     return jsonify({"message": "Manufacturers deleted successfully."}), 200
 
 
@@ -151,15 +165,18 @@ def update_manufacturer(manufacturer_id):
     Returns:
         jsonify: A JSON response indicating the success or failure of the update.
     """
+    logger.info(f"Attempting to update manufacturer with ID {manufacturer_id}.")
     data = request.get_json()
     name = data.get("name")
 
     if not name:
+        logger.warning("Manufacturer name is missing in the update request.")
         return jsonify({"message": "Manufacturer name is required."}), 400
 
     manufacturer = db.session.query(Manufacturer).filter(Manufacturer.Manufacturer_ID == manufacturer_id).first()
 
     if not manufacturer:
+        logger.warning(f"Manufacturer with ID {manufacturer_id} not found.")
         return jsonify({"message": "Manufacturer not found."}), 404
 
     # Check if the new name is already taken by another manufacturer
@@ -167,9 +184,11 @@ def update_manufacturer(manufacturer_id):
         Manufacturer.Manufacturer_Name == name, 
         Manufacturer.Manufacturer_ID != manufacturer_id
     ).first():
+        logger.warning(f"Manufacturer name '{name}' is already taken by another manufacturer.")
         return jsonify({"message": "Manufacturer with this name already exists."}), 400
 
     manufacturer.Manufacturer_Name = name
     db.session.commit()
 
+    logger.info(f"Manufacturer with ID {manufacturer_id} updated successfully to name '{name}'.")
     return jsonify({"message": "Manufacturer updated successfully."}), 200
