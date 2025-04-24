@@ -6,8 +6,6 @@ from permission_requirements import require_full_access
 from database import db
 from oidc import oidc
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 users = Blueprint("users", __name__)
@@ -24,7 +22,7 @@ def on_authorize(token):
         token: The token returned by the OIDC provider.
     """
     user_info = token.get("userinfo")
-    logger.info(f"on_authorize: Authorizing user {user_info['preferred_username']}")
+    logger.info("Authorization signal received for user: %s", user_info["preferred_username"])
     visitor_permission = (
         db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
     )
@@ -34,7 +32,7 @@ def on_authorize(token):
         .filter(User.User_Name == user_info["preferred_username"])
         .first()
     ):
-        logger.info(f"on_authorize: Creating new user {user_info['preferred_username']}")
+        logger.info(f"Creating new user {user_info['preferred_username']}")
         user = User(
             User_Name=user_info["preferred_username"],
             Is_Active=True,
@@ -43,9 +41,9 @@ def on_authorize(token):
         )
         db.session.add(user)
         db.session.commit()
-        logger.info(f"on_authorize: User {user_info['preferred_username']} created successfully.")
+        logger.info(f"User {user_info['preferred_username']} created successfully.")
     else:
-        logger.info(f"on_authorize: User {user_info['preferred_username']} already exists.")
+        logger.info(f"User {user_info['preferred_username']} already exists.")
 
 
 after_authorize.connect(on_authorize)
@@ -62,12 +60,12 @@ def get_current_user():
         401 if user is not found in the database.
     """
     current_username = session["oidc_auth_profile"].get("preferred_username")
-    logger.info(f"get_current_user: Retrieving user {current_username}")
+    logger.info(f"Retrieving user {current_username}")
     user = db.session.query(User).filter_by(User_Name=current_username).first()
     if not user:
-        logger.warning(f"get_current_user: User {current_username} not found.")
+        logger.warning(f"User {current_username} not found.")
         return jsonify({"error": "User not found"}), 401
-    logger.info(f"get_current_user: User {current_username} retrieved successfully.")
+    logger.info(f"User {current_username} retrieved successfully.")
     return jsonify(
         {
             "name": session["oidc_auth_profile"].get("name"),
@@ -86,9 +84,9 @@ def get_users():
     Returns:
         JSON array with user ID, username, and access level.
     """
-    logger.info("get_users: Retrieving all active users.")
+    logger.info("Fetching all active users")
     users = db.session.query(User).filter_by(Is_Active=True).all()
-    logger.info(f"get_users: Retrieved {len(users)} active users.")
+    logger.info("Total active users retrieved: %d", len(users))
     return jsonify(
         [
             {
@@ -109,22 +107,39 @@ def update_access():
     Updates a user's access level based on the provided user ID and new access name.
 
     Returns:
-        JSON message indicating success.
+        JSON message indicating success or error.
     """
     user_id = request.json.get("user_id")
     access = request.json.get("access")
-    logger.info(f"update_access: Updating access for user ID {user_id} to {access}")
+    modifying_user = session["oidc_auth_profile"].get("preferred_username")
 
+    logger.info(
+        "User %s is updating access for user ID: %d to access level: %s",
+        modifying_user,
+        user_id,
+        access,
+    )
+
+    # Validate user ID
     user = db.session.query(User).filter_by(User_ID=user_id).first()
     if not user:
-        logger.warning(f"update_access: User ID {user_id} not found.")
-        return {"error": "User not found"}, 404
+        logger.warning("User ID %d not found for access update by user: %s", user_id, modifying_user)
+        return jsonify({"error": "User not found"}), 404
 
-    user.permissions = (
-        db.session.query(Permissions).filter_by(Permissions_Name=access).first()
-    )
+    # Validate access level
+    new_permission = db.session.query(Permissions).filter_by(Permissions_Name=access).first()
+    if not new_permission:
+        logger.warning("Invalid access level: %s provided by user: %s", access, modifying_user)
+        return jsonify({"error": "Invalid access level"}), 400
+
+    user.permissions = new_permission
     db.session.commit()
-    logger.info(f"update_access: Access for user ID {user_id} updated to {access}.")
+    logger.info(
+        "Access updated successfully for user ID: %d by user: %s",
+        user_id,
+        modifying_user,
+    )
+
     return {"message": "Access updated successfully"}
 
 
@@ -140,14 +155,18 @@ def delete_user():
         JSON message indicating success otherwise.
     """
     user_id = request.json.get("user_id")
-    logger.info(f"delete_user: Deleting user ID {user_id}")
+    deleting_user = session["oidc_auth_profile"].get("preferred_username")
 
+    logger.info("User %s is attempting to delete user ID: %d", deleting_user, user_id)
+
+    # Validate user ID
     user = db.session.query(User).filter_by(User_ID=user_id).first()
     if not user:
-        logger.warning(f"delete_user: User ID {user_id} not found.")
+        logger.warning("User not found for deletion: %d by user: %s", user_id, deleting_user)
         return jsonify({"error": "User not found"}), 404
 
     db.session.delete(user)
     db.session.commit()
-    logger.info(f"delete_user: User ID {user_id} deleted successfully.")
+    logger.info("User ID: %d deleted successfully by user: %s", user_id, deleting_user)
+
     return {"message": "User deleted successfully"}
