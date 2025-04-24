@@ -32,7 +32,7 @@ def on_authorize(token):
         .filter(User.User_Name == user_info["preferred_username"])
         .first()
     ):
-        logger.info("Creating new user")
+        logger.info(f"Creating new user {user_info['preferred_username']}")
         user = User(
             User_Name=user_info["preferred_username"],
             Is_Active=True,
@@ -41,7 +41,9 @@ def on_authorize(token):
         )
         db.session.add(user)
         db.session.commit()
-        logger.info("New user created: %s", user_info["preferred_username"])
+        logger.info(f"User {user_info['preferred_username']} created successfully.")
+    else:
+        logger.info(f"User {user_info['preferred_username']} already exists.")
 
 
 after_authorize.connect(on_authorize)
@@ -58,12 +60,12 @@ def get_current_user():
         401 if user is not found in the database.
     """
     current_username = session["oidc_auth_profile"].get("preferred_username")
-    logger.info("Fetching current user: %s", current_username)
+    logger.info(f"Retrieving user {current_username}")
     user = db.session.query(User).filter_by(User_Name=current_username).first()
     if not user:
-        logger.warning("User not found in database: %s", current_username)
+        logger.warning(f"User {current_username} not found.")
         return jsonify({"error": "User not found"}), 401
-    logger.info("User retrieved: %s with access level: %s", user.User_Name, user.permissions.Permissions_Name)
+    logger.info(f"User {current_username} retrieved successfully.")
     return jsonify(
         {
             "name": session["oidc_auth_profile"].get("name"),

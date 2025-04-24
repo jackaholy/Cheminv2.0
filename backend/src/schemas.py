@@ -6,6 +6,10 @@ Schemas:
     - AddChemicalSchema: Validates input for adding a new chemical.
     - MarkManyDeadSchema: Validates input for marking multiple chemicals as dead.
     - UpdateInventorySchema: Validates input for updating an inventory record.
+    - CreateLocationSchema: Validates input for creating a new location.
+    - UpdateLocationSchema: Validates input for updating a location.
+    - CreateSubLocationSchema: Validates input for creating a new sublocation.
+    - UpdateSubLocationSchema: Validates input for updating a sublocation.
     - SearchParamsSchema: Validates input for search parameters.
 """
 
@@ -120,6 +124,46 @@ class UpdateInventorySchema(Schema):
     )
 
 
+class CreateLocationSchema(Schema):
+    """
+    Schema for validating input when creating a new location.
+    Fields:
+        - room (str): The room name (required).
+        - building (str): The building name (required).
+    """
+    room = fields.Str(required=True)
+    building = fields.Str(required=True)
+
+
+class UpdateLocationSchema(Schema):
+    """
+    Schema for validating input when updating a location.
+    Fields:
+        - room (str): The updated room name (required).
+        - building (str): The updated building name (required).
+    """
+    room = fields.Str(required=True)
+    building = fields.Str(required=True)
+
+
+class CreateSubLocationSchema(Schema):
+    """
+    Schema for validating input when creating a new sublocation.
+    Fields:
+        - name (str): The sublocation name (required).
+        - locationId (int): The ID of the parent location (required).
+    """
+    name = fields.Str(required=True)
+    locationId = fields.Int(required=True, validate=validate_id_exists(Location, "Location_ID"))
+
+
+class UpdateSubLocationSchema(Schema):
+    """
+    Schema for validating input when updating a sublocation.
+    Fields:
+        - name (str): The updated sublocation name (required).
+    """
+    name = fields.Str(required=True)
 class SearchParamsSchema(Schema):
     """
     Schema for validating search parameters.
