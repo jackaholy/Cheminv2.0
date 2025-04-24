@@ -597,24 +597,31 @@ def mark_alive():
 
     """
     inventory_id = request.json.get("inventory_id")
-    logger.debug(f"Received request to mark chemical {inventory_id} as alive.")
+    sticker_number = request.json.get("sticker_number")
 
-    if not inventory_id:
-        logger.warning("Missing inventory_id in request")
-        return jsonify({"error": "Missing inventory_id"}), 400
+    if inventory_id and sticker_number:
+        logger.warning(
+            "Both inventory_id and sticker_number provided."
+        )
+        return jsonify({"error": "Only one of inventory_id or sticker_number should be provided"}), 400
+    if not inventory_id and not sticker_number:
+        logger.warning(
+            "Neither inventory_id nor sticker_number provided."
+        )
+        return jsonify({"error": "Either inventory_id or sticker_number must be provided"}), 400
 
-    if not isinstance(inventory_id, int):
-        logger.warning(f"Invalid inventory_id provided: {inventory_id}")
-        return jsonify({"error": "Invalid inventory_id"}), 400
-    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    if inventory_id:
+        bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
+    else:
+        bottle = db.session.query(Inventory).filter_by(Sticker_Number=sticker_number).first()
+
     if not bottle:
-        logger.warning(f"No bottle found with inventory_id={inventory_id}")
+        logger.warning(f"No bottle found with inventory_id={inventory_id} or sticker_number={sticker_number}")
         return jsonify({"error": "Bottle not found"}), 404
 
-    bottle = db.session.query(Inventory).filter_by(Inventory_ID=inventory_id).first()
     bottle.Is_Dead = False
     db.session.commit()
-    logger.info(f"Chemical with inventory_id={inventory_id} marked as alive")
+    logger.info(f"Chemical with inventory_id={inventory_id} or sticker_number={sticker_number} marked as alive")
     return_value = {"message": "Chemical marked as alive"}
     logger.debug(f"Returning: {return_value}")
     return return_value
@@ -682,11 +689,12 @@ def get_chemicals_by_sublocation():
             "manufacturer": record.Chemical_Manufacturer.Manufacturer.Manufacturer_Name,
             "sticker_number": record.Sticker_Number,
             "last_updated": (
-                record.Last_Updated.strftime("%m/%d/%Y")
+                record.Last_Updated.strftime("%m/%d/%Y") # Format the date
                 if record.Last_Updated
                 else None
-            ),  # Format the date
+            ),
             "who_updated": record.Who_Updated,
+            "is_dead": record.Is_Dead,
         }
         for record in inventory_records
     ]
@@ -806,6 +814,9 @@ def update_location():
         return jsonify({"error": "Invalid new_sub_location_id"}), 400
     # Update the sub-location
     bottle.Sub_Location_ID = new_sub_location_id
+    # Update timestamp and user
+    bottle.Last_Updated = datetime.now()
+    bottle.Who_Updated = session["oidc_auth_profile"].get("preferred_username")
     db.session.commit()
     logger.info(
         f"Inventory {inventory_id} sub-location updated to {new_sub_location_id}"
@@ -862,6 +873,33 @@ def update_chemical(chemical_id):
     db.session.commit()
     logger.info(f"Chemical {chemical_id} updated successfully")
     return jsonify({"message": "Chemical updated successfully"})
+
+
+@chemicals.route("/api/update_last_seen/<int:sticker_number>", methods=["POST"])
+@oidc.require_login
+@require_editor
+def update_last_seen(sticker_number):
+    """
+    Update when a user saw a chemical and who saw it.
+    :param sticker_number: the sticker number of the bottle.
+    """
+    bottle = db.session.query(Inventory).filter_by(Sticker_Number=sticker_number).first()
+    if not bottle:
+        logger.warning(f"No bottle found with sticker_number={sticker_number}")
+        return jsonify({"error": "Bottle not found"}), 404
+
+    # Update timestamp and user
+    bottle.Last_Updated = datetime.now()
+    bottle.Who_Updated = session["oidc_auth_profile"].get("preferred_username")
+    db.session.commit()
+
+    logger.info(f"Bottle with sticker number {sticker_number} updated successfully")
+
+    return jsonify({
+        "message": "Bottle inventoried",
+        "last_updated": bottle.Last_Updated.strftime("%m/%d/%Y %I:%M %p") if bottle.Last_Updated else None,
+        "who_updated": bottle.Who_Updated
+    })
 
 
 @chemicals.route("/api/delete_chemical/<int:chemical_id>", methods=["DELETE"])

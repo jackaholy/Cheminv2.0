@@ -48,7 +48,21 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         return;
       }
 
+      await fetch("/api/chemicals/mark_alive", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sticker_number: sticker_number }),
+      });
+
       if (matchingChemical) {
+        // Update who last saw the chemical
+        await fetch(`/api/update_last_seen/${matchingChemical.sticker_number}`, {
+          method: "POST",
+          credentials: "include"
+        });
+
         setStatusMessage("Chemical inventoried successfully!");
         setStatusColor("success");
         setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
