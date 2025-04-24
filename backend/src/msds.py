@@ -29,7 +29,9 @@ def get_msds_url():
     if not product:
         logger.warning("No product with an MSDS URL found.")
         return ""
-    logger.info(f"Found MSDS URL: {product.MSDS} for product ID: {product.Inventory_ID}")
+    logger.info(
+        f"Found MSDS URL: {product.MSDS} for product ID: {product.Inventory_ID}"
+    )
     return product.MSDS
 
 
@@ -54,11 +56,12 @@ def set_msds_url():
     if not url:
         return jsonify({"error": "Missing 'url' in request payload."}), 400
 
-    db.session.query(Inventory).filter(
     logger.info(f"Updating MSDS URL to: {url}")
-    rows_updated = db.session.query(Inventory).filter(
-        Inventory.MSDS != None, Inventory.MSDS != ""
-    ).update({Inventory.MSDS: url})
+    rows_updated = (
+        db.session.query(Inventory)
+        .filter(Inventory.MSDS != None, Inventory.MSDS != "")
+        .update({Inventory.MSDS: url})
+    )
     db.session.commit()
     logger.info(f"Updated MSDS URL for {rows_updated} inventory records.")
     return {"success": True}
@@ -78,7 +81,11 @@ def add_msds():
         return jsonify({"error": "Missing 'inventory_id' in request payload."}), 400
 
     # Validate if the inventory item exists
-    item = db.session.query(Inventory).filter(Inventory.Inventory_ID == inventory_id).first()
+    item = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID == inventory_id)
+        .first()
+    )
     if not item:
         return jsonify({"error": "Invalid 'inventory_id'. Item not found."}), 404
 
@@ -96,7 +103,9 @@ def add_msds():
         logger.info(f"MSDS URL added to inventory ID: {inventory_id}. URL: {msds_url}")
         return {"success": True}
     else:
-        logger.warning(f"Failed to add MSDS URL. Inventory ID {inventory_id} not found.")
+        logger.warning(
+            f"Failed to add MSDS URL. Inventory ID {inventory_id} not found."
+        )
         return {"success": False, "error": "Item not found"}
 
 
@@ -117,7 +126,11 @@ def clear_msds():
         return jsonify({"error": "Missing 'inventory_id' in request payload."}), 400
 
     # Validate if the inventory item exists
-    item = db.session.query(Inventory).filter(Inventory.Inventory_ID == inventory_id).first()
+    item = (
+        db.session.query(Inventory)
+        .filter(Inventory.Inventory_ID == inventory_id)
+        .first()
+    )
     if not item:
         return jsonify({"error": "Invalid 'inventory_id'. Item not found."}), 404
 
@@ -133,7 +146,9 @@ def clear_msds():
         logger.info(f"Cleared MSDS URL for inventory ID: {inventory_id}")
         return {"success": True}
     else:
-        logger.warning(f"Failed to clear MSDS URL. Inventory ID {inventory_id} not found.")
+        logger.warning(
+            f"Failed to clear MSDS URL. Inventory ID {inventory_id} not found."
+        )
         return {"success": False, "error": "Item not found"}
 
 

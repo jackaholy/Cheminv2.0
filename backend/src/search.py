@@ -65,11 +65,16 @@ def parse_request_params(request):
     """
     Parse and validate request parameters using Marshmallow schemas.
     """
+    manufacturers = request.args.get("manufacturers")
+    if manufacturers:
+        manufacturers = manufacturers.split(",")
+    else:
+        manufacturers = []
     params = {
         "query": request.args.get("query", ""),
         "room": request.args.get("room", None),
         "sub_location": request.args.get("sub_location", None),
-        "manufacturers": request.args.getlist("manufacturers"),
+        "manufacturers": manufacturers,
         "synonyms": request.args.get("synonyms", "false").lower() == "true",
     }
 
@@ -135,16 +140,22 @@ def filter_inventory_records(chemical_list, room, sub_location, manufacturer_ids
 
         if sub_location:
             filtered_inventory = [
-                inv for inv in filtered_inventory if inv["sub_location_id"] == int(sub_location)
+                inv
+                for inv in filtered_inventory
+                if inv["sub_location_id"] == int(sub_location)
             ]
 
         if manufacturer_ids:
             filtered_inventory = [
-                inv for inv in filtered_inventory if inv["manufacturer_id"] in manufacturer_ids
+                inv
+                for inv in filtered_inventory
+                if inv["manufacturer_id"] in manufacturer_ids
             ]
 
         chemical["inventory"] = filtered_inventory
-        chemical["quantity"] = len([inv for inv in filtered_inventory if not inv["dead"]])
+        chemical["quantity"] = len(
+            [inv for inv in filtered_inventory if not inv["dead"]]
+        )
 
     logger.info(f"Filtered inventory records for chemicals.")
     return [chem for chem in chemical_list if chem["inventory"]]
@@ -160,7 +171,10 @@ def search_route():
         validated_params = parse_request_params(request)
     except ValidationError as e:
         logger.error(f"Validation error: {e.messages}")
-        return jsonify({"error": "Invalid request parameters", "details": e.messages}), 400
+        return (
+            jsonify({"error": "Invalid request parameters", "details": e.messages}),
+            400,
+        )
 
     query = validated_params.get("query", "")
     room = validated_params.get("room", None)
@@ -204,7 +218,9 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    chemical_list = filter_inventory_records(chemical_list, room, sub_location, manufacturer_ids)
+    chemical_list = filter_inventory_records(
+        chemical_list, room, sub_location, manufacturer_ids
+    )
 
     if query:
         chemical_list.sort(

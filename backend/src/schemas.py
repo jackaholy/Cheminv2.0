@@ -83,7 +83,9 @@ class AddChemicalSchema(Schema):
 
     chemical_name = fields.Str(required=True)
     chemical_formula = fields.Str(required=True)
-    product_number = fields.Str(required=True)#, validate=validate_unique_product_number)
+    product_number = fields.Str(
+        required=True
+    )  # , validate=validate_unique_product_number)
     storage_class_id = fields.Int(
         required=True, validate=validate_id_exists(Storage_Class, "Storage_Class_ID")
     )
@@ -113,9 +115,10 @@ class UpdateInventorySchema(Schema):
         - sub_location_id (int): The new sub-location ID for the inventory (optional).
         - manufacturer_id (int): The ID of the new manufacturer for the chemical (optional).
     """
+
     sticker_number = fields.Int()
     product_number = fields.Str()
-    product_number = fields.Str(    )
+    product_number = fields.Str()
     sub_location_id = fields.Int(
         validate=validate_id_exists(Sub_Location, "Sub_Location_ID")
     )
@@ -131,6 +134,7 @@ class CreateLocationSchema(Schema):
         - room (str): The room name (required).
         - building (str): The building name (required).
     """
+
     room = fields.Str(required=True)
     building = fields.Str(required=True)
 
@@ -142,6 +146,7 @@ class UpdateLocationSchema(Schema):
         - room (str): The updated room name (required).
         - building (str): The updated building name (required).
     """
+
     room = fields.Str(required=True)
     building = fields.Str(required=True)
 
@@ -153,8 +158,11 @@ class CreateSubLocationSchema(Schema):
         - name (str): The sublocation name (required).
         - locationId (int): The ID of the parent location (required).
     """
+
     name = fields.Str(required=True)
-    locationId = fields.Int(required=True, validate=validate_id_exists(Location, "Location_ID"))
+    locationId = fields.Int(
+        required=True, validate=validate_id_exists(Location, "Location_ID")
+    )
 
 
 class UpdateSubLocationSchema(Schema):
@@ -163,7 +171,10 @@ class UpdateSubLocationSchema(Schema):
     Fields:
         - name (str): The updated sublocation name (required).
     """
+
     name = fields.Str(required=True)
+
+
 class SearchParamsSchema(Schema):
     """
     Schema for validating search parameters.
@@ -174,11 +185,21 @@ class SearchParamsSchema(Schema):
         - manufacturers (list): List of manufacturer IDs (optional).
         - synonyms (bool): Whether to enable synonym search (optional).
     """
+
     query = fields.Str()
-    room = fields.Int(validate=validate_id_exists(Location, "Location_ID"), required=False, allow_none=True)
-    sub_location = fields.Int(validate=validate_id_exists(Sub_Location, "Sub_Location_ID"), required=False, allow_none=True)
+    room = fields.Int(
+        validate=validate_id_exists(Location, "Location_ID"),
+        required=False,
+        allow_none=True,
+    )
+    sub_location = fields.Int(
+        validate=validate_id_exists(Sub_Location, "Sub_Location_ID"),
+        required=False,
+        allow_none=True,
+    )
     manufacturers = fields.List(
         fields.Int(validate=validate_id_exists(Manufacturer, "Manufacturer_ID")),
-        required=False
+        required=False,
+        allow_none=True,
     )
     synonyms = fields.Bool()
