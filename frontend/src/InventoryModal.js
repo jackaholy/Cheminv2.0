@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Modal from "react-bootstrap/Modal";
 import { LocationSelector } from "./LocationSelector";
+import {StatusMessage} from "./StatusMessage";
 
 export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -9,7 +10,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   const [enteredChemicals, setEnteredChemicals] = useState(new Set());
   const [removedChemicals, setRemovedChemicals] = useState(new Set());
   const [inputValue, setInputValue] = useState("");
-  const lastEnterTimeRef = useRef(0);
+  const [statusMessage, setStatusMessage] = useState(""); // State for status message
+  const [statusColor, setStatusColor] = useState(""); // State for status color
 
   // Reset all state when the modal closes.
   const resetState = () => {
@@ -19,6 +21,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
     setInputValue("");
     setEnteredChemicals(new Set());
     setRemovedChemicals(new Set());
+    setStatusMessage("")
+    setStatusColor("")
   };
 
   // Handles closing modals
@@ -37,7 +41,16 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       const matchingChemical = chemicals.find(
           (chem) => chem.sticker_number === sticker_number
       );
+      if (enteredChemicals.has(sticker_number)) {
+        setStatusMessage("This chemical has already been inventoried.");
+        setStatusColor("warning");
+        setInputValue("");
+        return;
+      }
+
       if (matchingChemical) {
+        setStatusMessage("Chemical inventoried successfully!");
+        setStatusColor("success");
         // Remove from displayed list
         setChemicals((prevChemicals) =>
             prevChemicals.filter(
@@ -53,31 +66,41 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         // If not found, check if the chemical exists elsewhere and offer to update location
         try {
           const locationResponse = await fetch(`/api/chemicals/sticker_lookup?sticker_number=${sticker_number}`);
-          if (!locationResponse.ok) throw new Error("Unable to fetch sticker location");
+          // Check if the sticker number exists in the database.
+          if (!locationResponse.ok) {
+            alert("Sticker number does not exist in the database.");
+            console.error("Sticker number does not exist in the database.");
+            return;
+          }
+
           const location_data = await locationResponse.json();
 
           if (
               location_data.location_id !== selectedLocation?.location_id ||
               location_data.sub_location_id !== selectedSubLocation?.sub_location_id
           ) {
-            const confirmMove = window.confirm(
-                `This chemical was last found at:  "${location_data.location_name} - ${location_data.sub_location_name}".\nDo you want to move it to the current location?`
+            await fetch(`api/chemicals/update_chemical_location`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                inventory_id: location_data.inventory_id,
+                new_sub_location_id: selectedSubLocation?.sub_location_id,
+              }),
+            });
+
+            // Remove from displayed list if present
+            setChemicals((prevChemicals) =>
+              prevChemicals.filter(
+                (chem) => chem.sticker_number !== sticker_number
+              )
             );
-            if (confirmMove) {
-              await fetch(`api/chemicals/update_chemical_location`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  inventory_id: location_data.inventory_id,
-                  new_sub_location_id: selectedSubLocation?.sub_location_id,
-                }),
-              });
-              alert("Location updated successfully.");
-              // Reload list
-              fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
-                  .then((res) => res.json())
-                  .then((data) => setChemicals(data));
-            }
+            // Add to entered set
+            setEnteredChemicals(
+              (prevEntered) => new Set([...prevEntered, sticker_number])
+            );
+            // Show a success message
+            setStatusMessage(`Sticker #${sticker_number} moved and inventoried successfully.`);
+            setStatusColor("success");
           }
         } catch (err) {
           console.error("Error checking or moving chemical:", err);
@@ -128,7 +151,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       .then((data) => setChemicals(data));
   }, [selectedSubLocation]);
 
-  // console.log("Inventoried Chemicals:", removedChemicals);
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
@@ -156,7 +178,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           />
           <br></br>
         </div>
-
+        <StatusMessage statusMessage={statusMessage} color={statusColor} />
         <label className="form-label">
           <b>
             Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
@@ -212,6 +234,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                     setRemovedChemicals(new Set());
                     setEnteredChemicals(new Set());
                     setInputValue("");
+                    setStatusMessage("Inventory reset.");
+                    setStatusColor("warning");
                   });
               }
             }}
