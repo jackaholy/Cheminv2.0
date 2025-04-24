@@ -30,12 +30,16 @@ test("test", async ({ page }) => {
     - text: /Science Hall \\d+/
     - radio /Science Hall \\d+/
     - text: /Science Hall \\d+/
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
+    - radio /Science Hall \\d+/
+    - text: /Science Hall \\d+/
     - radio "Science Hall G01"
     - text: Science Hall G01
-    - radio /Science Hall \\d+/
-    - text: /Science Hall \\d+/
-    - radio /Science Hall \\d+/
-    - text: /Science Hall \\d+/
+    - heading "Sub-Location" [level=2]:
+      - button "Sub-Location" [expanded]
+    - textbox "Filter sub-locations" [disabled]
+    - text: Please select a room first
     - heading "Manufacturers" [level=2]:
       - button "Manufacturers" [expanded]
     - textbox "Filter manufacturers"
