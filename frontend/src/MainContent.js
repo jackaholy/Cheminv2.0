@@ -17,13 +17,38 @@ export const MainContent = ({
   const [statusColor, setStatusColor] = useState(""); // State for status color
 
   useEffect(() => {
-    fetch("/api/user", {
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => setUser(data))
-      .catch((error) => console.error(error));
+    const fetchUserWithRetry = async (retryCount = 0, delay = 1000) => {
+      try {
+        const response = await fetch("/api/user", {
+          credentials: "include",
+        });
+  
+        if (!response.ok) {
+          // Retry on 5xx server errors
+          if (response.status >= 500 && response.status < 600) {
+            throw new Error(`Server error: ${response.status}`);
+          } else {
+            // Non-retryable error (e.g., 400 or 404)
+            const errorData = await response.json();
+            console.error("Non-retryable error:", errorData);
+            return;
+          }
+        }
+  
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        console.error(`Attempt ${retryCount + 1} failed:`, error);
+        if (retryCount < 3) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return fetchUserWithRetry(retryCount + 1, delay * 2); // Exponential backoff
+        }
+      }
+    };
+  
+    fetchUserWithRetry();
   }, []);
+  
 
   const renderDownloadButton = (user) => {
     if (user.access === "Full Access" || user.access === "Editor") {
