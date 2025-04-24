@@ -1,64 +1,66 @@
-import { test, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./setup";
 
 test("Filter by location", async ({ page }) => {
   await page.goto("http://localhost:5001/");
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
-      - text: Quantity Chemical Chemical Formula 1
-      - button "Acetone"
-      - text: C3H6O
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Ammonia"
-      - text: NH3
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Copper(II) Sulfate"
-      - text: CuSO4
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Ethanol"
-      - text: C2H6O
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Methanol"
-      - text: CH4O
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Potassium Nitrate"
-      - text: KNO3
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Sodium Hydroxide"
-      - text: NaOH
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Sulfuric Acid"
-      - text: H2SO4
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Water"
-      - text: H2O
-      - button "Edit":
-        - img: 
-      - text: "0"
-      - button "Hydrochloric Acid"
-      - text: HCl
-      - button "Edit":
-        - img: 
-      - text: "0"
-      - button "Silver Nitrate"
-      - text: AgNO3
-      - button "Edit":
-        - img: 
-    `);
+    - link "Download CSV"
+    - text: Quantity Chemical Chemical Formula 1
+    - button "Acetone"
+    - text: C3H6O
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Ammonia"
+    - text: NH3
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Copper(II) Sulfate"
+    - text: CuSO4
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Ethanol"
+    - text: C2H6O
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Methanol"
+    - text: CH4O
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Potassium Nitrate"
+    - text: KNO3
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Sodium Hydroxide"
+    - text: NaOH
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Sulfuric Acid"
+    - text: H2SO4
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Water"
+    - text: H2O
+    - button "Edit":
+      - img: 
+    - text: "0"
+    - button "Hydrochloric Acid"
+    - text: HCl
+    - button "Edit":
+      - img: 
+    - text: "0"
+    - button "Silver Nitrate"
+    - text: AgNO3
+    - button "Edit":
+      - img: 
+  `);
   await page.getByText("Science Hall 101").click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
     - link "Download CSV"
@@ -104,33 +106,36 @@ test("Filter by location", async ({ page }) => {
   `);
   await page.getByText("Science Hall G01").click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
-      - text: Quantity Chemical Chemical Formula 1
-      - button "Potassium Nitrate"
-      - text: KNO3
-      - button "Edit":
-        - img: 
-    `);
+    - link "Download CSV"
+    - text: Quantity Chemical Chemical Formula 1
+    - button "Potassium Nitrate"
+    - text: KNO3
+    - button "Edit":
+      - img: 
+  `);
   await page.getByText("Science Hall 103").click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
-      - text: Quantity Chemical Chemical Formula 1
-      - button "Ammonia"
-      - text: NH3
-      - button "Edit":
-        - img: 
-      - text: "1"
-      - button "Sulfuric Acid"
-      - text: H2SO4
-      - button "Edit":
-        - img: 
-    `);
+    - link "Download CSV"
+    - text: Quantity Chemical Chemical Formula 1
+    - button "Ammonia"
+    - text: NH3
+    - button "Edit":
+      - img: 
+    - text: "1"
+    - button "Sulfuric Acid"
+    - text: H2SO4
+    - button "Edit":
+      - img: 
+  `);
   await page.getByText("Science Hall 104").click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
-      - text: Quantity Chemical Chemical Formula 1
-      - button "Copper(II) Sulfate"
-      - text: CuSO4
-      - button "Edit":
-        - img: 
-    `);
+    - link "Download CSV"
+    - text: Quantity Chemical Chemical Formula 1
+    - button "Copper(II) Sulfate"
+    - text: CuSO4
+    - button "Edit":
+      - img: 
+  `);
   await page.getByTestId("room-filter").getByText("Any").click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
     - link "Download CSV"
