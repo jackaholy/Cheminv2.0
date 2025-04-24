@@ -6,6 +6,7 @@ from database import db
 # Configure logging
 logger = logging.getLogger(__name__)
 
+
 class Chemical(db.Model):
     """
     A kind of chemical. Acetone, water, whatever
@@ -55,7 +56,9 @@ class Chemical(db.Model):
         and its associated inventory rows.
         :return: A dictionary of the inventory data.
         """
-        logger.info(f"Converting chemical '{self.Chemical_Name}' (ID: {self.Chemical_ID}) to dictionary.")
+        logger.debug(
+            f"Converting chemical '{self.Chemical_Name}' (ID: {self.Chemical_ID}) to dictionary."
+        )
         inventory_list = []
         for chem_man in self.Chemical_Manufacturers:
             for inv in chem_man.Inventory:
@@ -101,8 +104,12 @@ class Chemical(db.Model):
                         }
                     )
                 except Exception as e:
-                    logger.error(f"Error processing inventory item (ID: {inv.Inventory_ID}) for chemical '{self.Chemical_Name}': {e}")
-        logger.info(f"Converted {len(inventory_list)} inventory items to dict for chemical '{self.Chemical_Name}'.")
+                    logger.error(
+                        f"Error processing inventory item (ID: {inv.Inventory_ID}) for chemical '{self.Chemical_Name}': {e}"
+                    )
+        logger.debug(
+            f"Converted {len(inventory_list)} inventory items to dict for chemical '{self.Chemical_Name}'."
+        )
         return {
             "id": self.Chemical_ID,
             "chemical_name": self.Chemical_Name,
@@ -111,7 +118,8 @@ class Chemical(db.Model):
                 self.Storage_Class.Storage_Class_Name if self.Storage_Class else None
             ),
             "storage_class_id": (
-                self.Storage_Class.Storage_Class_ID if self.Storage_Class else None),
+                self.Storage_Class.Storage_Class_ID if self.Storage_Class else None
+            ),
             "inventory": sorted(inventory_list, key=lambda x: x["dead"]),
             "quantity": len(
                 [bottle for bottle in inventory_list if not bottle["dead"]]
@@ -278,6 +286,7 @@ class Permissions(db.Model):
     """
     Handles which permissions a user has
     """
+
     __tablename__ = "Permissions"
 
     Permissions_ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -292,6 +301,7 @@ class User(db.Model):
     """
     The user using the database
     """
+
     __tablename__ = "User"
 
     User_ID = Column(Integer, primary_key=True, autoincrement=True)
