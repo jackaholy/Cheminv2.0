@@ -22,7 +22,9 @@ def on_authorize(token):
         token: The token returned by the OIDC provider.
     """
     user_info = token.get("userinfo")
-    logger.info("Authorization signal received for user: %s", user_info["preferred_username"])
+    logger.info(
+        "Authorization signal received for user: %s", user_info["preferred_username"]
+    )
     visitor_permission = (
         db.session.query(Permissions).filter_by(Permissions_Name="Visitor").first()
     )
@@ -66,6 +68,8 @@ def get_current_user():
         logger.warning(f"User {current_username} not found.")
         return jsonify({"error": "User not found"}), 401
     logger.info(f"User {current_username} retrieved successfully.")
+    if not user.permissions:
+        logger.warning(f"User {current_username} has no permissions.")
     return jsonify(
         {
             "name": session["oidc_auth_profile"].get("name"),
@@ -123,13 +127,21 @@ def update_access():
     # Validate user ID
     user = db.session.query(User).filter_by(User_ID=user_id).first()
     if not user:
-        logger.warning("User ID %d not found for access update by user: %s", user_id, modifying_user)
+        logger.warning(
+            "User ID %d not found for access update by user: %s",
+            user_id,
+            modifying_user,
+        )
         return jsonify({"error": "User not found"}), 404
 
     # Validate access level
-    new_permission = db.session.query(Permissions).filter_by(Permissions_Name=access).first()
+    new_permission = (
+        db.session.query(Permissions).filter_by(Permissions_Name=access).first()
+    )
     if not new_permission:
-        logger.warning("Invalid access level: %s provided by user: %s", access, modifying_user)
+        logger.warning(
+            "Invalid access level: %s provided by user: %s", access, modifying_user
+        )
         return jsonify({"error": "Invalid access level"}), 400
 
     user.permissions = new_permission
@@ -162,7 +174,9 @@ def delete_user():
     # Validate user ID
     user = db.session.query(User).filter_by(User_ID=user_id).first()
     if not user:
-        logger.warning("User not found for deletion: %d by user: %s", user_id, deleting_user)
+        logger.warning(
+            "User not found for deletion: %d by user: %s", user_id, deleting_user
+        )
         return jsonify({"error": "User not found"}), 404
 
     db.session.delete(user)
