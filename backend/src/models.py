@@ -1,7 +1,10 @@
+import logging
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean
 from database import db
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class Chemical(db.Model):
     """
@@ -52,49 +55,54 @@ class Chemical(db.Model):
         and its associated inventory rows.
         :return: A dictionary of the inventory data.
         """
+        logger.info(f"Converting chemical '{self.Chemical_Name}' (ID: {self.Chemical_ID}) to dictionary.")
         inventory_list = []
         for chem_man in self.Chemical_Manufacturers:
             for inv in chem_man.Inventory:
-                # Build location string if Sub_Location and Location exist.
-                location = ""
-                if inv.Sub_Location and inv.Sub_Location.Location:
-                    location = f"{inv.Sub_Location.Location.Building} {inv.Sub_Location.Location.Room}"
-                inventory_list.append(
-                    {
-                        "id": inv.Inventory_ID,
-                        "sticker": inv.Sticker_Number,
-                        "product_number": chem_man.Product_Number,
-                        "sub_location": (
-                            inv.Sub_Location.Sub_Location_Name
-                            if inv.Sub_Location
-                            else None
-                        ),
-                        "sub_location_id": (
-                            inv.Sub_Location.Sub_Location_ID
-                            if inv.Sub_Location
-                            else None
-                        ),
-                        "location": location,
-                        "location_id": (
-                            inv.Sub_Location.Location.Location_ID
-                            if inv.Sub_Location and inv.Sub_Location.Location
-                            else None
-                        ),
-                        "manufacturer": (
-                            chem_man.Manufacturer.Manufacturer_Name
-                            if chem_man.Manufacturer
-                            else None
-                        ),
-                        "manufacturer_id": (
-                            chem_man.Manufacturer.Manufacturer_ID
-                            if chem_man.Manufacturer
-                            else None
-                        ),
-                        "dead": inv.Is_Dead,
-                        # Boolean, true if it has it, false if not
-                        "msds": inv.MSDS != None and inv.MSDS != "",
-                    }
-                )
+                try:
+                    # Build location string if Sub_Location and Location exist.
+                    location = ""
+                    if inv.Sub_Location and inv.Sub_Location.Location:
+                        location = f"{inv.Sub_Location.Location.Building} {inv.Sub_Location.Location.Room}"
+                    inventory_list.append(
+                        {
+                            "id": inv.Inventory_ID,
+                            "sticker": inv.Sticker_Number,
+                            "product_number": chem_man.Product_Number,
+                            "sub_location": (
+                                inv.Sub_Location.Sub_Location_Name
+                                if inv.Sub_Location
+                                else None
+                            ),
+                            "sub_location_id": (
+                                inv.Sub_Location.Sub_Location_ID
+                                if inv.Sub_Location
+                                else None
+                            ),
+                            "location": location,
+                            "location_id": (
+                                inv.Sub_Location.Location.Location_ID
+                                if inv.Sub_Location and inv.Sub_Location.Location
+                                else None
+                            ),
+                            "manufacturer": (
+                                chem_man.Manufacturer.Manufacturer_Name
+                                if chem_man.Manufacturer
+                                else None
+                            ),
+                            "manufacturer_id": (
+                                chem_man.Manufacturer.Manufacturer_ID
+                                if chem_man.Manufacturer
+                                else None
+                            ),
+                            "dead": inv.Is_Dead,
+                            # Boolean, true if it has it, false if not
+                            "msds": inv.MSDS != None and inv.MSDS != "",
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error processing inventory item (ID: {inv.Inventory_ID}) for chemical '{self.Chemical_Name}': {e}")
+        logger.info(f"Converted {len(inventory_list)} inventory items to dict for chemical '{self.Chemical_Name}'.")
         return {
             "id": self.Chemical_ID,
             "chemical_name": self.Chemical_Name,

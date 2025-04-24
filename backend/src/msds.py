@@ -1,9 +1,14 @@
+import logging
 from flask import Blueprint, jsonify, request
 from sqlalchemy import or_
 from oidc import oidc
 from permission_requirements import require_editor
 from models import Inventory, Chemical, Manufacturer, Chemical_Manufacturer
 from database import db
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 msds = Blueprint("msds", __name__)
 
@@ -15,14 +20,16 @@ def get_msds_url():
 
     :return: MSDS URL.
     """
-    #
+    logger.info("Fetching a random MSDS URL.")
     product = (
         db.session.query(Inventory)
         .filter(Inventory.MSDS != None, Inventory.MSDS != "")
         .first()
     )
     if not product:
+        logger.warning("No product with an MSDS URL found.")
         return ""
+    logger.info(f"Found MSDS URL: {product.MSDS} for product ID: {product.Inventory_ID}")
     return product.MSDS
 
 
@@ -43,10 +50,12 @@ def set_msds_url():
     :return: JSON indicating success.
     """
     url = request.json.get("url")
-    db.session.query(Inventory).filter(
+    logger.info(f"Updating MSDS URL to: {url}")
+    rows_updated = db.session.query(Inventory).filter(
         Inventory.MSDS != None, Inventory.MSDS != ""
     ).update({Inventory.MSDS: url})
     db.session.commit()
+    logger.info(f"Updated MSDS URL for {rows_updated} inventory records.")
     return {"success": True}
 
 
@@ -59,19 +68,22 @@ def add_msds():
 
     :return: JSON indicating success.
     """
-    # Get the inventory item ID from the request
     inventory_id = request.json.get("inventory_id")
-    # Get the MSDS URL from the request
     msds_url = get_msds_url()
-
+    logger.info(f"Adding MSDS URL: {msds_url} to inventory ID: {inventory_id}")
     item = (
         db.session.query(Inventory)
         .filter(Inventory.Inventory_ID == inventory_id)
         .first()
     )
-    item.MSDS = msds_url
-    db.session.commit()
-    return {"success": True}
+    if item:
+        item.MSDS = msds_url
+        db.session.commit()
+        logger.info(f"MSDS URL added to inventory ID: {inventory_id}. URL: {msds_url}")
+        return {"success": True}
+    else:
+        logger.warning(f"Failed to add MSDS URL. Inventory ID {inventory_id} not found.")
+        return {"success": False, "error": "Item not found"}
 
 
 @msds.route("/api/clear_msds", methods=["POST"])
@@ -86,17 +98,21 @@ def clear_msds():
 
     :return: JSON indicating success.
     """
-    # Get the inventory item ID from the request
     inventory_id = request.json.get("inventory_id")
-
+    logger.info(f"Clearing MSDS URL for inventory ID: {inventory_id}")
     item = (
         db.session.query(Inventory)
         .filter(Inventory.Inventory_ID == inventory_id)
         .first()
     )
-    item.MSDS = None
-    db.session.commit()
-    return {"success": True}
+    if item:
+        item.MSDS = None
+        db.session.commit()
+        logger.info(f"Cleared MSDS URL for inventory ID: {inventory_id}")
+        return {"success": True}
+    else:
+        logger.warning(f"Failed to clear MSDS URL. Inventory ID {inventory_id} not found.")
+        return {"success": False, "error": "Item not found"}
 
 
 @msds.route("/api/get_missing_msds", methods=["GET"])
@@ -112,7 +128,6 @@ def get_missing_msds():
 
     :return: JSON array of inventory items missing MSDS information.
     """
-    # Query for all inventory items that are missing an MSDS URL
     chemicals_without_msds = (
         db.session.query(
             Inventory.Sticker_Number,
@@ -134,8 +149,8 @@ def get_missing_msds():
         .filter(or_(Inventory.MSDS == None, Inventory.MSDS == ""))
         .all()
     )
-
-    # Convert to JSON format
+    logger.info(f"Found {len(chemicals_without_msds)} items missing MSDS URLs.")
+    logger.info(f"Returning {len(chemicals_without_msds)} items missing MSDS URLs.")
     return jsonify(
         [
             {
