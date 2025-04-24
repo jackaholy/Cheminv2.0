@@ -51,12 +51,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       if (matchingChemical) {
         setStatusMessage("Chemical inventoried successfully!");
         setStatusColor("success");
-        // Remove from displayed list
-        setChemicals((prevChemicals) =>
-            prevChemicals.filter(
-                (chem) => chem.sticker_number !== sticker_number
-            )
-        );
+        setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
 
         // Add to entered set
         setEnteredChemicals(
@@ -245,6 +240,16 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             Reset
           </button>
         </div>
+        <button
+          // onClick={() => {
+          //   setStatusMessage("Progress saved.");
+          //   setStatusColor("info");
+          // }}
+          type="button"
+          className="btn btn-outline-primary me-2"
+        >
+          Save Progress
+        </button>
         <button
           onClick={handleCompleteSublocation}
           type="button"
