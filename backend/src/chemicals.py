@@ -285,35 +285,6 @@ def add_chemical():
         "chemical_id": chemical.Chemical_ID,
     }
 
-
-@chemicals.route("/api/storage_classes", methods=["GET"])
-def get_storage_classes():
-    """
-    This endpoint retrieves all storage classes from the database and returns
-    them as a list of dictionaries, where each dictionary contains the
-    storage class name and its corresponding ID.
-
-    :return: A JSON response containing a list of dictionaries. Each dictionary
-            has the following structure:
-            {
-                "name": <Storage_Class_Name>,
-                "id": <Storage_Class_ID>
-            }
-    """
-    logger.info("Retrieving all storage classes")
-    try:
-        storage_classes = db.session.query(Storage_Class).all()
-        storage_class_list = [
-            {"name": sc.Storage_Class_Name, "id": sc.Storage_Class_ID}
-            for sc in storage_classes
-        ]
-        logger.debug(f"Storage classes: {storage_class_list}")
-        return jsonify(storage_class_list)
-    except Exception as e:
-        logger.error(f"Failed to retrieve storage classes: {e}", exc_info=True)
-        return jsonify({"error": "Failed to retrieve storage classes"}), 500
-
-
 @chemicals.route("/api/get_chemicals", methods=["GET"])
 @oidc.require_login
 def get_chemicals():
