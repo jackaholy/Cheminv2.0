@@ -27,7 +27,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
   // Handles closing modals
   const handleClose = () => {
-    resetState();
     parentHandleClose();
   };
 
@@ -148,6 +147,22 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       handleClose();
       };
 
+  function isMoreThanMonthAgo(dateStr) {
+    // Parse input date string
+    const [month, day, year] = dateStr.split("/").map(Number);
+    const inputDate = new Date(year, month - 1, day);
+
+    // Get date one month ago from today
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+
+    return inputDate < oneMonthAgo;
+  }
+
   // Fetch all chemicals in the sub-location
   useEffect(() => {
     // Only load chemical data if a sublocation is given.
@@ -157,7 +172,11 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       {}
     )
       .then((res) => res.json())
-      .then((data) => setChemicals(data));
+      .then((data) =>
+        setChemicals(
+          data.filter((item) => isMoreThanMonthAgo(item.last_updated))
+        )
+      );
   }, [selectedSubLocation]);
 
   return (
@@ -185,13 +204,13 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
-          <br></br>
         </div>
         <StatusMessage statusMessage={statusMessage} color={statusColor} />
         <label className="form-label">
           <b>
             Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
           </b>
+
         </label>
         <div className="grouped-section">
           <table className="table mb-2">
@@ -255,17 +274,10 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           </button>
         </div>
         <button
-          // onClick={() => {
-          //   setStatusMessage("Progress saved.");
-          //   setStatusColor("info");
-          // }}
-          type="button"
-          className="btn btn-outline-primary me-2"
-        >
-          Save Progress
-        </button>
-        <button
-          onClick={handleCompleteSublocation}
+          onClick = {()=>{
+            handleCompleteSublocation();
+	        resetState();
+          }}
           type="button"
           className="btn btn-secondary"
         >
