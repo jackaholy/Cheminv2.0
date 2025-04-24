@@ -1,10 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { expect } from "@playwright/test";
+import { test } from "./setup";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('http://localhost:5001/');
+  await page.goto("http://localhost:5001/");
 });
 
-test('Initial state', async ({ page }) => {
+test("Initial state", async ({ page }) => {
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
     - text: Quantity Chemical Chemical Formula 1
     - button "Acetone"
@@ -64,8 +65,8 @@ test('Initial state', async ({ page }) => {
   `);
 });
 
-test('Search by name', async ({ page }) => {
-  await page.getByRole('textbox', { name: 'Search...' }).fill('Acetone');
+test("Search by name", async ({ page }) => {
+  await page.getByRole("textbox", { name: "Search..." }).fill("Acetone");
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
     - text: Quantity Chemical Chemical Formula 1
     - button "Acetone"
@@ -76,8 +77,8 @@ test('Search by name', async ({ page }) => {
   `);
 });
 
-test('Search by symbol', async ({ page }) => {
-  await page.getByRole('textbox', { name: 'Search...' }).fill('NaOH');
+test("Search by symbol", async ({ page }) => {
+  await page.getByRole("textbox", { name: "Search..." }).fill("NaOH");
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
     - link "Download CSV"
     - text: Quantity Chemical Chemical Formula 1
@@ -89,10 +90,13 @@ test('Search by symbol', async ({ page }) => {
   `);
 });
 
-test('Search by synonym', async ({ page }) => {
-  await page.getByRole('textbox', { name: 'Search...' }).fill('Dihydrogen oxide');
-  await page.getByRole('button', { name: 'Expand Search' }).click();
+test("Search by synonym", async ({ page }) => {
+  await page
+    .getByRole("textbox", { name: "Search..." })
+    .fill("Dihydrogen oxide");
+  await page.getByRole("button", { name: "Expand Search" }).click();
   await expect(page.getByTestId("MainContent")).toMatchAriaSnapshot(`
+    - link "Download CSV"
     - text: Quantity Chemical Chemical Formula 1
     - button "Water"
     - text: H2O
