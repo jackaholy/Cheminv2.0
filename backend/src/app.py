@@ -27,7 +27,7 @@ from database import db, init_db
 from oidc import init_oidc, oidc
 from storage_class import storage_class
 from logging_config import setup_logging
-
+from permission_requirements import require_full_access
 load_dotenv()
 
 
@@ -58,6 +58,16 @@ def create_app(config=ProdConfig):
 
         :return: A simple "OK" string to indicate the app is running.
         """
+        return "OK"
+
+    @app.route("/test/reset", methods=["POST"])
+    @oidc.require_login
+    @require_full_access
+    def reset():
+        db.drop_all()
+        db.create_all()
+        db.session.commit()
+        init_test_data(app)
         return "OK"
 
     @app.route("/")

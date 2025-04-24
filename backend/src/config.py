@@ -46,7 +46,7 @@ class TestingConfig(ProdConfig):
     SECRET_KEY = os.getenv("CHEMINV_SECRET_KEY")
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-
+    DEBUG = True
     OIDC_ENABLED = False
     OIDC_TESTING_PROFILE = {
         "nickname": "Anne Admin",
