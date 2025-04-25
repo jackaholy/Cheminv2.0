@@ -182,7 +182,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   }, [selectedSubLocation]);
 
   return (
-    <Modal show={show} onHide={handleClose} centered size="lg">
+    <Modal show={show} onHide={handleClose} centered size="xl">
       <Modal.Header closeButton>
         <Modal.Title>Inventory</Modal.Title>
       </Modal.Header>
