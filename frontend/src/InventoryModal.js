@@ -28,6 +28,8 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   // Handles closing modals
   const handleClose = () => {
     parentHandleClose();
+    setStatusMessage("")
+    setStatusColor("")
   };
 
   // Detect double space
@@ -206,12 +208,45 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           />
         </div>
         <StatusMessage statusMessage={statusMessage} color={statusColor} />
-        <label className="form-label">
-          <b>
-            Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
-          </b>
-
-        </label>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <label className="form-label mb-0">
+            <b>
+              Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
+            </b>
+          </label>
+            <div>
+                <button
+                  onClick={() => {
+                    if (selectedSubLocation) {
+                      fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                          setChemicals(data);
+                          setRemovedChemicals(new Set());
+                          setEnteredChemicals(new Set());
+                          setInputValue("");
+                          setStatusMessage("Inventory reset (NOTE: Closing this window will reset sublocation state. Complete sublocation before closing.)");
+                          setStatusColor("warning");
+                        });
+                    }
+                  }}
+                  type="button"
+                  className="btn btn-secondary me-2"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => {
+                    handleCompleteSublocation();
+                    resetState();
+                  }}
+                  type="button"
+                  className="btn btn-secondary"
+                >
+                  Complete Sub Location
+                </button>
+            </div>
+        </div>
         <div className="grouped-section">
           <table className="table mb-2">
             <thead>
@@ -249,41 +284,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           </table>
         </div>
       </Modal.Body>
-
-      <Modal.Footer>
-        <div className="me-auto">
-          <button
-            onClick={() => {
-              if (selectedSubLocation) {
-                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
-                  .then((res) => res.json())
-                  .then((data) => {
-                    setChemicals(data);
-                    setRemovedChemicals(new Set());
-                    setEnteredChemicals(new Set());
-                    setInputValue("");
-                    setStatusMessage("Inventory reset.");
-                    setStatusColor("warning");
-                  });
-              }
-            }}
-            type="button"
-            className="btn btn-secondary"
-          >
-            Reset
-          </button>
-        </div>
-        <button
-          onClick = {()=>{
-            handleCompleteSublocation();
-	        resetState();
-          }}
-          type="button"
-          className="btn btn-secondary"
-        >
-          Complete Sub Location
-        </button>
-      </Modal.Footer>
     </Modal>
   );
 };
