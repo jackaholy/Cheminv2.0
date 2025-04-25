@@ -142,7 +142,7 @@ export const ChemicalModal = ({
 
   return (
     <>
-      <Modal show={show} onHide={handleModalClose} centered size="lg">
+      <Modal show={show} onHide={handleModalClose} centered size="xl">
         <Modal.Header closeButton>
           <Modal.Title>{chemical.chemical_name}</Modal.Title>
         </Modal.Header>
