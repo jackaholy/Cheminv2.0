@@ -237,9 +237,12 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                 </button>
                 <button
                   onClick={() => {
-                    handleCompleteSublocation();
-                    resetState();
-                  }}
+                      const confirmed = window.confirm("Are you sure you want to complete this sublocation? All remaining chemicals will be marked as dead.");
+                      if (confirmed) {
+                        handleCompleteSublocation();
+                        resetState();
+                      }
+                    }}
                   type="button"
                   className="btn btn-secondary"
                 >
