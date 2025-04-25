@@ -233,7 +233,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                   type="button"
                   className="btn btn-secondary me-2"
                 >
-                  Reset
+                  Reset/Quick Inventory
                 </button>
                 <button
                   onClick={() => {
