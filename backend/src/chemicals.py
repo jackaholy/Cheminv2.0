@@ -675,6 +675,7 @@ def get_chemicals_by_sublocation():
             Inventory.Sub_Location_ID == sub_location_id,
             Inventory.Is_Dead == False,  # Filter out dead chemicals
         )
+        .order_by(Inventory.Sticker_Number.asc())
         .all()
     )
     logger.debug(
