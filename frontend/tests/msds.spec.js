@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("test", async ({ page }) => {
+test("Test missing msds", async ({ page }) => {
   await page.goto("http://localhost:5001/#");
   await page.getByRole("link", { name: "Missing MSDS" }).click();
   await page
@@ -51,4 +51,23 @@ test("test", async ({ page }) => {
   await expect(
     page.getByRole("checkbox", { name: "Safety data sheet added" })
   ).toBeChecked();
+});
+
+test("Test set msds link", async ({ page }) => {
+  await page.goto("http://localhost:5001/");
+  await page.getByRole("button", { name: "Manage Database" }).click();
+  page.on("dialog", async (dialog) => {
+    await dialog.accept(
+      "https://www.carroll.edu/academics/program-finder/computer-science-information-systems"
+    );
+  });
+  const requestPromise = page.waitForRequest("**/api/set_msds_url");
+  await page.getByRole("link", { name: "Set MSDS URL" }).click();
+  const request = await requestPromise;
+  await page.reload();
+
+  await page.getByRole("link", { name: "Safety Datasheets" }).click();
+  expect(page.url()).toBe(
+    "https://www.carroll.edu/academics/program-finder/computer-science-information-systems"
+  );
 });
