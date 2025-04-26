@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 users = Blueprint("users", __name__)
 
 
-def on_authorize(token):
+def on_authorize(sender, token, return_to):
     """
     Signal handler for user authorization via OIDC.
 

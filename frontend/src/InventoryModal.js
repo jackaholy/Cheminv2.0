@@ -27,8 +27,9 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
 
   // Handles closing modals
   const handleClose = () => {
-    resetState();
     parentHandleClose();
+    setStatusMessage("")
+    setStatusColor("")
   };
 
   // Detect double space
@@ -48,15 +49,24 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
         return;
       }
 
+      await fetch("/api/chemicals/mark_alive", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sticker_number: sticker_number }),
+      });
+
       if (matchingChemical) {
+        // Update who last saw the chemical
+        await fetch(`/api/update_last_seen/${matchingChemical.sticker_number}`, {
+          method: "POST",
+          credentials: "include"
+        });
+
         setStatusMessage("Chemical inventoried successfully!");
         setStatusColor("success");
-        // Remove from displayed list
-        setChemicals((prevChemicals) =>
-            prevChemicals.filter(
-                (chem) => chem.sticker_number !== sticker_number
-            )
-        );
+        setRemovedChemicals((prevRemoved) => new Set([...prevRemoved, sticker_number]));
 
         // Add to entered set
         setEnteredChemicals(
@@ -139,6 +149,22 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       handleClose();
       };
 
+  function isMoreThanMonthAgo(dateStr) {
+    // Parse input date string
+    const [month, day, year] = dateStr.split("/").map(Number);
+    const inputDate = new Date(year, month - 1, day);
+
+    // Get date one month ago from today
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+
+    return inputDate < oneMonthAgo;
+  }
+
   // Fetch all chemicals in the sub-location
   useEffect(() => {
     // Only load chemical data if a sublocation is given.
@@ -148,11 +174,15 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
       {}
     )
       .then((res) => res.json())
-      .then((data) => setChemicals(data));
+      .then((data) =>
+        setChemicals(
+          data.filter((item) => isMoreThanMonthAgo(item.last_updated))
+        )
+      );
   }, [selectedSubLocation]);
 
   return (
-    <Modal show={show} onHide={handleClose} centered size="lg">
+    <Modal show={show} onHide={handleClose} centered size="xl">
       <Modal.Header closeButton>
         <Modal.Title>Inventory</Modal.Title>
       </Modal.Header>
@@ -176,14 +206,50 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
-          <br></br>
         </div>
         <StatusMessage statusMessage={statusMessage} color={statusColor} />
-        <label className="form-label">
-          <b>
-            Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
-          </b>
-        </label>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <label className="form-label mb-0">
+            <b>
+              Located in <u>{selectedSubLocation?.sub_location_name || "..."}</u>
+            </b>
+          </label>
+            <div>
+                <button
+                  onClick={() => {
+                    if (selectedSubLocation) {
+                      fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                          setChemicals(data);
+                          setRemovedChemicals(new Set());
+                          setEnteredChemicals(new Set());
+                          setInputValue("");
+                          setStatusMessage("Inventory reset (NOTE: Closing this window will reset sublocation state. Complete sublocation before closing.)");
+                          setStatusColor("warning");
+                        });
+                    }
+                  }}
+                  type="button"
+                  className="btn btn-secondary me-2"
+                >
+                  Reset/Quick Inventory
+                </button>
+                <button
+                  onClick={() => {
+                      const confirmed = window.confirm("Are you sure you want to complete this sublocation? All remaining chemicals will be marked as dead.");
+                      if (confirmed) {
+                        handleCompleteSublocation();
+                        resetState();
+                      }
+                    }}
+                  type="button"
+                  className="btn btn-secondary"
+                >
+                  Complete Sub Location
+                </button>
+            </div>
+        </div>
         <div className="grouped-section">
           <table className="table mb-2">
             <thead>
@@ -221,38 +287,6 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
           </table>
         </div>
       </Modal.Body>
-
-      <Modal.Footer>
-        <div className="me-auto">
-          <button
-            onClick={() => {
-              if (selectedSubLocation) {
-                fetch(`/api/chemicals/by_sublocation?sub_location_id=${selectedSubLocation.sub_location_id}`)
-                  .then((res) => res.json())
-                  .then((data) => {
-                    setChemicals(data);
-                    setRemovedChemicals(new Set());
-                    setEnteredChemicals(new Set());
-                    setInputValue("");
-                    setStatusMessage("Inventory reset.");
-                    setStatusColor("warning");
-                  });
-              }
-            }}
-            type="button"
-            className="btn btn-secondary"
-          >
-            Reset
-          </button>
-        </div>
-        <button
-          onClick={handleCompleteSublocation}
-          type="button"
-          className="btn btn-secondary"
-        >
-          Complete Sub Location
-        </button>
-      </Modal.Footer>
     </Modal>
   );
 };
