@@ -293,6 +293,7 @@ def get_chemicals():
     API to get chemical details from the database.
     :return: A list of chemicals
     """
+    include_dead = request.args.get("dead", type=bool, default=None)
     logger.info("Retrieving all chemicals")
     try:
         chemicals = (
@@ -311,6 +312,11 @@ def get_chemicals():
         )
 
         chemical_list = [chem.to_dict() for chem in chemicals]
+        
+        for chem in chemical_list:
+            if include_dead is not None:
+                chem["inventory"] = list(filter(lambda x: x["dead"] == include_dead, chem["inventory"]))
+
         chemical_list = filter(lambda x: x["quantity"] > 0, chemical_list)
         chemical_list = sorted(
             chemical_list,
@@ -465,6 +471,8 @@ def mark_dead():
         return jsonify({"error": "Bottle not found"}), 404
 
     bottle.Is_Dead = True
+    bottle.Last_Updated = datetime.now()
+    bottle.Who_Updated = session["oidc_auth_profile"].get("preferred_username")
     db.session.commit()
     logger.info(f"Bottle with inventory_id={inventory_id} marked as dead")
     return_value = {"message": "Chemical marked as dead"}
@@ -1093,3 +1101,68 @@ def update_inventory(inventory_id):
     db.session.commit()
     logger.info(f"Inventory {inventory_id} updated successfully")
     return jsonify({"message": "Inventory updated successfully"})
+
+
+@chemicals.route("/api/chemicals/delete_dead", methods=["DELETE"])
+@oidc.require_login
+@require_editor
+def delete_dead_bottles():
+    """
+    Delete dead chemical bottles from the inventory.
+    
+    This endpoint requires editor permissions. It will fail if any of the specified 
+    bottles are not marked as dead.
+
+    Request Body:
+        dead_bottles (list): List of inventory IDs to delete
+        
+    Returns:
+        200 OK: Bottles were successfully deleted
+        400 Bad Request: Invalid input or bottles not found
+        403 Forbidden: If any bottles are not marked as dead
+    """
+    logger.info("Attempting to delete dead bottles")
+    
+    try:
+        # Validate request body
+        data = request.get_json()
+        if not data or not isinstance(data.get('dead_bottles'), list):
+            logger.warning("Invalid or missing dead_bottles list in request")
+            return jsonify({"error": "Invalid request: dead_bottles list required"}), 400
+
+        bottle_ids = data['dead_bottles']
+        if not bottle_ids:
+            logger.warning("Empty dead_bottles list provided")
+            return jsonify({"error": "No bottle IDs provided"}), 400
+
+        # Query all bottles and validate they exist and are dead before proceeding
+        bottles = db.session.query(Inventory).filter(Inventory.Inventory_ID.in_(bottle_ids)).all()
+        found_ids = {bottle.Inventory_ID for bottle in bottles}
+        
+        # Check if any bottles weren't found
+        missing_ids = set(bottle_ids) - found_ids
+        if missing_ids:
+            logger.warning(f"Some bottles not found: {missing_ids}")
+            return jsonify({"error": f"Bottles not found: {list(missing_ids)}"}), 400
+            
+        # Check if ANY bottles are not marked as dead - fail fast
+        alive_bottles = [bottle.Inventory_ID for bottle in bottles if not bottle.Is_Dead]
+        if alive_bottles:
+            logger.error(f"Attempted to delete non-dead bottles: {alive_bottles}")
+            return jsonify({
+                "error": "Cannot proceed - some bottles are not marked as dead",
+                "alive_bottles": alive_bottles
+            }), 403
+
+        # All bottles exist and are dead, proceed with deletion
+        for bottle in bottles:
+            db.session.delete(bottle)
+        
+        db.session.commit()
+        logger.info(f"Successfully deleted {len(bottles)} dead bottles")
+        return jsonify({"message": f"Successfully deleted {len(bottles)} bottles"})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting dead bottles: {str(e)}", exc_info=True)
+        return jsonify({"error": "Internal server error"}), 500

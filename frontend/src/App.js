@@ -12,6 +12,7 @@ import ManufacturerModal from "./ManufacturerModal";
 import LocationModal from "./LocationModal";
 import SubLocationModal from "./SubLocationModal";
 import StorageClassModal from "./StorageClassModal";
+import DeadBottlesModal from "./DeadBottlesModal";
 
 const App = () => {
     const [query, setQuery] = useState("");
@@ -33,6 +34,7 @@ const App = () => {
     const [showLocationModal, setShowLocationModal] = useState(false);
     const [showSubLocationModal, setShowSubLocationModal] = useState(false);
     const [showStorageClassModal, setShowStorageClassModal] = useState(false);
+    const [showDeadBottlesModal, setShowDeadBottlesModal] = useState(false); 
 
     const handleShowManufacturerModal = () => setShowManufacturerModal(true);
     const handleCloseManufacturerModal = () => setShowManufacturerModal(false);
@@ -145,6 +147,7 @@ const App = () => {
                 handleShowLocationModal={handleShowLocationModal}
                 handleShowSubLocationModal={handleShowSubLocationModal}
                 handleShowStorageClassModal={handleShowStorageClassModal}
+                handleShowDeadBottlesModal={() => setShowDeadBottlesModal(true)} // Pass handler to Navbar
             />
             <div className="tw-flex tw-mt-4">
                 <Sidebar
@@ -218,6 +221,10 @@ const App = () => {
             <StorageClassModal
                 show={showStorageClassModal}
                 handleClose={handleCloseStorageClassModal}
+            />
+            <DeadBottlesModal
+                show={showDeadBottlesModal}
+                handleClose={() => setShowDeadBottlesModal(false)}
             />
         </div>
     );

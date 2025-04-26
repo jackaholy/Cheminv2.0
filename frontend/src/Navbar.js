@@ -8,6 +8,7 @@ export const Navbar = ({
                            handleShowSubLocationModal,
                            handleShowLocationModal,
                            handleShowStorageClassModal,
+                           handleShowDeadBottlesModal,
                        }) => {
     const [user, setUser] = useState({});
     const [msds, setMsds] = useState("");
@@ -141,6 +142,15 @@ export const Navbar = ({
                                                 onClick={handleShowStorageClassModal}
                                             >
                                                 Storage Class List
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a
+                                                className="dropdown-item"
+                                                href="#"
+                                                onClick={handleShowDeadBottlesModal}
+                                            >
+                                                Dead Bottles
                                             </a>
                                         </li>
                                     </ul>
