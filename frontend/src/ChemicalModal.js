@@ -243,7 +243,7 @@ export const ChemicalModal = ({
                     <table className="table mb-0">
                       <tbody>
                         {deadInventory.map((item, index) => (
-                          <tr key={index} className="tw-italic tw-line-through">
+                          <tr key={index} className="tw-italic">
                             <th scope="row">{item.sticker}</th>
                             <td>{item.product_number}</td>
                             <td>{item.location}</td>
