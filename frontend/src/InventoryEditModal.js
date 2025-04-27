@@ -55,7 +55,7 @@ export const InventoryEditModal = ({
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+    <Modal show={show} onHide={handleClose} centered size="xl">
       <Modal.Header closeButton>
         <Modal.Title>Edit Inventory</Modal.Title>
       </Modal.Header>
