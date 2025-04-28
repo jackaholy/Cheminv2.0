@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Storage_Class, Chemical
@@ -6,15 +7,47 @@ from permission_requirements import require_editor
 
 storage_class = Blueprint('storage_class', __name__)
 
-@storage_class.route('/api/storage_classes/', methods=['GET'])
+logger = logging.getLogger(__name__)
+
+@storage_class.route("/api/storage_classes", methods=["GET"])
 def get_storage_classes():
-    storage_classes = db.session.query(Storage_Class).all()
-    return jsonify([{"id": sc.Storage_Class_ID, "name": sc.Storage_Class_Name} for sc in storage_classes])
+    """
+    This endpoint retrieves all storage classes from the database and returns
+    them as a list of dictionaries, where each dictionary contains the
+    storage class name and its corresponding ID.
+
+    :return: A JSON response containing a list of dictionaries. Each dictionary
+            has the following structure:
+            {
+                "name": <Storage_Class_Name>,
+                "id": <Storage_Class_ID>
+            }
+    """
+    logger.info("Retrieving all storage classes")
+    try:
+        storage_classes = db.session.query(Storage_Class).all()
+        storage_class_list = [
+            {"name": sc.Storage_Class_Name, "id": sc.Storage_Class_ID}
+            for sc in storage_classes
+        ]
+        logger.debug(f"Storage classes: {storage_class_list}")
+        return jsonify(storage_class_list)
+    except Exception as e:
+        logger.error(f"Failed to retrieve storage classes: {e}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve storage classes"}), 500
 
 @storage_class.route('/api/storage_classes/', methods=['DELETE'])
 @oidc.require_login
 @require_editor
 def delete_storage_classes():
+    """
+    Deletes specified storage classes and reassigns associated chemicals to the 'Unknown' class.
+
+    Returns:
+        400 if input is invalid or "Unknown" is specified.
+        404 if no storage classes were found for deletion.
+        200 with a success message otherwise.
+    """
     data = request.get_json()
     if not data or 'storageClasses' not in data:
         return jsonify({'error': 'No storage classes specified'}), 400
@@ -57,6 +90,13 @@ def delete_storage_classes():
 @oidc.require_login
 @require_editor
 def create_storage_class():
+    """
+    Creates a new storage class.
+
+    Returns:
+        400 if name is missing or already exists.
+        201 with a success message if created successfully.
+    """
     data = request.get_json()
     if not data or 'name' not in data:
         return jsonify({'error': 'Storage class name is required'}), 400
@@ -75,6 +115,17 @@ def create_storage_class():
 @oidc.require_login
 @require_editor
 def update_storage_class(storage_class_id):
+    """
+    Updates the name of an existing storage class.
+
+    Parameters:
+        storage_class_id (int): The ID of the storage class to update.
+
+    Returns:
+        400 if name is missing.
+        404 if the storage class is not found.
+        200 with a success message if updated.
+    """
     data = request.get_json()
     if not data or 'name' not in data:
         return jsonify({'error': 'Storage class name is required'}), 400

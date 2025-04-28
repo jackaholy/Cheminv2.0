@@ -142,11 +142,11 @@ export const ChemicalModal = ({
 
   return (
     <>
-      <Modal show={show} onHide={handleModalClose} centered size="lg">
+      <Modal show={show} onHide={handleModalClose} centered size="xl">
         <Modal.Header closeButton>
           <Modal.Title>{chemical.chemical_name}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
           <div className="container">
             <div className="row">
               {chemicalImage && (
@@ -245,7 +245,7 @@ export const ChemicalModal = ({
                     <table className="table mb-0">
                       <tbody>
                         {deadInventory.map((item, index) => (
-                          <tr key={index} className="tw-italic tw-line-through">
+                          <tr key={index} className="tw-italic">
                             <th scope="row">{item.sticker}</th>
                             <td>{item.product_number}</td>
                             <td>{item.location}</td>

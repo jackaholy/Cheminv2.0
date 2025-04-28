@@ -9,6 +9,8 @@ export const Sidebar = ({
                             setSelectedManufacturers,
                             selectedRoom,
                             setSelectedRoom,
+                            selectedSubLocation,
+                            setSelectedSubLocation,
                         }) => {
     const [roomFilterText, setRoomFilterText] = useState("");
     const [locations, setRooms] = useState([]);
@@ -17,6 +19,10 @@ export const Sidebar = ({
     const [manufacturerFilterText, setManufacturerFilterText] = useState("");
     const [manufacturers, setManufacturers] = useState([]);
     const [filteredManufacturers, setFilteredManufacturers] = useState([]);
+
+    const [subLocationFilterText, setSubLocationFilterText] = useState("");
+    const [subLocations, setSubLocations] = useState([]);
+    const [filteredSubLocations, setFilteredSubLocations] = useState([]);
 
     useEffect(() => {
         if (manufacturerFilterText !== "") {
@@ -47,9 +53,18 @@ export const Sidebar = ({
     useEffect(() => {
         fetch("/api/locations", {credentials: "include"})
             .then((response) => response.json())
-            .then((data) => setRooms(data))
+            .then((data) => {
+                setRooms(data);
+                // When location changes, update sublocation list
+                if (selectedRoom) {
+                    const location = data.find(loc => loc.location_id === selectedRoom);
+                    setSubLocations(location?.sub_locations || []);
+                } else {
+                    setSubLocations([]);
+                }
+            })
             .catch((error) => console.error(error));
-    }, []);
+    }, [selectedRoom]);
 
     useEffect(() => {
         fetch("/api/manufacturers", {credentials: "include"})
@@ -60,7 +75,19 @@ export const Sidebar = ({
 
     useEffect(() => {
         handleSearch(query);
-    }, [selectedManufacturers, selectedRoom]);
+    }, [selectedManufacturers, selectedRoom, selectedSubLocation]);
+
+    useEffect(() => {
+        if (subLocationFilterText !== "") {
+            setFilteredSubLocations(
+                subLocations.filter((loc) =>
+                    loc.sub_location_name.toLowerCase().includes(subLocationFilterText.toLowerCase())
+                )
+            );
+        } else {
+            setFilteredSubLocations(subLocations);
+        }
+    }, [subLocationFilterText, subLocations]);
 
     const toggleManufacturer = (man) => {
         setSelectedManufacturers((prev) =>
@@ -78,7 +105,10 @@ export const Sidebar = ({
     }, [query]);
 
     return (
-        <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
+        <div
+            className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md tw-overflow-y-auto"
+            style={{maxHeight: 'calc(100vh - 100px)'}}
+        >
             {/* Search Bar */}
             <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
                 <form
@@ -141,9 +171,51 @@ export const Sidebar = ({
                 </Accordion.Item>
             </Accordion>
 
-            {/* Manufacturer Accordion */}
+            {/* Sub-Location Accordion */}
             <Accordion defaultActiveKey="1" className="tw-mt-4">
                 <Accordion.Item eventKey="1">
+                    <Accordion.Header>Sub-Location</Accordion.Header>
+                    <Accordion.Body>
+                        <input
+                            className="form-control tw-mt-2"
+                            placeholder="Filter sub-locations"
+                            value={subLocationFilterText}
+                            onChange={(e) => setSubLocationFilterText(e.target.value)}
+                            disabled={!selectedRoom}
+                        />
+                        <div className="tw-mt-2 tw-space-y-1" data-testid="sub-location-filter">
+                            {filteredSubLocations.length === 0 ? <i>Please select a room first</i> :
+                                <label key={0} className="tw-flex tw-items-center">
+                                    <input
+                                        type="radio"
+                                        name="sublocation"
+                                        className="tw-mr-2"
+                                        checked={selectedSubLocation === 0}
+                                        onChange={() => setSelectedSubLocation(0)}
+                                    />
+                                    Any
+                                </label>}
+
+                            {filteredSubLocations.map((subLoc, index) => (
+                                <label key={index} className="tw-flex tw-items-center">
+                                    <input
+                                        type="radio"
+                                        name="sublocation"
+                                        className="tw-mr-2"
+                                        checked={selectedSubLocation === subLoc.sub_location_id}
+                                        onChange={() => setSelectedSubLocation(subLoc.sub_location_id)}
+                                    />
+                                    {subLoc.sub_location_name}
+                                </label>
+                            ))}
+                        </div>
+                    </Accordion.Body>
+                </Accordion.Item>
+            </Accordion>
+
+            {/* Manufacturer Accordion */}
+            <Accordion defaultActiveKey="2" className="tw-mt-4">
+                <Accordion.Item eventKey="2">
                     <Accordion.Header>Manufacturers</Accordion.Header>
                     <Accordion.Body>
                         <input

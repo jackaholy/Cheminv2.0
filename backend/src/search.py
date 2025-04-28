@@ -10,18 +10,22 @@ from models import (
     Chemical,
     Chemical_Manufacturer,
     Inventory,
-    Storage_Class,
     Sub_Location,
     Location,
     Manufacturer,
 )
 from oidc import oidc
+from schemas import SearchParamsSchema
+from marshmallow.exceptions import ValidationError
 
 search = Blueprint("search", __name__)
 logger = logging.getLogger(__name__)
 
 
 def calculate_similarity(query, entry):
+    """
+    Calculate similarity between the query and an entry.
+    """
     query = query.lower().replace(" ", "")
     entry = entry.lower().replace(" ", "")
     match = SequenceMatcher(None, query, entry).find_longest_match()
@@ -39,6 +43,9 @@ def calculate_similarity(query, entry):
 
 
 def get_synonyms(query):
+    """
+    Fetch synonyms for a given query from PubChem.
+    """
     synonyms = []
     logger.info(f"Looking up synonyms for {query}")
     response = requests.get(
@@ -54,38 +61,30 @@ def get_synonyms(query):
     return synonyms
 
 
-@search.route("/api/search", methods=["GET"])
-@oidc.require_login
-def search_route():
-    # Get parameters from request
-    query = request.args.get("query", "")
-    room = request.args.get("room", None)
-    manufacturers_param = request.args.get("manufacturers", "")
-    synonym_search_enabled = request.args.get("synonyms", "false").lower() == "true"
+def parse_request_params(request):
+    """
+    Parse and validate request parameters using Marshmallow schemas.
+    """
+    manufacturers = request.args.get("manufacturers")
+    if manufacturers:
+        manufacturers = manufacturers.split(",")
+    else:
+        manufacturers = []
+    params = {
+        "query": request.args.get("query", ""),
+        "room": request.args.get("room", None),
+        "sub_location": request.args.get("sub_location", None),
+        "manufacturers": manufacturers,
+        "synonyms": request.args.get("synonyms", "false").lower() == "true",
+    }
 
-    # Split manufacturer IDs (if provided) and trim whitespace
-    manufacturer_ids = [m.strip() for m in manufacturers_param.split(",") if m.strip()]
+    return SearchParamsSchema().load(params)
 
-    # If no filtering criteria provided, return an empty list
-    if not query and not room and not manufacturer_ids:
-        return jsonify([])
 
-    # Clean up the query string by removing certain characters
-    #query = query.replace("/", "").replace("%2F", "").replace("%2f", "")
-    
-
-    # Start with the primary query and add synonyms if enabled
-    search_terms = [query]
-    if synonym_search_enabled:
-        search_terms.extend(get_synonyms(query))
-
-    # Deduplicate search terms
-    search_terms = list(set(search_terms))
-
-    # Filter out possible element symbols (unless it's the original query)
-    search_terms = [term for term in search_terms if len(term) > 3 or term == query]
-
-    # Build filters for Chemical_Name, Alphabetical_Name, and Chemical_Formula
+def build_search_filters(search_terms, room, sub_location, manufacturer_ids):
+    """
+    Build SQLAlchemy filters for the search query.
+    """
     name_filter = or_(
         *[
             func.replace(Chemical.Chemical_Name, " ", "").ilike(
@@ -104,28 +103,98 @@ def search_route():
     )
     formula_filter = or_(*[Chemical.Chemical_Formula == term for term in search_terms])
 
-    # Filter on sticker numbers (via related inventory records)
     sticker_filter = Chemical.Chemical_Manufacturers.any(
         Chemical_Manufacturer.Inventory.any(Inventory.Sticker_Number.in_(search_terms))
     )
 
-    # Combine the search term filters into one using OR
     search_filter = or_(
         name_filter, alphabetical_filter, formula_filter, sticker_filter
     )
 
-    # Create a list of filters that will be combined with AND
     filters = [search_filter]
 
-    # Filter by room name (comparing against Location.Room)
     if room:
-        filters.append(Location.Location_ID == room)
+        filters.append(Location.Location_ID == int(room))
 
-    # Filter by manufacturer IDs if provided
+    if sub_location:
+        filters.append(Sub_Location.Sub_Location_ID == int(sub_location))
+
     if manufacturer_ids:
         filters.append(Manufacturer.Manufacturer_ID.in_(manufacturer_ids))
 
-    # Execute the query with appropriate joins and grouping
+    logger.debug(f"Built search filters: {filters}")
+    return filters
+
+
+def filter_inventory_records(chemical_list, room, sub_location, manufacturer_ids):
+    """
+    Filter inventory records based on room, sub-location, and manufacturer criteria.
+    """
+    for chemical in chemical_list:
+        filtered_inventory = chemical["inventory"]
+
+        if room:
+            filtered_inventory = [
+                inv for inv in filtered_inventory if inv["location_id"] == int(room)
+            ]
+
+        if sub_location:
+            filtered_inventory = [
+                inv
+                for inv in filtered_inventory
+                if inv["sub_location_id"] == int(sub_location)
+            ]
+
+        if manufacturer_ids:
+            filtered_inventory = [
+                inv
+                for inv in filtered_inventory
+                if inv["manufacturer_id"] in manufacturer_ids
+            ]
+
+        chemical["inventory"] = filtered_inventory
+        chemical["quantity"] = len(
+            [inv for inv in filtered_inventory if not inv["dead"]]
+        )
+
+    logger.info(f"Filtered inventory records for chemicals.")
+    return [chem for chem in chemical_list if chem["inventory"]]
+
+
+@search.route("/api/search", methods=["GET"])
+@oidc.require_login
+def search_route():
+    """
+    Handle the search API route.
+    """
+    try:
+        validated_params = parse_request_params(request)
+    except ValidationError as e:
+        logger.error(f"Validation error: {e.messages}")
+        return (
+            jsonify({"error": "Invalid request parameters", "details": e.messages}),
+            400,
+        )
+
+    query = validated_params.get("query", "")
+    room = validated_params.get("room", None)
+    sub_location = validated_params.get("sub_location", None)
+    manufacturer_ids = validated_params.get("manufacturers", [])
+    synonym_search_enabled = validated_params.get("synonyms", False)
+
+    if not query and not room and not sub_location and not manufacturer_ids:
+        logger.warning("No filtering criteria provided. Returning an empty list.")
+        return jsonify([])
+
+    search_terms = [query]
+    if synonym_search_enabled:
+        search_terms.extend(get_synonyms(query))
+
+    search_terms = list(set(search_terms))
+    search_terms = [term for term in search_terms if len(term) > 3 or term == query]
+
+    filters = build_search_filters(search_terms, room, sub_location, manufacturer_ids)
+
     matching_chemicals = (
         db.session.query(Chemical)
         .outerjoin(Chemical.Chemical_Manufacturers)
@@ -149,7 +218,10 @@ def search_route():
 
     chemical_list = [chemical.to_dict() for chemical in matching_chemicals]
 
-    # chemical_list = list(filter(lambda x: x["quantity"] > 0, chemical_list))
+    chemical_list = filter_inventory_records(
+        chemical_list, room, sub_location, manufacturer_ids
+    )
+
     if query:
         chemical_list.sort(
             key=lambda x: (
@@ -161,8 +233,10 @@ def search_route():
     else:
         chemical_list.sort(
             key=lambda x: (
-                x["quantity"] != 0,
+                x["quantity"] == 0,
                 re.sub(r"[^a-zA-Z]", "", x["chemical_name"]).lower(),
             ),
         )
+
+    logger.info(f"Returning {len(chemical_list)} matching chemicals.")
     return jsonify(chemical_list)
