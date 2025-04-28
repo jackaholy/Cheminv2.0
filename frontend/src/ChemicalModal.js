@@ -146,7 +146,7 @@ export const ChemicalModal = ({
         <Modal.Header closeButton>
           <Modal.Title>{chemical.chemical_name}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
           <div className="container">
             <div className="row">
               {chemicalImage && (

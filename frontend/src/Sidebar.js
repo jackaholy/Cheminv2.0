@@ -105,7 +105,10 @@ export const Sidebar = ({
     }, [query]);
 
     return (
-        <div className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md">
+        <div
+            className="tw-w-1/4 tw-bg-white tw-p-4 tw-rounded-md tw-shadow-md tw-overflow-y-auto"
+            style={{maxHeight: 'calc(100vh - 100px)'}}
+        >
             {/* Search Bar */}
             <div className="tw-flex tw-items-center tw-border tw-p-2 tw-rounded-md">
                 <form
@@ -181,18 +184,18 @@ export const Sidebar = ({
                             disabled={!selectedRoom}
                         />
                         <div className="tw-mt-2 tw-space-y-1" data-testid="sub-location-filter">
-                        {filteredSubLocations.length === 0 ? <i>Please select a room first</i> : 
-                            <label key={0} className="tw-flex tw-items-center">
-                                <input
-                                    type="radio"
-                                    name="sublocation"
-                                    className="tw-mr-2"
-                                    checked={selectedSubLocation === 0}
-                                    onChange={() => setSelectedSubLocation(0)}
-                                />
-                                Any
-                            </label>}
-                          
+                            {filteredSubLocations.length === 0 ? <i>Please select a room first</i> :
+                                <label key={0} className="tw-flex tw-items-center">
+                                    <input
+                                        type="radio"
+                                        name="sublocation"
+                                        className="tw-mr-2"
+                                        checked={selectedSubLocation === 0}
+                                        onChange={() => setSelectedSubLocation(0)}
+                                    />
+                                    Any
+                                </label>}
+
                             {filteredSubLocations.map((subLoc, index) => (
                                 <label key={index} className="tw-flex tw-items-center">
                                     <input

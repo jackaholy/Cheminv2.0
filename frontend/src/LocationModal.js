@@ -92,7 +92,7 @@ const LocationModal = (props) => {
                 <Modal.Header closeButton>
                     <Modal.Title>Locations</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
                     <StatusMessage statusMessage={statusMessage} color={statusColor} />
                     <Form className="d-flex">
                         <Form.Control
