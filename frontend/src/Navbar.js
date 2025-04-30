@@ -162,6 +162,11 @@ export const Navbar = ({
                                 Safety Datasheets
                             </a>
                         </li>
+                        <li className="nav-item">
+                            <a className="nav-link" href="README.pdf" target="_blank" rel="noopener noreferrer">
+                                Help
+                            </a>
+                        </li>
                     </ul>
                     <ul className="navbar-nav mb-2 mb-lg-0">
                         <li className="nav-item dropdown">
