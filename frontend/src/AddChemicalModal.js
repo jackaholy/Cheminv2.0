@@ -400,6 +400,8 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
           <div className="grouped-section">
             <label className="form-label">Sticker Number</label>
             <input
+              // Prevent scrolling in the Sticker Number text box
+              onWheel={(e) => e.target.blur()}
               type="number"
               className="form-control"
               value={stickerNumber}
