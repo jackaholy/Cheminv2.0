@@ -8,6 +8,11 @@ conjunction with the Chemistry Department, Chemical Inventory v.2.0 has been dev
 migrate the current database to a modern coding solution, and provide detailed documentation to future
 developers in order to maintain this application for years to come.
 
+## Quick Links
+* [Quick Start](#getting-started)
+* [Deployment Documentation](documentation/deployment.md)
+* [Developer Documentation](documentation/development.md)
+
 ## Developer Guide
 
 ### Overview of the System
