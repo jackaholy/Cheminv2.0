@@ -1,6 +1,6 @@
-import React, {  useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {Modal, Button, Form, Table} from 'react-bootstrap';
-import { StatusMessage } from "./StatusMessage";
+import {StatusMessage} from "./StatusMessage";
 
 const LocationModal = (props) => {
     const {show, handleClose} = props;
@@ -18,6 +18,8 @@ const LocationModal = (props) => {
     const handleCloseDelete = () => setShowDelete(false);
     const handleShowDelete = () => setShowDelete(true);
 
+    const [showFinalConfirm, setShowFinalConfirm] = useState(false);
+
     const [filterQuery, setFilterQuery] = useState("");
     const [editLocationData, setEditLocationData] = useState(null);
 
@@ -31,18 +33,17 @@ const LocationModal = (props) => {
         // Fetch locations when the modal is shown
         if (show) {
             fetch("/api/locations")
-            .then((response) => response.json())
-            .then((data) => {
-                // Initialize each location with a 'selected' property
-                const locationsWithSelection = data.map(location => ({ ...location, selected: false }));
-                setLocations(locationsWithSelection);
-            })
-            .catch((error) => {
-                console.error("Error fetching locations:", error);
-            });
+                .then((response) => response.json())
+                .then((data) => {
+                    // Initialize each location with a 'selected' property
+                    const locationsWithSelection = data.map(location => ({...location, selected: false}));
+                    setLocations(locationsWithSelection);
+                })
+                .catch((error) => {
+                    console.error("Error fetching locations:", error);
+                });
         }
     }, [show]);
-
 
 
     useEffect(() => {
@@ -92,8 +93,8 @@ const LocationModal = (props) => {
                 <Modal.Header closeButton>
                     <Modal.Title>Locations</Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
-                    <StatusMessage statusMessage={statusMessage} color={statusColor} />
+                <Modal.Body className="overflow-auto" style={{maxHeight: '60vh'}}>
+                    <StatusMessage statusMessage={statusMessage} color={statusColor}/>
                     <Form className="d-flex">
                         <Form.Control
                             type="Filter"
@@ -143,7 +144,19 @@ const LocationModal = (props) => {
                 show={showDelete}
                 handleClose={handleCloseDelete}
                 locations={locations}
-                handleDelete={handleDelete}
+                handleFinalConfirm={() => {
+                    setShowDelete(false); // Hide the first confirmation
+                    setShowFinalConfirm(true); // Show the second "super sure?" confirmation
+                }}
+            />
+
+            <FinalDeleteConfirmationModal
+                show={showFinalConfirm}
+                handleClose={() => setShowFinalConfirm(false)}
+                handleDelete={async () => {
+                    await handleDelete();
+                    setShowFinalConfirm(false);
+                }}
             />
         </>
     );
@@ -181,7 +194,7 @@ const LocationTable = ({locations, handleCheckboxChange, handleShowEdit}) => (
     </Table>
 );
 
-const AddLocationModal = ({ show, handleClose, onLocationChange, setStatusMessage, setStatusColor }) => {
+const AddLocationModal = ({show, handleClose, onLocationChange, setStatusMessage, setStatusColor}) => {
     const [room, setRoom] = useState("");
     const [building, setBuilding] = useState("");
 
@@ -251,7 +264,7 @@ const AddLocationModal = ({ show, handleClose, onLocationChange, setStatusMessag
     );
 };
 
-const EditLocationModal = ({ show, handleClose, locationData, onLocationChange, setStatusMessage, setStatusColor }) => {
+const EditLocationModal = ({show, handleClose, locationData, onLocationChange, setStatusMessage, setStatusColor}) => {
     const [room, setRoom] = useState(locationData?.room || "");
     const [building, setBuilding] = useState(locationData?.building || "");
 
@@ -326,7 +339,7 @@ const EditLocationModal = ({ show, handleClose, locationData, onLocationChange, 
     );
 };
 
-const DeleteLocationConfirmationModal = ({show, handleClose, locations, handleDelete}) => (
+const DeleteLocationConfirmationModal = ({show, handleClose, locations, handleFinalConfirm}) => (
     <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
             <Modal.Title>Confirm Deletion</Modal.Title>
@@ -341,8 +354,28 @@ const DeleteLocationConfirmationModal = ({show, handleClose, locations, handleDe
             <b>This will delete every bottle in every sub location in these rooms, permanently and irreversibly.</b>
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="primary" onClick={handleDelete}>
+            <Button variant="primary" onClick={handleFinalConfirm}>
                 Yes
+            </Button>
+            <Button variant="secondary" onClick={handleClose}>
+                Cancel
+            </Button>
+        </Modal.Footer>
+    </Modal>
+);
+
+const FinalDeleteConfirmationModal = ({show, handleClose, handleDelete}) => (
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+            <Modal.Title>Final Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <b>Are you absolutely sure you want to permanently delete these locations?</b><br/>
+            This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="danger" onClick={handleDelete}>
+                Permanently Delete
             </Button>
             <Button variant="secondary" onClick={handleClose}>
                 Cancel
