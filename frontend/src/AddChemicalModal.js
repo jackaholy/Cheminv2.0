@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LocationSelector } from "./LocationSelector";
 import { ManufacturerSelector } from "./ManufacturerSelector";
@@ -193,6 +193,46 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
     resetState();
     parentHandleClose();
   };
+  async function isMissingMSDS(productNumber) {
+    try {
+      const response = await fetch("/api/get_missing_msds");
+      const missingMSDSEntries = await response.json();
+      return missingMSDSEntries.some(
+        (chem) => chem.product_number === productNumber
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async function exists(productNumber) {
+    try {
+      const response = await fetch(
+        `/api/chemicals/product_number_lookup?product_number=${productNumber}`,
+        { credentials: "include" }
+      );
+      const data = await response.json();
+      console.log(data);
+      return data.product_number === productNumber;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async function checkMSDS() {
+    if (
+      (await exists(productNumber)) &&
+      !(await isMissingMSDS(productNumber))
+    ) {
+      console.log("Setting true");
+      setMsds(true);
+    } else {
+      console.log("Setting false");
+      setMsds(false);
+    }
+  }
+
+  useEffect(() => {
+    checkMSDS();
+  }, [productNumber]);
 
   // Common navigation functions.
   const handleBack = () => {
@@ -373,6 +413,7 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
                 type="checkbox"
                 className="form-check-input"
                 value={msds}
+                checked={msds}
                 onChange={(e) => setMsds(e.target.checked)}
                 id="msds_check"
               />
