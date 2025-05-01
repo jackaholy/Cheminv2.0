@@ -17,7 +17,8 @@ developers in order to maintain this application for years to come.
 | **Language**   | PHP (5.3) Web Application | Python (3.13)                    |
 | **Database**   | MySQL (8.4)               | MySQL (8.4)                      |
 | **Frameworks** | N/A                       | Flask (3.1.0) + React (19)       |
-| **Server**     | Windows Server            | Ubuntu (22.04)                   |
+| **Server**     | Windows Server            | Ubuntu (22.04.2)                 |
+| **Container**  | N/A                       | Docker (27.5.1)                  |
 | **Memory**     | ???                       | 4 GB                             |
 | **Storage**    | ???                       | 32 GB                            |
 | **Host**       | CCIT                      | CCIT (Currently on Raspberry Pi) |
