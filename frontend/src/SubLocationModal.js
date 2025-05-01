@@ -80,7 +80,7 @@ const SubLocationModal = ({ show, handleClose }) => {
         </Modal.Header>
         <Modal.Body>
           <StatusMessage statusMessage={statusMessage} color={statusColor} />
-          <Form className="d-flex mb-3">
+          <Form className="d-flex">
             <Form.Control
               type="search"
               placeholder="Filter by sublocation or location"
@@ -127,10 +127,10 @@ const SubLocationModal = ({ show, handleClose }) => {
           </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowAdd(true)}>
+          <Button variant="success" onClick={() => setShowAdd(true)}>
             Add Sub Location
           </Button>
-          <Button variant="secondary" onClick={() => setShowDelete(true)}>
+          <Button variant="danger" onClick={() => setShowDelete(true)}>
             Remove Sub Location
           </Button>
           <Button variant="secondary" onClick={handleClose}>
@@ -212,7 +212,7 @@ const AddSubLocationModal = ({ show, handleClose, onSuccess, onError }) => {
         <Modal.Title>Add Sub Location</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form.Group className="mb-3">
+        <Form.Group>
           <Form.Label>Sub Location Name</Form.Label>
           <Form.Control
             type="text"
@@ -227,7 +227,7 @@ const AddSubLocationModal = ({ show, handleClose, onSuccess, onError }) => {
         />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={handleSave}>
+        <Button variant="success" onClick={handleSave}>
           Save
         </Button>
         <Button variant="secondary" onClick={handleClose}>
@@ -297,7 +297,7 @@ const EditSubLocationModal = ({
         <Modal.Title>Edit Sub Location</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form.Group className="mb-3">
+        <Form.Group>
           <Form.Label>Sub Location Name</Form.Label>
           <Form.Control
             type="text"
@@ -313,10 +313,10 @@ const EditSubLocationModal = ({
         />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={handleSave}>
+        <Button variant="success" onClick={handleSave}>
           Save
         </Button>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button variant="danger" onClick={handleClose}>
           Cancel
         </Button>
       </Modal.Footer>
@@ -366,7 +366,7 @@ const DeleteSubLocationModal = ({
         </ul>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={handleDelete}>
+        <Button variant="danger" onClick={handleDelete}>
           Yes
         </Button>
         <Button variant="secondary" onClick={handleClose}>

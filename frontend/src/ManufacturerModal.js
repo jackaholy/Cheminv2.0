@@ -63,6 +63,7 @@ const ManufacturerModal = ({show, handleClose}) => {
                     <StatusMessage statusMessage={statusMessage} color={statusColor} />
                     <Form className="d-flex mb-3">
                         <Form.Control
+                            className="man-control"
                             type="search"
                             placeholder="Search by manufacturer name"
                             value={filter}
@@ -107,8 +108,8 @@ const ManufacturerModal = ({show, handleClose}) => {
                     </Table>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={() => setShowAdd(true)}>Add Manufacturer</Button>
-                    <Button variant="secondary" onClick={() => setShowDelete(true)}>Remove Manufacturer</Button>
+                    <Button variant="success" onClick={() => setShowAdd(true)}>Add Manufacturer</Button>
+                    <Button variant="danger" onClick={() => setShowDelete(true)}>Remove Manufacturer</Button>
                     <Button variant="secondary" onClick={handleClose}>Close</Button>
                 </Modal.Footer>
             </Modal>
@@ -186,7 +187,7 @@ const AddManufacturerModal = ({ show, handleClose, onSuccess, onError, onUpdate 
                 </Form.Group>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="success" onClick={handleSave}>Save</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>
         </Modal>
@@ -245,7 +246,7 @@ const EditManufacturerModal = ({ show, handleClose, manufacturer, onSuccess, onE
                 </Form.Group>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="success" onClick={handleSave}>Save</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>
         </Modal>
@@ -288,7 +289,7 @@ const DeleteManufacturerModal = ({ show, handleClose, selectedManufacturers, onS
                 </ul>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleDelete}>Yes</Button>
+                <Button variant="danger" onClick={handleDelete}>Yes</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>
         </Modal>

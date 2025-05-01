@@ -76,7 +76,7 @@ const ChemicalEditModal = ({ show, handleClose, chemical, onDataUpdate, setStatu
 
     return (
         <>
-            <Modal show={show} onHide={handleClose} centered>
+            <Modal show={show} onHide={handleClose} centered scrollable>
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Chemical</Modal.Title>
                 </Modal.Header>
