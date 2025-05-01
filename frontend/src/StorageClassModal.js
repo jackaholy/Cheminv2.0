@@ -13,7 +13,7 @@ const StorageClassModal = ({show, handleClose}) => {
     const [statusColor, setStatusColor] = useState("success");
 
     const loadStorageClasses = () => {
-        fetch("/api/storage_classes/", { credentials: "include" })
+        fetch("/api/storage_classes", { credentials: "include" })
             .then((res) => res.json())
             .then((data) => setStorageClasses(data))
             .catch((error) => console.error("Error fetching storage classes:", error));
