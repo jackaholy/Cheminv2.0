@@ -43,7 +43,9 @@ docker compose up --build -d
 docker exec -i cheminv20-mysql-1 sh -c 'exec mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"' < database-dump.sql
 ```
 
-The database dump is a dump of the database from the previous version of the application. Nothing will work until this data is imported. You may have to tweak the container name. Run `docker ps` to find the mysql container name.
+The database dump is a dump of the database from the previous version of the application. Nothing will work until this data is imported. This `.sql` file can be obtained from your IT provider.
+
+You may have to tweak the container name. Run `docker ps` to find the mysql container name.
 
 You can access the application at `http://server_name_or_ip:5001`. It's recommended to use a reverse proxy to serve the application.
 
