@@ -139,14 +139,13 @@ export const ChemicalModal = ({
 
   const aliveInventory = chemical.inventory?.filter((item) => !item.dead);
   const deadInventory = chemical.inventory?.filter((item) => item.dead);
-
   return (
     <>
       <Modal show={show} onHide={handleModalClose} centered size="xl">
         <Modal.Header closeButton>
           <Modal.Title>{chemical.chemical_name}</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
+        <Modal.Body className="overflow-auto" style={{ maxHeight: "60vh" }}>
           <div className="container">
             <div className="row">
               {chemicalImage && (
@@ -184,6 +183,8 @@ export const ChemicalModal = ({
                 <th>Location</th>
                 <th>Sub-Location</th>
                 <th>Manufacturer</th>
+                <th>Last Updated</th>
+                <th>Who Updated</th>
                 {["Editor", "Full Access"].includes(user.access) && (
                   <th>Edit</th>
                 )}
@@ -197,6 +198,8 @@ export const ChemicalModal = ({
                   <td>{item.location}</td>
                   <td>{item.sub_location}</td>
                   <td>{item.manufacturer}</td>
+                  <td>{new Date(item.last_updated).toLocaleDateString()}</td>
+                  <td>{item.who_updated}</td>
                   {["Editor", "Full Access"].includes(user.access) && (
                     <td>
                       <OverlayTrigger
@@ -249,6 +252,10 @@ export const ChemicalModal = ({
                             <td>{item.location}</td>
                             <td>{item.sub_location}</td>
                             <td>{item.manufacturer}</td>
+                            <td>
+                              {new Date(item.last_updated).toLocaleDateString()}
+                            </td>
+                            <td>{item.who_updated}</td>
                             {["Editor", "Full Access"].includes(
                               user.access
                             ) && (
