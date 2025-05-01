@@ -8,9 +8,12 @@ conjunction with the Chemistry Department, Chemical Inventory v.2.0 has been dev
 migrate the current database to a modern coding solution, and provide detailed documentation to future
 developers in order to maintain this application for years to come.
 
-## Developer Guide
+## Quick Links
+* [Quick Start](#getting-started)
+* [Deployment Documentation](documentation/deployment.md)
+* [Developer Documentation](documentation/development.md)
 
-### Overview of the System
+## Overview of the System
 
 |                | Current Implementation    | New Implementation               |
 |----------------|---------------------------|----------------------------------|
@@ -19,9 +22,7 @@ developers in order to maintain this application for years to come.
 | **Frameworks** | N/A                       | Flask (3.1.0) + React (19)       |
 | **Server**     | Windows Server            | Ubuntu (22.04.2)                 |
 | **Container**  | N/A                       | Docker (27.5.1)                  |
-| **Memory**     | ???                       | 4 GB                             |
-| **Storage**    | ???                       | 32 GB                            |
-| **Host**       | CCIT                      | CCIT (Currently on Raspberry Pi) |
+| **Host**       | CCIT                      | CCIT                             |
 
 ## User Guide
 
