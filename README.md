@@ -21,7 +21,7 @@ developers in order to maintain this application for years to come.
 | **Container**  | N/A                       | Docker (27.5.1)                  |
 | **Memory**     | ???                       | 4 GB                             |
 | **Storage**    | ???                       | 32 GB                            |
-| **Host**       | CCIT                      | CCIT (Currently on Raspberry Pi) |
+| **Host**       | CCIT                      | CCIT                             |
 
 ## User Guide
 
