@@ -115,7 +115,7 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                     ) : (
                         <>
                         <p className="my-1">The following bottles haven't been updated in 2+ years and are slated for deletion. Do you want to permanently and irreversably delete all of them?</p>
-                        <button className="btn btn-danger my-1" onClick={() => setShowConfirmation(true)}>Delete All Dead Bottles</button>
+                        <button className="btn btn-danger my-1" onClick={() => setShowConfirmation(true)}>Delete Bottles</button>
                         <Table striped bordered hover>
                             <thead>
                                 <tr>
