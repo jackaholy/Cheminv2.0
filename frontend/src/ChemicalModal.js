@@ -198,7 +198,7 @@ export const ChemicalModal = ({
                   <td>{item.location}</td>
                   <td>{item.sub_location}</td>
                   <td>{item.manufacturer}</td>
-                  <td>{item.last_updated}</td>
+                  <td>{new Date(item.last_updated).toLocaleDateString()}</td>
                   <td>{item.who_updated}</td>
                   {["Editor", "Full Access"].includes(user.access) && (
                     <td>
@@ -252,6 +252,10 @@ export const ChemicalModal = ({
                             <td>{item.location}</td>
                             <td>{item.sub_location}</td>
                             <td>{item.manufacturer}</td>
+                            <td>
+                              {new Date(item.last_updated).toLocaleDateString()}
+                            </td>
+                            <td>{item.who_updated}</td>
                             {["Editor", "Full Access"].includes(
                               user.access
                             ) && (
