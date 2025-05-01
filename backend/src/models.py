@@ -101,6 +101,12 @@ class Chemical(db.Model):
                             "dead": inv.Is_Dead,
                             # Boolean, true if it has it, false if not
                             "msds": inv.MSDS != None and inv.MSDS != "",
+                            "last_updated": (
+                                inv.Last_Updated.strftime("%m/%d/%Y")  # Format the date
+                                if inv.Last_Updated
+                                else None
+                            ),
+                            "who_updated": inv.Who_Updated,
                         }
                     )
                 except Exception as e:

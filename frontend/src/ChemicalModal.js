@@ -139,14 +139,13 @@ export const ChemicalModal = ({
 
   const aliveInventory = chemical.inventory?.filter((item) => !item.dead);
   const deadInventory = chemical.inventory?.filter((item) => item.dead);
-
   return (
     <>
       <Modal show={show} onHide={handleModalClose} centered size="xl">
         <Modal.Header closeButton>
           <Modal.Title>{chemical.chemical_name}</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="overflow-auto" style={{ maxHeight: '60vh' }}>
+        <Modal.Body className="overflow-auto" style={{ maxHeight: "60vh" }}>
           <div className="container">
             <div className="row">
               {chemicalImage && (
@@ -199,6 +198,8 @@ export const ChemicalModal = ({
                   <td>{item.location}</td>
                   <td>{item.sub_location}</td>
                   <td>{item.manufacturer}</td>
+                  <td>{item.last_updated}</td>
+                  <td>{item.who_updated}</td>
                   {["Editor", "Full Access"].includes(user.access) && (
                     <td>
                       <OverlayTrigger
