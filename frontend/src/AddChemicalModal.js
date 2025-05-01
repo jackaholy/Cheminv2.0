@@ -345,7 +345,6 @@ export const AddChemicalModal = ({ show, handleClose: parentHandleClose }) => {
 
   // Render body based on current step.
   const renderBody = () => {
-    console.log("MSDS: ", msds);
     if (step === "product_number") {
       return (
         <ProductNumberInput
