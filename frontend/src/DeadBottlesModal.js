@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Table, OverlayTrigger, Tooltip } from "react-bootstrap";
+import React, {useState, useEffect} from "react";
+import {Modal, Button, Table, OverlayTrigger, Tooltip} from "react-bootstrap";
 
-const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
+const DeadBottlesModal = ({show, handleClose, refreshChemicals}) => {
     const [deadChemicals, setDeadChemicals] = useState([]);
     const [error, setError] = useState(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
@@ -46,7 +46,7 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ dead_bottles: deadChemicals.map(chemical => chemical.inventory.map(bottle => bottle.id)).flat() }),
+                body: JSON.stringify({dead_bottles: deadChemicals.map(chemical => chemical.inventory.map(bottle => bottle.id)).flat()}),
                 credentials: 'include'
             });
 
@@ -70,7 +70,7 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ inventory_id: bottle.id }),
+                body: JSON.stringify({inventory_id: bottle.id}),
             });
 
             if (!response.ok) {
@@ -78,13 +78,13 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
             }
 
             // Remove the marked bottle from the list
-            setDeadChemicals(prevChemicals => 
+            setDeadChemicals(prevChemicals =>
                 prevChemicals.map(chemical => ({
                     ...chemical,
                     inventory: chemical.inventory.filter(b => b.id !== bottle.id)
                 }))
             );
-            
+
             if (refreshChemicals) refreshChemicals();
         } catch (error) {
             console.error("Error marking chemical as alive:", error);
@@ -98,12 +98,12 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
             chemical_name: chemical.chemical_name
         }))
     )
-    .filter(bottle => isOldBottle(bottle.last_updated))
-    .sort((a, b) => new Date(a.last_updated) - new Date(b.last_updated));
+        .filter(bottle => isOldBottle(bottle.last_updated))
+        .sort((a, b) => new Date(a.last_updated) - new Date(b.last_updated));
 
     return (
         <>
-            <Modal show={show} onHide={handleClose} size="xl">
+            <Modal show={show} onHide={handleClose} size="xl" centered scrollable>
                 <Modal.Header closeButton>
                     <Modal.Title>Dead Bottles</Modal.Title>
                 </Modal.Header>
@@ -114,10 +114,15 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                         <p>No bottles found that haven't been updated in 2 years.</p>
                     ) : (
                         <>
-                        <p className="my-1">The following bottles haven't been updated in 2+ years and are slated for deletion. Do you want to permanently and irreversably delete all of them?</p>
-                        <button className="btn btn-danger my-1" onClick={() => setShowConfirmation(true)}>Delete All Dead Bottles</button>
-                        <Table striped bordered hover>
-                            <thead>
+                            <p className="my-1">The following bottles haven't been updated in 2+ years and are slated
+                                for deletion. Do you want to permanently and irreversably delete all of them?</p>
+                            <div className="text-center">
+                                <button className="btn btn-danger pad-danger my-1"
+                                        onClick={() => setShowConfirmation(true)}>Delete All Dead Bottles
+                                </button>
+                            </div>
+                            <Table striped bordered hover>
+                                <thead>
                                 <tr>
                                     <th>Chemical Name</th>
                                     <th>Sticker Number</th>
@@ -126,8 +131,8 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                                     <th>Updated By</th>
                                     <th>Actions</th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                                </thead>
+                                <tbody>
                                 {sortedChemicals.map(bottle => (
                                     <tr key={bottle.sticker}>
                                         <td>{bottle.chemical_name}</td>
@@ -150,8 +155,8 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                                         </td>
                                     </tr>
                                 ))}
-                            </tbody>
-                        </Table>
+                                </tbody>
+                            </Table>
                         </>
                     )}
                 </Modal.Body>
@@ -167,7 +172,8 @@ const DeadBottlesModal = ({ show, handleClose, refreshChemicals }) => {
                     <Modal.Title>Confirm Deletion</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Are you sure you want to permanently delete all dead bottles (that haven't been updated in 2+ years)? This action cannot be undone.
+                    Are you sure you want to permanently delete all dead bottles (that haven't been updated in 2+
+                    years)? This action cannot be undone.
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowConfirmation(false)}>

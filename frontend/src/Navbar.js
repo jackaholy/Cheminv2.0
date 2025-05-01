@@ -45,7 +45,7 @@ export const Navbar = ({
         }
     };
     return (
-        <nav className="navbar navbar-expand-lg bg-light">
+        <nav className="navbar navbar-expand-lg bg-white tw-shadow-md">
             <div className="container-fluid">
                 <a className="navbar-brand" href="#">
                     Chemical Inventory

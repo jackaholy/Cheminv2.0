@@ -138,7 +138,7 @@ const App = () => {
     }, []);
 
     return (
-        <div className="tw-bg-gray-100 pb-3">
+        <div className="tw-bg-neutral-100 pb-3">
             <Navbar
                 handleShowAddChemicalModal={handleShowAddChemicalModal}
                 handleShowInventoryModal={() => setShowInventoryModal(true)}

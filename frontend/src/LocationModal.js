@@ -89,14 +89,15 @@ const LocationModal = (props) => {
     return (
         <>
             {/* Location Modal */}
-            <Modal show={show} onHide={handleClose} size="xl">
+            <Modal show={show} onHide={handleClose} size="xl" centered scrollable>
                 <Modal.Header closeButton>
                     <Modal.Title>Locations</Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="overflow-auto" style={{maxHeight: '60vh'}}>
+                <Modal.Body>
                     <StatusMessage statusMessage={statusMessage} color={statusColor}/>
                     <Form className="d-flex">
                         <Form.Control
+                            className="loc-control"
                             type="Filter"
                             placeholder="Filter"
                             aria-label="Filter"
@@ -111,10 +112,10 @@ const LocationModal = (props) => {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleShowAdd}>
+                    <Button variant="success" onClick={handleShowAdd}>
                         Add Location
                     </Button>
-                    <Button variant="secondary" onClick={handleShowDelete}>
+                    <Button variant="danger" onClick={handleShowDelete}>
                         Remove Selected Location(s)
                     </Button>
                     <Button variant="secondary" onClick={handleClose}>
@@ -253,7 +254,7 @@ const AddLocationModal = ({show, handleClose, onLocationChange, setStatusMessage
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>
+                <Button variant="success" onClick={handleSave}>
                     Save
                 </Button>
                 <Button variant="secondary" onClick={handleClose}>
@@ -328,7 +329,7 @@ const EditLocationModal = ({show, handleClose, locationData, onLocationChange, s
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>
+                <Button variant="success" onClick={handleSave}>
                     Save
                 </Button>
                 <Button variant="secondary" onClick={handleClose}>
@@ -354,7 +355,7 @@ const DeleteLocationConfirmationModal = ({show, handleClose, locations, handleFi
             <b>This will delete every bottle in every sub location in these rooms, permanently and irreversibly.</b>
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="primary" onClick={handleFinalConfirm}>
+            <Button variant="danger" onClick={handleFinalConfirm}>
                 Yes
             </Button>
             <Button variant="secondary" onClick={handleClose}>

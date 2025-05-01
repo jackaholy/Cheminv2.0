@@ -182,7 +182,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
   }, [selectedSubLocation]);
 
   return (
-    <Modal show={show} onHide={handleClose} centered size="xl">
+    <Modal show={show} onHide={handleClose} centered size="xl" scrollable>
       <Modal.Header closeButton>
         <Modal.Title>Inventory</Modal.Title>
       </Modal.Header>
@@ -231,7 +231,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                     }
                   }}
                   type="button"
-                  className="btn btn-secondary me-2"
+                  className="btn btn-danger me-2"
                 >
                   Reset/Quick Inventory
                 </button>
@@ -244,7 +244,7 @@ export const InventoryModal = ({ show, handleClose: parentHandleClose }) => {
                       }
                     }}
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-success"
                 >
                   Complete Sub Location
                 </button>

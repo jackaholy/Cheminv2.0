@@ -95,7 +95,7 @@ export const MainContent = ({
                     <p>Loading...</p>
                 ) : (
                     chemicalsData.map((chem, index) => (
-                        <div key={index} className="tw-grid tw-grid-cols-[2fr_3fr_3fr_40px] tw-p-2">
+                        <div key={index} className="tw-grid tw-grid-cols-[2fr_3fr_3fr_40px] tw-items-center tw-p-2">
                             {/*Columns on the main page*/}
                             <div>{chem.quantity}</div>
                             <div>
@@ -114,7 +114,7 @@ export const MainContent = ({
                             <div>
                                 {["Full Access", "Editor"].includes(user.access) && (
                                     <button
-                                        className="btn btn-secondary btn-sm"
+                                        className="btn btn-dark btn-sm"
                                         onClick={() => handleEditClick(chem)}
                                         title="Edit"
                                     >

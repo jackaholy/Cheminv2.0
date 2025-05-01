@@ -55,7 +55,7 @@ const StorageClassModal = ({show, handleClose}) => {
                 <Modal.Header closeButton>
                     <Modal.Title>Storage Class</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body style={{maxHeight: '60vh', overflowY: 'auto'}}>
                     <StatusMessage statusMessage={statusMessage} color={statusColor} />
                     <Form className="d-flex mb-3">
                         <Form.Control
@@ -102,8 +102,8 @@ const StorageClassModal = ({show, handleClose}) => {
                     </Table>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={() => setShowAdd(true)}>Add Storage Class</Button>
-                    <Button variant="secondary" onClick={() => setShowDelete(true)}>Remove Storage Class</Button>
+                    <Button variant="success" onClick={() => setShowAdd(true)}>Add Storage Class</Button>
+                    <Button variant="danger" onClick={() => setShowDelete(true)}>Remove Storage Class</Button>
                     <Button variant="secondary" onClick={handleClose}>Close</Button>
                 </Modal.Footer>
             </Modal>
@@ -185,7 +185,7 @@ const AddStorageClassModal = ({ show, handleClose, onUpdate, onSuccess, onError 
                 </Form.Group>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="success" onClick={handleSave}>Save</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>
         </Modal>
@@ -248,7 +248,7 @@ const EditStorageClassModal = ({ show, handleClose, storageClass, onUpdate, onSu
                 </Form.Group>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={handleSave}>Save</Button>
+                <Button variant="success" onClick={handleSave}>Save</Button>
                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             </Modal.Footer>
         </Modal>
