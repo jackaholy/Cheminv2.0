@@ -13,9 +13,7 @@ developers in order to maintain this application for years to come.
 * [Deployment Documentation](documentation/deployment.md)
 * [Developer Documentation](documentation/development.md)
 
-## Developer Guide
-
-### Overview of the System
+## Overview of the System
 
 |                | Current Implementation    | New Implementation               |
 |----------------|---------------------------|----------------------------------|
