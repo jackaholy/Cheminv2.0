@@ -9,14 +9,26 @@ git clone https://github.com/jackaholy/Cheminv2.0.git
 cd Cheminv2.0/
 ```
 
+If Git is not installed, refer to this link to install: https://github.com/git-guides/install-git
+
 ### Docker Setup
 
-Make sure you have docker and docker-compose installed. You can install it using the docs here: https://docs.docker.com/engine/install/ubuntu/. It's probably a good idea to go through the post-installation steps as well: https://docs.docker.com/engine/install/linux-postinstall/.
+Make sure you have docker and docker-compose installed.
+
+You can install it using the docs here: https://docs.docker.com/engine/install/ubuntu/.
+
+After installing docker open the post-installation steps and follow the first 4 steps in the "Manage Docker as a non-root user" section: https://docs.docker.com/engine/install/linux-postinstall/.
 
 ```bash
 # Set up the environment variables
 cp example.env .env
 nano .env
+```
+
+...if nano needs to be installed (on Ubuntu/Debian):
+
+```bash
+sudo apt-get install nano
 ```
 
 Scroll down to the Environment section for instructions on how to set up the environment variables. For the database, you'll need to set the database name, username, and password. If this is running in a production environment, you'll want to set the `CHEMINV_ENVIRONMENT` variable to `production`. The secret key is used for the Flask application and should be a long, random string.
